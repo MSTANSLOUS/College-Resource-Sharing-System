@@ -1,21 +1,75 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-8 max-w-6xl">
+
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p class="text-sm text-gray-500 mt-1">Overview of your activity and quick links.</p>
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Welcome back, {{ current_user.full_name }}!</h1>
+        <p class="text-sm text-gray-500 mt-1">Here is what is happening on the platform today.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="p-6 bg-white border border-gray-200 rounded-lg">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Recent Notifications</h3>
-            <p class="text-sm text-gray-500">No new notices for today.</p>
+    {% if current_user.is_class_rep %}
+        <div class="mt-8 pt-6 border-t border-gray-100">
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight mb-4">Pending Student Approvals</h2>
+
+            {% if pending_students %}
+                <div class="divide-y divide-gray-100 bg-white rounded-xl border border-gray-200 px-6">
+                    {% for student in pending_students %}
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 py-5 items-center">
+
+                        <div class="col-span-5 flex flex-col">
+                            <span class="text-base font-semibold text-gray-900">{{ student.full_name }}</span>
+                            <span class="text-xs text-gray-500 mt-0.5">{{ student.email }}</span>
+                        </div>
+
+                        <div class="col-span-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {{ student.campus }}
+                            </span>
+                        </div>
+
+                        <div class="col-span-4 flex justify-end space-x-4">
+                            <form action="{{ url_for('core.approve_student', user_id=student.id) }}" method="POST">
+                                <button type="submit" class="text-sm font-semibold text-gray-900 hover:text-black transition-colors focus:outline-none">
+                                    Approve
+                                </button>
+                            </form>
+
+                            <form action="{{ url_for('core.reject_student', user_id=student.id) }}" method="POST">
+                                <button type="submit" class="text-sm font-semibold text-gray-400 hover:text-red-600 transition-colors focus:outline-none">
+                                    Ignore
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-10 border border-dashed border-gray-200 rounded-xl bg-white">
+                    <p class="text-sm text-gray-500">All clear! No students are currently waiting for your approval.</p>
+                </div>
+            {% endif %}
         </div>
-        <div class="p-6 bg-white border border-gray-200 rounded-lg">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Saved Shortcuts</h3>
-            <p class="text-sm text-gray-500">You haven't pinned any modules yet.</p>
+    {% endif %}
+
+    <div class="mt-8 pt-6 border-t border-gray-100">
+        <h2 class="text-xl font-bold text-gray-900 tracking-tight mb-4">Recent Academic Uploads</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 bg-white border border-gray-200 rounded-xl">
+                <span class="text-xs font-medium text-gray-400 uppercase">Recent Note</span>
+                <h3 class="text-base font-semibold text-gray-900 mt-1">Advanced Database Systems</h3>
+                <p class="text-sm text-gray-500 mt-2">Check the module 3 normalization past paper solutions.</p>
+            </div>
+
+            <div class="p-6 bg-white border border-gray-200 rounded-xl">
+                <span class="text-xs font-medium text-gray-400 uppercase">Recent Note</span>
+                <h3 class="text-base font-semibold text-gray-900 mt-1">Networking Basics</h3>
+                <p class="text-sm text-gray-500 mt-2">OSI Layer stack summary notes updated by rep.</p>
+            </div>
         </div>
     </div>
+
 </div>
 {% endblock %}
