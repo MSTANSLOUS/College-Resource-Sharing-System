@@ -15,6 +15,8 @@ def create_app():
     # 3. Register the Blueprints (so the web pages work)
     from app.auth.routes import auth
     app.register_blueprint(auth)
+    from app.core.routes import core
+    app.register_blueprint(core)
 
     # 4. ⚠️ THE MAGIC TRICK: This creates the tables automatically!
     with app.app_context():

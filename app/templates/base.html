@@ -36,35 +36,35 @@
 
                 <ul class="mt-4 space-y-1 px-4">
                     <li>
-                        <a href="{{ url_for('auth.dashboard') }}"
+                        <a href="{{ url_for('core.dashboard') }}"
                            class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.dashboard' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                             Dashboard
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ url_for('auth.campus_notes') }}"
+                        <a href="{{ url_for('core.campus_notes') }}"
                            class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.campus_notes' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                             My Campus Notes
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ url_for('auth.cross_campus') }}"
+                        <a href="{{ url_for('core.cross_campus') }}"
                            class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.cross_campus' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                             Cross-Campus Archive
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ url_for('auth.vault') }}"
+                        <a href="{{ url_for('core.vault') }}"
                            class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.vault' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                             The Vault
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ url_for('auth.profile') }}"
+                        <a href="{{ url_for('core.profile') }}"
                            class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.profile' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                             Profile
                         </a>
