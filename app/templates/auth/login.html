@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Student Resource Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white text-gray-800 antialiased">
+
+    <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12">
+
+        <div class="hidden lg:flex lg:col-span-7 bg-gray-50 flex-col justify-between p-16">
+            <div class="flex items-center space-x-2">
+                <div class="h-6 w-6 bg-gray-900 rounded-md"></div>
+                <span class="text-xl font-bold text-gray-900">Student Hub.</span>
+            </div>
+
+            <div class="max-w-xl">
+                <h1 class="text-5xl font-bold text-gray-900 leading-tight tracking-tight">
+                    The centered hub for academic growth.
+                </h1>
+                <p class="text-gray-500 mt-6 text-lg leading-relaxed">
+                    Access vetted class resources, archives, and past papers seamlessly curated for your specific campus and program.
+                </p>
+            </div>
+
+            <div class="text-sm text-gray-400">
+                &copy; 2026 Student Initiative.
+            </div>
+        </div>
+
+        <div class="lg:col-span-5 flex items-center justify-center p-8 sm:p-16 bg-white">
+            <div class="w-full max-w-sm">
+                <div class="flex lg:hidden items-center space-x-2 mb-12">
+                    <div class="h-6 w-6 bg-gray-900 rounded-md"></div>
+                    <span class="text-xl font-bold text-gray-900">Student Hub.</span>
+                </div>
+
+                <div class="mb-10">
+                    <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
+                    <p class="text-sm text-gray-500 mt-2">Please enter your details to sign in.</p>
+                </div>
+
+                <form action="{{ url_for('auth.login') }}" method="POST" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Gmail Address</label>
+                        <input type="email" id="email" name="email" required
+                               placeholder="yourname@gmail.com"
+                               class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors placeholder-gray-300">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center">
+                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                            <a href="#" class="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors">Forgot password?</a>
+                        </div>
+                        <input type="password" id="password" name="password" required
+                               placeholder="••••••••"
+                               class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors placeholder-gray-300">
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit"
+                                class="w-full py-3 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-10 text-center text-sm">
+                    <span class="text-gray-500">Don't have an account?</span>
+                    <a href="{{ url_for('auth.register') }}" class="ml-1 font-semibold text-gray-900 hover:text-gray-700 transition-colors">Create account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

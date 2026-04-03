@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Student Resource Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white text-gray-800 antialiased overflow-hidden">
+
+    <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12 h-screen">
+
+        <div class="hidden lg:flex lg:col-span-5 bg-gray-50 flex-col justify-between p-16">
+            <div class="flex items-center space-x-2">
+                <div class="h-6 w-6 bg-gray-900 rounded-md"></div>
+                <span class="text-xl font-bold text-gray-900">Student Hub.</span>
+            </div>
+
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 leading-tight tracking-tight">
+                    Join the student network.
+                </h1>
+                <p class="text-gray-500 mt-4 text-base leading-relaxed">
+                    Set up your account and get access to localized notes curated by your class representative.
+                </p>
+
+                <div class="mt-8 p-4 border border-gray-200 rounded-lg bg-white max-w-sm">
+                    <div class="flex space-x-3">
+                        <div class="mt-0.5">
+                            <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-900">Verification Pending</h4>
+                            <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                                To protect platform integrity, your account will have a pending status upon registration. You will gain access once your class representative reviews and approves your account.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-sm text-gray-400">
+                &copy; 2026 Student Initiative.
+            </div>
+        </div>
+
+        <div class="lg:col-span-7 flex items-center justify-center p-8 sm:p-16 bg-white overflow-y-auto lg:overflow-hidden">
+            <div class="w-full max-w-2xl">
+
+                <div class="flex lg:hidden items-center space-x-2 mb-8">
+                    <div class="h-6 w-6 bg-gray-900 rounded-md"></div>
+                    <span class="text-xl font-bold text-gray-900">Students Hub.</span>
+                </div>
+
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Create your account</h2>
+                    <p class="text-sm text-gray-500 mt-2">Fill in your details to request access to the platform.</p>
+                </div>
+
+                <form action="{{ url_for('auth.register') }}" method="POST" class="space-y-6">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                        <div>
+                            <label for="fullname" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="fullname" name="fullname" required
+                                   placeholder="e.g. John Doe"
+                                   class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors placeholder-gray-300">
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Gmail Address</label>
+                            <input type="email" id="email" name="email" required
+                                   placeholder="must be @gmail.com"
+                                   class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors placeholder-gray-300">
+                        </div>
+
+                        <div>
+                            <label for="campus" class="block text-sm font-medium text-gray-700">Campus</label>
+                            <div class="relative">
+                                <select id="campus" name="campus" required
+                                        class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
+                                    <option value="" disabled selected class="text-gray-300">Select Campus</option>
+                                    <option value="Lilongwe">Lilongwe</option>
+                                    <option value="Blantyre">Blantyre</option>
+                                    <option value="Mzuzu">Mzuzu</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="program" class="block text-sm font-medium text-gray-700">Program</label>
+                            <div class="relative">
+                                <select id="program" name="program" required
+                                        class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
+                                    <option value="" disabled selected class="text-gray-300">Select Program</option>
+                                    <option value="BMIS">BMIS</option>
+                                    <option value="BBME">BBME</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" id="password" name="password" required
+                                   placeholder="••••••••"
+                                   class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors placeholder-gray-300">
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit"
+                                class="w-full py-3 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-8 text-center text-sm">
+                    <span class="text-gray-500">Already have an account?</span>
+                    <a href="{{ url_for('auth.login') }}" class="ml-1 font-semibold text-gray-900 hover:text-gray-700 transition-colors">Sign in here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

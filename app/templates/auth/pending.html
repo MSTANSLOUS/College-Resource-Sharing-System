@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card pending-card">
+        <div class="icon-header">⏳</div>
+
+        <h2>Registration Successful!</h2>
+        <p class="main-message">
+            Your details have been sent to the <strong>Class Representative</strong> for your program at the <strong>{{ user_campus }}</strong> campus.
+        </p>
+
+        <div class="info-box">
+            <p><strong>What happens next?</strong></p>
+            <p>To maintain security and ensure only real MCA students use this system, the Class Rep must verify your account. Please wait patiently while the approval passes.</p>
+        </div>
+
+        <p class="email-notice">
+            A confirmation email has been sent to <strong>{{ user_email }}</strong>. You will receive another email the moment your account is approved.
+        </p>
+
+        <a href="{{ url_for('auth.login') }}" class="btn-secondary">Back to Login</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Resource Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex h-screen overflow-hidden relative">
+
+        <div class="md:hidden absolute top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-20">
+            <h2 class="text-xl font-bold text-gray-900">Student Hub</h2>
+            <button id="menu-toggle" class="p-2 text-gray-600 hover:text-gray-900 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+
+        <nav id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out w-64 h-full bg-white border-r border-gray-200 flex flex-col justify-between z-30 md:z-auto">
+            <div>
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-900">Student Hub</h2>
+                    <button id="menu-close" class="md:hidden text-gray-500 hover:text-gray-900 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <ul class="mt-4 space-y-1 px-4">
+                    <li>
+                        <a href="{{ url_for('auth.dashboard') }}"
+                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.dashboard' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                            Dashboard
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url_for('auth.campus_notes') }}"
+                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.campus_notes' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                            My Campus Notes
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url_for('auth.cross_campus') }}"
+                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.cross_campus' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                            Cross-Campus Archive
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url_for('auth.vault') }}"
+                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.vault' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                            The Vault
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url_for('auth.profile') }}"
+                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'auth.profile' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                            Profile
+                        </a>
+                    </li>
+
+                    <li class="opacity-50 cursor-not-allowed">
+                        <span class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-400">
+                            Discussions (Soon)
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="p-4 border-t border-gray-100 bg-gray-50">
+                <p class="text-sm text-gray-600">Logged in as: <span class="font-semibold text-gray-900">Guest</span></p>
+            </div>
+        </nav>
+
+        <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black bg-opacity-25 z-20 md:hidden"></div>
+
+        <main class="flex-1 h-full overflow-y-auto bg-gray-50 p-8 pt-24 md:pt-8">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+    </div>
+
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        menuClose.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+    </script>
+
+</body>
+</html>
