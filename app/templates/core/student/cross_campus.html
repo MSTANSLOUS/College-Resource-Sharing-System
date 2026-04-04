@@ -1,14 +1,60 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-6 max-w-6xl">
     <div>
         <h1 class="text-2xl font-bold text-gray-900">Cross-Campus Archive</h1>
-        <p class="text-sm text-gray-500 mt-1">Access resources shared from other campus locations.</p>
+        <p class="text-sm text-gray-500 mt-1">Access resources shared from other campus locations for your program.</p>
     </div>
 
-    <div class="border-2 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center bg-white">
-        <p class="text-gray-400 font-medium">Resources from other campuses will appear here.</p>
-    </div>
+    {% if cross_notes %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for note in cross_notes %}
+            <div class="bg-white border border-gray-200 rounded-xl p-6 flex flex-col justify-between hover:shadow-sm transition-shadow">
+
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            {{ note.module_name }}
+                        </span>
+
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                            {{ note.campus }}
+                        </span>
+                    </div>
+
+                    <h3 class="text-lg font-semibold text-gray-900 mt-3 tracking-tight">
+                        {{ note.title }}
+                    </h3>
+
+                    <div class="mt-2 text-xs text-gray-400">
+                        Academic Year: {{ note.academic_year }}
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <span class="text-xs text-gray-500">PDF Document</span>
+
+                    <a href="{{ url_for('static', filename=note.file_path) }}"
+                       target="_blank"
+                       class="text-sm font-semibold text-gray-900 hover:text-black transition-colors focus:outline-none flex items-center">
+                        View Note
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="border-2 border-dashed border-gray-200 rounded-xl h-96 flex flex-col items-center justify-center bg-white">
+            <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h2.935M16.245 3.935l-1.5 1.5A1.5 1.5 0 0014 6.5V7a1 1 0 01-1 1h-1m4 4l1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-gray-400 font-medium">No archived notes found from other campuses.</p>
+            <p class="text-gray-400 text-sm mt-1">When reps from other campuses upload resources for your program, they will appear here.</p>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

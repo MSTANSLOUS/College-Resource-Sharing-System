@@ -70,3 +70,15 @@ def register():
 
     programs = Program.query.all()
     return render_template('auth/register.html', programs=programs)
+
+
+@auth.route('/logout')
+@login_required  # Keeps non-logged-in users from randomly hitting this endpoint
+def logout():
+    # 1. This kills the Flask-Login session cookie
+    logout_user()
+
+    flash('You have been logged out successfully.')
+
+    # 2. Kick them back to the login page
+    return redirect(url_for('auth.login'))

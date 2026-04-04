@@ -7,22 +7,59 @@
         <p class="text-sm text-gray-500 mt-1">Manage your student ID, phone number, and academic details.</p>
     </div>
 
-    <div class="p-6 bg-white border border-gray-200 rounded-lg max-w-2xl">
+    <form action="{{ url_for('core.profile') }}" method="POST" class="p-6 bg-white border border-gray-200 rounded-lg max-w-2xl">
         <div class="space-y-4">
+
             <div>
-                <label class="block text-sm font-medium text-gray-700">Display Name</label>
-                <input type="text" value="Guest" readonly class="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                <label for="fullname" class="block text-sm font-medium text-gray-700">Student Name</label>
+                <input type="text" id="fullname" name="fullname" placeholder="Enter your name"
+                       value="{{ user.full_name }}"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-400">
             </div>
+
             <div>
-                <label class="block text-sm font-medium text-gray-700">Student ID</label>
-                <input type="text" placeholder="Enter your student ID" class="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-400">
+                <label for="student_id" class="block text-sm font-medium text-gray-700">Student ID</label>
+                <input type="text" id="student_id" name="student_id" placeholder="Enter your student ID"
+                       value="{{ user.student_id or '' }}"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-400">
             </div>
+
             <div>
-                <button class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                <label for="phone" class="block text-sm font-medium text-gray-700">Student Phone</label>
+                <input type="text" id="phone" name="phone" placeholder="Enter phone number"
+                       value="{{ user.phone_number or '' }}"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-400">
+            </div>
+
+            <div>
+                <label for="campus" class="block text-sm font-medium text-gray-700">Campus</label>
+                <select id="campus" name="campus"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 bg-white">
+                    <option value="Blantyre" {% if user.campus == 'Blantyre' %}selected{% endif %}>Blantyre Campus</option>
+                    <option value="Lilongwe" {% if user.campus == 'Lilongwe' %}selected{% endif %}>Lilongwe Campus</option>
+                    <option value="Mzuzu" {% if user.campus == 'Mzuzu' %}selected{% endif %}>Mzuzu Campus</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="program" class="block text-sm font-medium text-gray-700">Academic Program</label>
+                <select id="program" name="program"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 bg-white">
+                    {% for program in programs %}
+                        <option value="{{ program.id }}" {% if user.program_id == program.id %}selected{% endif %}>
+                            {{ program.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
                     Save Changes
                 </button>
             </div>
+
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}

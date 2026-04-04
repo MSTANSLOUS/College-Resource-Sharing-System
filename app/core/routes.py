@@ -29,14 +29,28 @@ def dashboard():
 @core.route('/campus_notes')
 @login_required
 def campus_notes():
-    return render_template('core/student/campus_notes.html')
+    # 1. Fetch resources matching the current user's campus AND their specific program
+    notes = Resource.query.filter_by(campus=current_user.campus) \
+        .join(Resource.programs) \
+        .filter(Program.id == current_user.program_id) \
+        .order_by(Resource.id.desc()) \
+        .all()
+
+    return render_template('core/student/campus_notes.html', notes=notes)
 
 
 # The archive routes
 @core.route('/cross_campus')
 @login_required
 def cross_campus():
-    return render_template('core/student/cross_campus.html')
+    # Fetch resources for the user's program but from OTHER campuses
+    cross_notes = Resource.query.filter(Resource.campus != current_user.campus) \
+        .join(Resource.programs) \
+        .filter(Program.id == current_user.program_id) \
+        .order_by(Resource.id.desc()) \
+        .all()
+
+    return render_template('core/student/cross_campus.html', cross_notes=cross_notes)
 
 
 # The vault route
@@ -46,11 +60,35 @@ def vault():
     return render_template('core/student/vault.html')
 
 
-# The profile route
-@core.route('/profile')
+@core.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template('core/student/profile.html')
+    if request.method == 'POST':
+        # 1. Grab all the updated data from the form
+        fullname = request.form.get('fullname')
+        student_id_val = request.form.get('student_id')
+        phone = request.form.get('phone')
+        campus = request.form.get('campus')
+        program_id = request.form.get('program')
+
+        # 2. Update the logged-in user's data directly
+        current_user.full_name = fullname
+        current_user.student_id = student_id_val
+        current_user.phone_number = phone
+        current_user.campus = campus
+        current_user.program_id = program_id  # Linking the selected program ID
+
+        # 3. Commit the changes to the DB
+        db.session.commit()
+
+        flash('Profile updated successfully!')
+        return redirect(url_for('core.profile'))
+
+    # If it's a GET request:
+    # Query all programs from the database for the dropdown
+    programs = Program.query.all()
+
+    return render_template('core/student/profile.html', user=current_user, programs=programs)
 
 
 @core.route('/upload-resource', methods=['GET', 'POST'])
@@ -106,6 +144,7 @@ def upload_resource():
     return render_template('core/class_rep/upload_resource.html', programs=programs)
 
 
+
 # 2. Action: Approve the Student
 @core.route('/approve-student/<int:user_id>', methods=['POST'])
 @login_required
@@ -125,6 +164,8 @@ def approve_student(user_id):
 
     # FIX: Redirect back to dashboard instead of a dedicated approvals page!
     return redirect(url_for('core.dashboard'))
+
+
 
 
 # 3. Action: Reject/Delete the Student
