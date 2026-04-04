@@ -35,69 +35,75 @@
                 </div>
 
                 <ul class="mt-4 space-y-1 px-4">
-                    <li>
-                        <a href="{{ url_for('core.dashboard') }}"
-                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.dashboard' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                            Dashboard
-                        </a>
-                    </li>
 
-                    <li>
-                        <a href="{{ url_for('core.campus_notes') }}"
-                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.campus_notes' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                            My Campus Notes
-                        </a>
-                    </li>
+    {% if current_user.is_admin %}
+    <li>
+        <a href="{{ url_for('core.admin_dashboard') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.admin_dashboard' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            Admin Dashboard
+        </a>
+    </li>
 
-                    <li>
-                        <a href="{{ url_for('core.cross_campus') }}"
-                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.cross_campus' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                            Cross-Campus Archive
-                        </a>
-                    </li>
+    {% else %}
+    <li>
+        <a href="{{ url_for('core.dashboard') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.dashboard' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            Dashboard
+        </a>
+    </li>
 
-                    <li>
-                        <a href="{{ url_for('core.vault') }}"
-                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.vault' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                            The Vault
-                        </a>
-                    </li>
+    <li>
+        <a href="{{ url_for('core.campus_notes') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.campus_notes' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            My Campus Notes
+        </a>
+    </li>
 
-                    {% if current_user.is_class_rep %}
-                    <li class="pt-2 border-t border-gray-100 mt-2">
-                        <span class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Rep Controls</span>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('core.upload_resource') }}"
-                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.upload_resource' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                            Upload Resource
-                        </a>
-                    </li>
-                    {% endif %}
+    <li>
+        <a href="{{ url_for('core.cross_campus') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.cross_campus' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            Cross-Campus Archive
+        </a>
+    </li>
 
-                    <li class="pt-2 border-t border-gray-100 mt-2">
-                        <a href="{{ url_for('core.profile') }}"
-                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.profile' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                            Profile
-                        </a>
-                    </li>
+    <li>
+        <a href="{{ url_for('core.vault') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.vault' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            The Vault
+        </a>
+    </li>
 
-                    <li class="opacity-50 cursor-not-allowed">
-                        <span class="flex items-center px-4 py-2.5 text-sm font-medium text-gray-400">
-                            Discussions (Soon)
-                        </span>
-                    </li>
+    {% if current_user.is_class_rep %}
+    <li class="pt-2 border-t border-gray-100 mt-2">
+        <span class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Rep Controls</span>
+    </li>
+    <li>
+        <a href="{{ url_for('core.upload_resource') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.upload_resource' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            Upload Resource
+        </a>
+    </li>
+    {% endif %}
 
-                    <li class="pt-2 border-t border-gray-100 mt-2">
-                        <a href="{{ url_for('auth.logout') }}"
-                           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors">
-                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
-                            Logout
-                        </a>
-                    </li>
-                </ul>
+    {% endif %}
+
+    <li class="pt-2 border-t border-gray-100 mt-2">
+        <a href="{{ url_for('core.profile') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors {% if request.endpoint == 'core.profile' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            Profile
+        </a>
+    </li>
+
+    <li class="pt-2 border-t border-gray-100 mt-2">
+        <a href="{{ url_for('auth.logout') }}"
+           class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            Logout
+        </a>
+    </li>
+</ul>
             </div>
 
             <div class="p-4 border-t border-gray-100 bg-gray-50">

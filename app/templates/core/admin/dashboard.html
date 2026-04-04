@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6 max-w-6xl">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">System Super Dashboard</h1>
+        <p class="text-sm text-gray-500 mt-1">Manage system users, grant elevated permissions, and monitor activity.</p>
+    </div>
+
+    <div class="border-b border-gray-200">
+        <nav class="flex space-x-6" aria-label="Tabs">
+            <button onclick="switchTab('reps')" id="tab-reps-btn" class="border-b-2 border-indigo-600 text-indigo-600 px-1 py-3 text-sm font-semibold focus:outline-none">
+                Class Representatives
+            </button>
+            <button onclick="switchTab('students')" id="tab-students-btn" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-3 text-sm font-semibold focus:outline-none">
+                All Students
+            </button>
+            <button onclick="switchTab('logs')" id="tab-logs-btn" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-3 text-sm font-semibold focus:outline-none">
+                System Logs
+            </button>
+        </nav>
+    </div>
+
+    <div class="mt-4">
+
+        <div id="section-reps" class="tab-content block">
+            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campus</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm">
+                        {% for user in users if user.is_class_rep and not user.is_admin %}
+                        <tr>
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-gray-900">{{ user.full_name }}</div>
+                                <div class="text-gray-500 text-xs">{{ user.email }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500">{{ user.campus or 'N/A' }}</td>
+                            <td class="px-6 py-4">
+                                <span class="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full text-xs font-medium">Class Rep</span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">No class representatives designated yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="section-students" class="tab-content hidden">
+            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campus</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm">
+                        {% for user in users if not user.is_class_rep and not user.is_admin %}
+                        <tr>
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-gray-900">{{ user.full_name }}</div>
+                                <div class="text-gray-500 text-xs">{{ user.email }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500">{{ user.campus or 'N/A' }}</td>
+                            <td class="px-6 py-4">
+                                {% if user.is_approved %}
+                                    <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-medium">Approved</span>
+                                {% else %}
+                                    <span class="text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded-full text-xs font-medium">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <form action="{{ url_for('core.make_rep', user_id=user.id) }}" method="POST">
+                                    <button type="submit" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700">
+                                        Promote to Rep
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-sm text-gray-500 text-center">No students registered yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="section-logs" class="tab-content hidden">
+            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm">
+                        {% for log in logs %}
+                        <tr>
+                            <td class="px-6 py-4 text-gray-500 whitespace-nowrap">
+                                {{ log.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-900">
+                                {{ log.user.full_name if log.user else 'System/Guest' }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500">
+                                {{ log.details or '-' }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-sm text-gray-500 text-center">No system activity recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function switchTab(tabId) {
+        // 1. Hide all content sections
+        document.querySelectorAll('.tab-content').forEach(section => {
+            section.classList.add('hidden');
+            section.classList.remove('block');
+        });
+
+        // 2. Remove active styling from all tab buttons
+        const buttons = [
+            document.getElementById('tab-reps-btn'),
+            document.getElementById('tab-students-btn'),
+            document.getElementById('tab-logs-btn')
+        ];
+
+        buttons.forEach(btn => {
+            btn.classList.remove('border-indigo-600', 'text-indigo-600');
+            btn.classList.add('border-transparent', 'text-gray-500');
+        });
+
+        // 3. Show the target content section
+        document.getElementById('section-' + tabId).classList.remove('hidden');
+        document.getElementById('section-' + tabId).classList.add('block');
+
+        // 4. Highlight the active button
+        const activeBtn = document.getElementById('tab-' + tabId + '-btn');
+        activeBtn.classList.remove('border-transparent', 'text-gray-500');
+        activeBtn.classList.add('border-indigo-600', 'text-indigo-600');
+    }
+</script>
+{% endblock %}

@@ -1,8 +1,8 @@
 from flask import Flask
 from config import Config
-from app.models import db
+from app.models import db, User, Program
 from flask_login import LoginManager
-from app.models import User
+from werkzeug.security import generate_password_hash
 
 # Initialize LoginManager globally outside the function
 login_manager = LoginManager()
@@ -17,7 +17,7 @@ def create_app():
 
     # 3. Link SQLAlchemy and LoginManager to this specific Flask app
     db.init_app(app)
-    login_manager.init_app(app)  # 👈 THIS WAS THE MISSING LINK!
+    login_manager.init_app(app)
 
     # Tell Flask-Login where to redirect users who aren't logged in
     login_manager.login_view = 'auth.login'
@@ -35,9 +35,44 @@ def create_app():
         from flask_login import current_user
         return dict(current_user=current_user)
 
-    # 6. Create the tables automatically
+    # 6. Create the tables and seed default data automatically
+    # (Fixed the indentation here so it lines up with the rest of the function)
     with app.app_context():
         db.create_all()
+
+        # 1. SEED YOUR ACTUAL PROGRAMS FIRST
+        programs_list = ['BMIS', 'BBME', 'BAAA-IS', 'BMPR', 'BBFSM']
+        for prog_name in programs_list:
+            exists = Program.query.filter_by(name=prog_name).first()
+            if not exists:
+                new_prog = Program(name=prog_name)
+                db.session.add(new_prog)
+
+        # Save the programs so we can grab one for the admin!
+        db.session.commit()
+
+        # 2. NOW CREATE THE SUPER ADMIN
+        admin = User.query.filter_by(is_admin=True).first()
+
+        if not admin:
+            # Grab the BMIS program we just created to keep the database happy!
+            bmis_program = Program.query.filter_by(name='BMIS').first()
+
+            print("No Super Admin found. Creating one now...")
+            super_user = User(
+                full_name="System Super Admin",
+                email="admin@gmail.com",
+                # Upgraded to secure hash instead of plain text "admin"
+                password_hash=generate_password_hash("admin"),
+                is_admin=True,
+                is_approved=True,
+                is_class_rep=False,
+                campus="System",
+                program_id=bmis_program.id
+            )
+            db.session.add(super_user)
+            db.session.commit()
+            print("Super Admin created successfully!")
 
     return app
 

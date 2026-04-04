@@ -3,18 +3,28 @@ from flask import Blueprint, render_template, request, redirect, current_app, fl
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
-from app.models import db, Program, Resource, User
+from app.models import db, Program, Resource, User, Log
 
 core = Blueprint('core', __name__)
 
 
+def create_log(action, details=None):
+    """Helper function to record system activity"""
+    log_entry = Log(
+        user_id=current_user.id if current_user.is_authenticated else None,
+        action=action,
+        details=details
+    )
+    db.session.add(log_entry)
+    db.session.commit()
+
+
 # 3. The dashboard Route
 @core.route('/dashboard')
-@login_required  # Added this to ensure a guest cannot view the dashboard
+@login_required
 def dashboard():
     pending_students = []
 
-    # If the logged-in user is a Class Rep, fetch their pending applicants!
     if current_user.is_class_rep:
         pending_students = User.query.filter_by(
             is_approved=False,
@@ -29,7 +39,6 @@ def dashboard():
 @core.route('/campus_notes')
 @login_required
 def campus_notes():
-    # 1. Fetch resources matching the current user's campus AND their specific program
     notes = Resource.query.filter_by(campus=current_user.campus) \
         .join(Resource.programs) \
         .filter(Program.id == current_user.program_id) \
@@ -43,7 +52,6 @@ def campus_notes():
 @core.route('/cross_campus')
 @login_required
 def cross_campus():
-    # Fetch resources for the user's program but from OTHER campuses
     cross_notes = Resource.query.filter(Resource.campus != current_user.campus) \
         .join(Resource.programs) \
         .filter(Program.id == current_user.program_id) \
@@ -64,30 +72,27 @@ def vault():
 @login_required
 def profile():
     if request.method == 'POST':
-        # 1. Grab all the updated data from the form
         fullname = request.form.get('fullname')
         student_id_val = request.form.get('student_id')
         phone = request.form.get('phone')
         campus = request.form.get('campus')
         program_id = request.form.get('program')
 
-        # 2. Update the logged-in user's data directly
         current_user.full_name = fullname
         current_user.student_id = student_id_val
         current_user.phone_number = phone
         current_user.campus = campus
-        current_user.program_id = program_id  # Linking the selected program ID
+        current_user.program_id = program_id
 
-        # 3. Commit the changes to the DB
         db.session.commit()
+
+        # 📝 LOG: Profile Updated
+        create_log("Profile Update", f"Updated profile details")
 
         flash('Profile updated successfully!')
         return redirect(url_for('core.profile'))
 
-    # If it's a GET request:
-    # Query all programs from the database for the dropdown
     programs = Program.query.all()
-
     return render_template('core/student/profile.html', user=current_user, programs=programs)
 
 
@@ -135,6 +140,9 @@ def upload_resource():
             db.session.add(new_resource)
             db.session.commit()
 
+            # 📝 LOG: File Uploaded
+            create_log("Resource Upload", f"Uploaded module resource: {title} ({module_name})")
+
             flash('Resource successfully uploaded and mapped!')
             return redirect(url_for('core.dashboard'))
         else:
@@ -142,7 +150,6 @@ def upload_resource():
 
     programs = Program.query.all()
     return render_template('core/class_rep/upload_resource.html', programs=programs)
-
 
 
 # 2. Action: Approve the Student
@@ -158,14 +165,15 @@ def approve_student(user_id):
     if student.campus == current_user.campus and student.program_id == current_user.program_id:
         student.is_approved = True
         db.session.commit()
+
+        # 📝 LOG: Student Approved
+        create_log("Student Approval", f"Approved student: {student.full_name}")
+
         flash(f'Successfully approved {student.full_name}.')
     else:
         flash('You do not have permission to approve this student.')
 
-    # FIX: Redirect back to dashboard instead of a dedicated approvals page!
     return redirect(url_for('core.dashboard'))
-
-
 
 
 # 3. Action: Reject/Delete the Student
@@ -179,11 +187,48 @@ def reject_student(user_id):
     student = User.query.get_or_404(user_id)
 
     if student.campus == current_user.campus and student.program_id == current_user.program_id:
+        student_name = student.full_name
         db.session.delete(student)
         db.session.commit()
-        flash(f'Ignored registration request from {student.full_name}.')
+
+        # 📝 LOG: Request Rejected
+        create_log("Registration Rejected", f"Rejected request from: {student_name}")
+
+        flash(f'Ignored registration request from {student_name}.')
     else:
         flash('You do not have permission to reject this student.')
 
-    # FIX: Redirect back to dashboard instead of a dedicated approvals page!
     return redirect(url_for('core.dashboard'))
+
+
+# The Super Admin Route
+@core.route('/admin/dashboard')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin:
+        flash('Access denied.')
+        return redirect(url_for('core.dashboard'))
+
+    all_users = User.query.all()
+    system_logs = Log.query.order_by(Log.created_at.desc()).limit(50).all()
+
+    return render_template('core/admin/dashboard.html', users=all_users, logs=system_logs)
+
+
+# ACTION: Promote to Rep
+@core.route('/admin/make-rep/<int:user_id>', methods=['POST'])
+@login_required
+def make_rep(user_id):
+    if not current_user.is_admin:
+        flash('Access denied.')
+        return redirect(url_for('core.dashboard'))
+
+    user = User.query.get_or_404(user_id)
+    user.is_class_rep = True
+    db.session.commit()
+
+    # 📝 LOG: Role Change
+    create_log("Role Change", f"Promoted {user.full_name} to Class Representative")
+
+    flash(f'{user.full_name} is now a Class Representative!')
+    return redirect(url_for('core.admin_dashboard'))

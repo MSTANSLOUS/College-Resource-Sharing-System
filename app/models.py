@@ -30,7 +30,11 @@ class User(db.Model, UserMixin):
     is_approved = db.Column(db.Boolean, default=False)
     is_class_rep = db.Column(db.Boolean, default=False)  # True for reps, False for students
 
+    # ADD THIS NEW FLAG FOR THE SUPER USER
+    is_admin = db.Column(db.Boolean, default=False)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 
 class Program(db.Model):
@@ -39,6 +43,7 @@ class Program(db.Model):
 
     # Relationships
     users = db.relationship('User', backref='program', lazy=True)
+
 
 
 class Resource(db.Model):
@@ -59,3 +64,15 @@ class Resource(db.Model):
     programs = db.relationship('Program', secondary=resource_programs, backref=db.backref('resources', lazy='dynamic'))
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Nullable because a guest could trigger a log (like a failed login)
+    action = db.Column(db.String(100), nullable=False) # e.g., "Uploaded File", "Approved Student"
+    details = db.Column(db.String(255), nullable=True) # e.g., "Uploaded 'Maths notes.pdf'"
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship to grab the user's name easily
+    user = db.relationship('User', backref='logs')
