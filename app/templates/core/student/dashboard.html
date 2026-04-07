@@ -56,19 +56,30 @@
     <div class="mt-8 pt-6 border-t border-gray-100">
         <h2 class="text-xl font-bold text-gray-900 tracking-tight mb-4">Recent Academic Uploads</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="p-6 bg-white border border-gray-200 rounded-xl">
-                <span class="text-xs font-medium text-gray-400 uppercase">Recent Note</span>
-                <h3 class="text-base font-semibold text-gray-900 mt-1">Advanced Database Systems</h3>
-                <p class="text-sm text-gray-500 mt-2">Check the module 3 normalization past paper solutions.</p>
-            </div>
+        {% if recent_uploads %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for resource in recent_uploads %}
+                <div class="p-6 bg-white border border-gray-200 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-medium text-gray-400 uppercase">Recent Note</span>
+                        <h3 class="text-base font-semibold text-gray-900 mt-1">{{ resource.module_name }}</h3>
+                        <p class="text-sm text-gray-500 mt-2">{{ resource.title }}</p>
+                    </div>
 
-            <div class="p-6 bg-white border border-gray-200 rounded-xl">
-                <span class="text-xs font-medium text-gray-400 uppercase">Recent Note</span>
-                <h3 class="text-base font-semibold text-gray-900 mt-1">Networking Basics</h3>
-                <p class="text-sm text-gray-500 mt-2">OSI Layer stack summary notes updated by rep.</p>
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <span class="text-xs text-gray-400">Year: {{ resource.academic_year }}</span>
+                        <a href="{{ url_for('static', filename=resource.file_path) }}" target="_blank" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+                            View PDF
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-        </div>
+        {% else %}
+            <div class="text-center py-10 border border-dashed border-gray-200 rounded-xl bg-white">
+                <p class="text-sm text-gray-500">No notes have been uploaded for your program yet.</p>
+            </div>
+        {% endif %}
     </div>
 
 </div>

@@ -8,13 +8,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar for a cleaner look */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
     </style>
 </head>
-<body class="bg-white text-gray-800 antialiased overflow-hidden">
-
-    <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12 h-screen">
-
-        <div class="hidden lg:flex lg:col-span-5 bg-gray-50 flex-col justify-between p-16">
+<body class="bg-white text-gray-800 antialiased"> <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12"> <div class="hidden lg:flex lg:col-span-5 bg-gray-50 flex-col justify-between p-16 lg:sticky lg:top-0 lg:h-screen">
             <div class="flex items-center space-x-2">
                 <div class="h-6 w-6 bg-gray-900 rounded-md"></div>
                 <span class="text-xl font-bold text-gray-900">Students Resource System.</span>
@@ -50,10 +51,8 @@
             </div>
         </div>
 
-        <div class="lg:col-span-7 flex items-center justify-center p-8 sm:p-16 bg-white overflow-y-auto lg:overflow-hidden">
-            <div class="w-full max-w-2xl">
-
-                <div class="flex lg:hidden items-center space-x-2 mb-8">
+        <div class="lg:col-span-7 flex flex-col items-center p-8 sm:p-16 bg-white custom-scrollbar">
+            <div class="w-full max-w-2xl my-auto"> <div class="flex lg:hidden items-center space-x-2 mb-8">
                     <div class="h-6 w-6 bg-gray-900 rounded-md"></div>
                     <span class="text-xl font-bold text-gray-900">Students Resource System.</span>
                 </div>
@@ -101,12 +100,43 @@
                             <label for="program" class="block text-sm font-medium text-gray-700">Program</label>
                             <div class="relative">
                                 <select id="program" name="program" required
-                                                class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
+                                        class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
                                     <option value="" disabled selected class="text-gray-300">Select Program</option>
-
-                                            {% for program in programs %}
+                                    {% for program in programs %}
                                     <option value="{{ program.id }}">{{ program.name }}</option>
-                                            {% endfor %}
+                                    {% endfor %}
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="year" class="block text-sm font-medium text-gray-700">Academic Year</label>
+                            <div class="relative">
+                                <select id="year" name="year" required
+                                        class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
+                                    <option value="" disabled selected class="text-gray-300">Select Year</option>
+                                    <option value="1">Year 1</option>
+                                    <option value="2">Year 2</option>
+                                    <option value="3">Year 3</option>
+                                    <option value="4">Year 4</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="semester" class="block text-sm font-medium text-gray-700">Current Semester</label>
+                            <div class="relative">
+                                <select id="semester" name="semester" required
+                                        class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
+                                    <option value="" disabled selected class="text-gray-300">Select Semester</option>
+                                    <option value="1">Semester 1</option>
+                                    <option value="2">Semester 2</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -130,8 +160,7 @@
                     </div>
                 </form>
 
-                <div class="mt-8 text-center text-sm">
-                    <span class="text-gray-500">Already have an account?</span>
+                <div class="mt-8 pb-8 text-center text-sm"> <span class="text-gray-500">Already have an account?</span>
                     <a href="{{ url_for('auth.login') }}" class="ml-1 font-semibold text-gray-900 hover:text-gray-700 transition-colors">Sign in here</a>
                 </div>
             </div>

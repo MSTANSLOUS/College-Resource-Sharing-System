@@ -1,33 +1,49 @@
 from flask import Flask
+
 from config import Config
+
 from app.models import db, User, Program
+
 from flask_login import LoginManager
+
 from werkzeug.security import generate_password_hash
+
+from flask_mail import Mail
 
 # Initialize LoginManager globally outside the function
 login_manager = LoginManager()
 
+# Initialize Mail
+mail = Mail()
 
 def create_app():
     # 1. Create the app instance inside the factory
     app = Flask(__name__)
 
-    # 2. Load the configurations from config.py
+    # 2. Load the configurations from config.py and mail
     app.config.from_object(Config)
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = 'musayalous@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'hoexnlwpoecigkbf'
+
+    mail.init_app(app=app)
+
 
     # 3. Link SQLAlchemy and LoginManager to this specific Flask app
     db.init_app(app)
-    login_manager.init_app(app)
+    login_manager.init_app(app=app)
 
     # Tell Flask-Login where to redirect users who aren't logged in
     login_manager.login_view = 'auth.login'
 
     # 4. Register the Blueprints (so the web pages work)
     from app.auth.routes import auth
-    app.register_blueprint(auth)
+    app.register_blueprint(blueprint=auth)
 
     from app.core.routes import core
-    app.register_blueprint(core)
+    app.register_blueprint(blueprint=core)
 
     # 5. Global variable injection for Jinja
     @app.context_processor

@@ -4,75 +4,72 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
-# Helper table for the Many-to-Many relationship (Module 3)
-# This allows one resource to belong to multiple programs!
+# Helper tables
 resource_programs = db.Table('resource_programs',
                              db.Column('resource_id', db.Integer, db.ForeignKey('resource.id'), primary_key=True),
                              db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
                              )
 
+module_programs = db.Table('module_programs',
+                           db.Column('module_id', db.Integer, db.ForeignKey('module.id'), primary_key=True),
+                           db.Column('program_id', db.Integer, db.ForeignKey('program.id'), primary_key=True)
+                           )
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)  # For secure login
-
-    # MCA Specifics
-    campus = db.Column(db.String(50), nullable=False)  # Lilongwe, Blantyre, Mzuzu
-    student_id = db.Column(db.String(20), nullable=True)  # Filled out in Profile update
-    phone_number = db.Column(db.String(15), nullable=True)  # Filled out in Profile update
-
-    # Relationships
+    password_hash = db.Column(db.String(128), nullable=False)
+    campus = db.Column(db.String(50), nullable=False)
+    student_id = db.Column(db.String(20), nullable=True)
+    phone_number = db.Column(db.String(15), nullable=True)
+    year = db.Column(db.Integer, default=1)
+    semester = db.Column(db.Integer, default=1)
     program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
-
-    # Roles and Approvals (Module 1)
     is_approved = db.Column(db.Boolean, default=False)
-    is_class_rep = db.Column(db.Boolean, default=False)  # True for reps, False for students
-
-    # ADD THIS NEW FLAG FOR THE SUPER USER
+    is_class_rep = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
-
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-
+class TransferRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    target_campus = db.Column(db.String(50))
+    target_program_id = db.Column(db.Integer, db.ForeignKey('program.id'))
+    status = db.Column(db.String(20), default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='transfer_requests')
 
 class Program(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)  # e.g., BMIS, BBME
-
-    # Relationships
+    name = db.Column(db.String(100), nullable=False, unique=True)
     users = db.relationship('User', backref='program', lazy=True)
 
-
+class Module(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    code = db.Column(db.String(20), nullable=True)
+    programs = db.relationship('Program', secondary=module_programs, backref=db.backref('modules', lazy='dynamic'))
+    resources = db.relationship('Resource', backref='module', lazy=True)
 
 class Resource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(150), nullable=False)  # e.g., Business Statistics Notes
-    file_path = db.Column(db.String(200), nullable=False)  # Where the PDF is stored on Render
-    module_name = db.Column(db.String(100), nullable=False)
-
-    # Target Audience & Location
-    campus = db.Column(db.String(50), nullable=False)  # The campus this note belongs to
-    academic_year = db.Column(db.String(20), nullable=False)  # e.g., "2025/2026"
-    is_archived = db.Column(db.Boolean, default=False)  # False for dashboard, True for Vault
-
-    # Who uploaded it?
+    title = db.Column(db.String(150), nullable=False)
+    file_path = db.Column(db.String(200), nullable=False)
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
+    campus = db.Column(db.String(50), nullable=False)
+    target_year = db.Column(db.Integer, nullable=False)
+    target_semester = db.Column(db.Integer, nullable=False)
+    academic_year = db.Column(db.String(20), nullable=False)
     uploader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-    # Many-to-Many Relationship (Maps to multiple programs)
+    uploader = db.relationship('User', backref='uploaded_resources')
     programs = db.relationship('Program', secondary=resource_programs, backref=db.backref('resources', lazy='dynamic'))
-
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
 
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Nullable because a guest could trigger a log (like a failed login)
-    action = db.Column(db.String(100), nullable=False) # e.g., "Uploaded File", "Approved Student"
-    details = db.Column(db.String(255), nullable=True) # e.g., "Uploaded 'Maths notes.pdf'"
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    action = db.Column(db.String(100), nullable=False)
+    details = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationship to grab the user's name easily
     user = db.relationship('User', backref='logs')
