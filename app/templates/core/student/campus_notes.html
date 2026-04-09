@@ -1,47 +1,135 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="space-y-6 max-w-6xl">
-    <h1 class="text-2xl font-bold text-gray-900">Campus Notes</h1>
 
-    <div class="border-b border-gray-200">
-        <nav class="flex space-x-6 overflow-x-auto pb-2">
+{% block content %}
+<div class="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-6">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Academic Resources</h1>
+            <p class="text-sm text-slate-500 mt-2 font-medium">Lecture notes and study materials for your modules.</p>
+        </div>
+
+        {% if current_user.is_class_rep %}
+        <div class="mt-4 md:mt-0">
+            <a href="{{ url_for('core.upload_resource') }}"
+               class="inline-flex items-center bg-slate-800 text-slate-100 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-950 transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Upload Material
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="border-b border-slate-200">
+        <nav class="flex space-x-8 overflow-x-auto no-scrollbar">
             {% for module_name in grouped_notes.keys() %}
-            <button onclick="switchTab('{{ loop.index }}')" id="tab-btn-{{ loop.index }}"
-                    class="tab-btn whitespace-nowrap px-1 py-4 text-sm font-semibold border-b-2 {% if loop.first %}border-indigo-600 text-indigo-600{% else %}border-transparent text-gray-500{% endif %}">
+            <button onclick="switchTab('{{ loop.index }}')"
+                    id="tab-btn-{{ loop.index }}"
+                    class="tab-btn border-b-2 px-1 py-4 text-sm font-bold focus:outline-none whitespace-nowrap transition-all
+                    {% if loop.first %}border-slate-800 text-slate-900{% else %}border-transparent text-slate-400 hover:text-slate-600{% endif %}">
                 {{ module_name }}
             </button>
             {% endfor %}
         </nav>
     </div>
 
-    <div id="tab-content-container">
+    <div id="tab-content-container" class="mt-8">
         {% for module_name, notes in grouped_notes.items() %}
-        <div id="content-{{ loop.index }}" class="tab-pane {% if not loop.first %}hidden{% endif %}">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div id="content-{{ loop.index }}" class="tab-pane animate-fadeIn {% if not loop.first %}hidden{% endif %}">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for note in notes %}
-                <div class="p-6 bg-white border border-gray-200 rounded-xl">
-                    <h3 class="font-bold text-gray-900">{{ note.title }}</h3>
-                    <p class="text-xs text-gray-400 mt-2">Year: {{ note.academic_year }}</p>
-                    <a href="{{ url_for('static', filename=note.file_path) }}" class="inline-block mt-4 text-sm font-bold text-indigo-600">Download PDF</a>
+                <div class="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-slate-300 transition-all relative">
+                    <div class="absolute top-0 right-0 mt-4 mr-4">
+                        <span class="bg-slate-50 text-slate-500 text-[10px] font-bold px-2 py-1 rounded border border-slate-100 uppercase">
+                            Year {{ note.academic_year }}
+                        </span>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-600 transition-colors leading-tight">
+                            {{ note.title }}
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-1 font-medium italic">
+                            By {{ note.uploader.full_name }}
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                        <a href="{{ url_for('static', filename=note.file_path) }}"
+                           class="inline-flex items-center text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Download PDF
+                        </a>
+
+                        {% if current_user.is_class_rep and current_user.id == note.user_id %}
+                        <form action="{{ url_for('core.delete_note', note_id=note.id) }}"
+                              method="POST"
+                              onsubmit="return confirm('Confirm Deletion: This will remove the file from the system so you can upload the correct version. Proceed?');"
+                              class="inline">
+                            <button type="submit" class="p-2 text-slate-300 hover:text-rose-600 transition-colors group/btn" title="Delete & Replace">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
                 {% endfor %}
             </div>
+
+            {% if not notes %}
+            <div class="py-20 text-center">
+                <div class="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-slate-400 font-bold">No materials found for this module.</h3>
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
 </div>
 
+<style>
+    /* Global Background Anti-Glare */
+    body { background-color: #f8fafc; }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+</style>
+
 <script>
 function switchTab(index) {
+    // Hide all
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
-    document.getElementById('content-' + index).classList.remove('hidden');
 
+    // Show active
+    const target = document.getElementById('content-' + index);
+    if (target) target.classList.remove('hidden');
+
+    // Button styling
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('border-indigo-600', 'text-indigo-600');
-        btn.classList.add('border-transparent', 'text-gray-500');
+        btn.classList.remove('border-slate-800', 'text-slate-900');
+        btn.classList.add('border-transparent', 'text-slate-400');
     });
 
-    document.getElementById('tab-btn-' + index).classList.add('border-indigo-600', 'text-indigo-600');
+    const activeBtn = document.getElementById('tab-btn-' + index);
+    if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-slate-400');
+        activeBtn.classList.add('border-slate-800', 'text-slate-900');
+    }
 }
 </script>
 {% endblock %}

@@ -10,6 +10,8 @@ from werkzeug.security import generate_password_hash
 
 from flask_mail import Mail
 
+from flask_cors import CORS # Import this
+
 # Initialize LoginManager globally outside the function
 login_manager = LoginManager()
 
@@ -19,6 +21,18 @@ mail = Mail()
 def create_app():
     # 1. Create the app instance inside the factory
     app = Flask(__name__)
+
+    # Add these lines to your Flask config
+    app.config.update(
+        SESSION_COOKIE_SAMESITE="None",  # Allows cookie to be sent across different origins
+        SESSION_COOKIE_SECURE=True,  # Required when SameSite is "None"
+        REMEMBER_COOKIE_SAMESITE="None",
+        REMEMBER_COOKIE_SECURE=True
+    )
+
+    # This allows your Android app to communicate with your Ngrok link
+    # supports_credentials=True is needed so the session cookie works
+    CORS(app, supports_credentials=True)
 
     # 2. Load the configurations from config.py and mail
     app.config.from_object(Config)

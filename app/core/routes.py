@@ -2,7 +2,12 @@ import os
 from flask import Blueprint, render_template, request, redirect, current_app, flash, url_for, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
+from flask import jsonify
+from flask_login import login_user
+from werkzeug.security import check_password_hash
 from app.models import db, Program, Resource, User, Log, Module, TransferRequest
+
+from datetime import date # Make sure to import date
 
 core = Blueprint('core', __name__)
 
@@ -15,6 +20,9 @@ def create_log(action, details=None):
     )
     db.session.add(log_entry)
     db.session.commit()
+
+
+
 
 def notify_class_rep(student):
     """Finds the Rep for the student's campus/program and sends an email"""
@@ -29,6 +37,9 @@ def notify_class_rep(student):
     if rep and rep.email:
         print(f"Notification logic triggered for Rep: {rep.email}")
         # Add your Flask-Mail logic here when ready
+
+
+
 
 # --- DASHBOARD & PROFILE ---
 
@@ -62,6 +73,8 @@ def dashboard():
     return render_template('core/student/dashboard.html',
                            pending_students=pending_students,
                            recent_uploads=recent_uploads)
+
+
 
 
 @core.route('/profile', methods=['GET', 'POST'])
@@ -103,6 +116,9 @@ def profile():
     return render_template('core/student/profile.html', user=current_user, programs=programs,
                            pending_request=pending_request)
 
+
+
+
 # --- NOTES & RESOURCES ---
 
 @core.route('/campus_notes')
@@ -122,6 +138,8 @@ def campus_notes():
         grouped_notes[m_name].append(note)
 
     return render_template('core/student/campus_notes.html', grouped_notes=grouped_notes)
+
+
 
 @core.route('/cross_campus')
 @login_required
@@ -148,6 +166,10 @@ def cross_campus():
 @login_required
 def vault():
     return render_template('core/student/vault.html')
+
+
+
+
 
 @core.route('/upload-resource', methods=['GET', 'POST'])
 @login_required
@@ -196,6 +218,8 @@ def upload_resource():
     programs = Program.query.all()
     return render_template('core/class_rep/upload_resource.html', modules=modules, programs=programs)
 
+
+
 # --- CLASS REP ACTIONS ---
 
 @core.route('/approve-student/<int:user_id>', methods=['POST'])
@@ -215,6 +239,10 @@ def approve_student(user_id):
         flash('You do not have permission to approve this student.')
     return redirect(url_for('core.dashboard'))
 
+
+
+
+
 @core.route('/reject-student/<int:user_id>', methods=['POST'])
 @login_required
 def reject_student(user_id):
@@ -233,6 +261,9 @@ def reject_student(user_id):
         flash('You do not have permission to reject this student.')
     return redirect(url_for('core.dashboard'))
 
+
+
+
 # --- ADMIN DASHBOARD & ACTIONS ---
 
 @core.route('/admin/dashboard')
@@ -241,6 +272,12 @@ def admin_dashboard():
     if not current_user.is_admin:
         flash('Access denied.')
         return redirect(url_for('core.dashboard'))
+
+    # --- PRO LOG CLEANUP ---
+    # This deletes all logs where the date is older than today
+    today = date.today()
+    Log.query.filter(Log.created_at < today).delete()
+    db.session.commit()
 
     # Get filter values from the URL (e.g., /admin/dashboard?year=2)
     year_filter = request.args.get('year', type=int)
@@ -270,6 +307,9 @@ def admin_dashboard():
                            current_year=year_filter,    # Pass these back to keep dropdowns selected
                            current_sem=sem_filter)
 
+
+
+
 @core.route('/admin/request/<int:req_id>/<action>')
 @login_required
 def handle_request(req_id, action):
@@ -289,6 +329,10 @@ def handle_request(req_id, action):
 
     db.session.commit()
     return redirect(url_for('core.admin_dashboard'))
+
+
+
+
 
 @core.route('/admin/add-module', methods=['POST'])
 @login_required
@@ -327,6 +371,9 @@ def add_module():
 
     return redirect(url_for('core.admin_dashboard'))
 
+
+
+
 @core.route('/admin/make-rep/<int:user_id>', methods=['POST'])
 @login_required
 def make_rep(user_id):
@@ -340,3 +387,215 @@ def make_rep(user_id):
     create_log("Role Change", f"Promoted {user.full_name} to Class Representative")
     flash(f'{user.full_name} is now a Class Representative!')
     return redirect(url_for('core.admin_dashboard'))
+
+
+@core.route('/admin/remove-rep/<int:user_id>', methods=['POST'])
+@login_required
+def remove_rep(user_id):
+    if not current_user.is_admin:
+        flash('Access denied.', 'error')  # Added 'error' category for red styling
+        return redirect(url_for('core.dashboard'))
+
+    # STANDARD SQLALCHEMY WAY
+    user = User.query.get_or_404(user_id)
+
+    user.is_class_rep = False
+    db.session.commit()
+
+    # Good job on the log!
+    create_log("Role Change", f"Removed {user.full_name} from being Class Representative")
+
+    flash(f'{user.full_name} is no longer a Class Representative!', 'info')
+    return redirect(url_for('core.admin_dashboard'))
+
+
+@core.route('/admin/delete-module/<int:module_id>', methods=['POST'])
+@login_required
+def delete_module(module_id):
+    if not current_user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('core.dashboard'))
+
+    module = Module.query.get_or_404(module_id)
+
+    # Check if the module has resources
+    if module.resources:
+        flash(f'Cannot delete "{module.name}" because it contains resources. Delete the notes first!', 'error')
+        return redirect(url_for('core.admin_dashboard'))
+
+    module_name = module.name
+    db.session.delete(module)
+    db.session.commit()
+
+    create_log("Database Change", f"Deleted Module: {module_name}")
+    flash(f'Module "{module_name}" removed successfully.', 'info')
+
+    return redirect(url_for('core.admin_dashboard'))
+
+
+
+@core.route('/notes/delete/<int:note_id>', methods=['POST'])
+@login_required
+def delete_note(note_id):
+    # 1. Fetch the note or 404 if it's missing
+    note = Resource.query.get_or_404(note_id)
+
+    # 2. SECURITY CHECK: Ensure it's a Rep and THEY are the owner
+    if not current_user.is_class_rep or current_user.id != note.user_id:
+        flash('Permission denied. You can only delete your own uploads.', 'error')
+        return redirect(url_for('core.notes'))
+
+    try:
+        # 3. DELETE THE PHYSICAL FILE FROM THE FOLDER
+        # This finds the exact path on your Kali machine
+        file_path = os.path.join(current_app.root_path, 'static', note.file_path)
+
+        if os.path.exists(file_path):
+            os.remove(file_path)  # Boom. File is gone from the folder.
+
+        # 4. DELETE THE RECORD FROM THE DATABASE
+        db.session.delete(note)
+        db.session.commit()
+
+        # 5. LOG THE ACTION
+        create_log("File Removed", f"Rep {current_user.full_name} deleted: {note.title}")
+        flash('File deleted successfully. You can now upload the correct version!', 'info')
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Delete Error: {e}")
+        flash('Something went wrong while removing the file.', 'error')
+
+    return redirect(url_for('core.notes'))
+
+
+
+
+
+"""AI LOGIC HERE BELOW THE ENDPOINTS """
+
+@core.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        if check_password_hash(user.password_hash, password):
+            if user.is_approved:
+                # 1. Use remember=True to make the cookie persistent
+                login_user(user, remember=True)
+
+                response = jsonify({"status": "success", "message": "Welcome!"})
+
+                # 2. Ngrok skip header (for the app)
+                response.headers.add("ngrok-skip-browser-warning", "true")
+
+                # 3. CRITICAL: Manual Cookie Header (if SESSION_COOKIE settings are failing)
+                # This ensures the cookie is sent back with 'None' SameSite policy
+                response.set_cookie('session', request.cookies.get('session', ''),
+                                    samesite='None', secure=True)
+
+                return response, 200
+            else:
+                return jsonify({"status": "error", "message": "Account pending approval"}), 403
+        else:
+            return jsonify({"status": "error", "message": "Incorrect password"}), 401
+
+    return jsonify({"status": "error", "message": "User not found"}), 404
+
+
+@core.route('/api/v1/student-context', methods=['GET'])
+@login_required
+def get_student_context():
+    active_modules = current_user.program.modules.all()
+    modules_list = [{"name": m.name, "code": m.code} for m in active_modules]
+
+    response = jsonify({
+        "student_name": current_user.full_name,
+        "modules": modules_list
+    })
+    # Tell Ngrok NOT to show the warning page to the Android app
+    response.headers.add("ngrok-skip-browser-warning", "true")
+    return response
+
+
+from groq import Groq
+
+# Replace your Gemini config with this:
+client = Groq(api_key="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")
+
+
+@core.route('/api/ai-query', methods=['POST'])
+@login_required
+def ai_query():
+    data = request.json
+    user_question = data.get('question', '')
+
+    if not user_question:
+        return jsonify({"answer": "I didn't catch that. What would you like to ask?", "data": []})
+
+    # --- PART 1: SYSTEM SEARCH (SRS Academic Files) ---
+    # Logic: If they ask for notes/files, look in our database first.
+    if any(word in user_question.lower() for word in ["note", "file", "pdf", "resource"]):
+        # Clean the search term
+        search_term = user_question.lower().replace("find notes for", "").replace("notes", "").strip()
+
+        # Search resources matching the title or module name for the student's specific campus
+        resources = Resource.query.join(Module).filter(
+            (Module.name.ilike(f"%{search_term}%")) | (Resource.title.ilike(f"%{search_term}%")),
+            Resource.campus == current_user.campus
+        ).all()
+
+        if resources:
+            file_data = [{"title": r.title, "link": f"/static/{r.file_path}"} for r in resources]
+            return jsonify({
+                "answer": f"Walala! I found {len(resources)} resources for you in the {current_user.campus} database.",
+                "data": file_data
+            })
+
+        # --- PART 2: GROQ INTELLIGENCE (With "Brain Cells" added) ---
+        try:
+            # 1. GATHER THE DATA (The "Textbook" for the AI)
+            # We get the student's modules and their recent activity
+            student_modules = [m.name for m in current_user.program.modules]
+            modules_string = ", ".join(student_modules)
+
+            # 2. CREATE THE "CONTEXT"
+            # We tell the AI EXACTLY what it needs to know so it can't lie to us
+            context = (
+                f"You are the SRS AI. You are talking to {current_user.full_name}, "
+                f"a student at MCA {current_user.campus} campus. "
+                f"Their registered modules are: {modules_string}. "
+                f"If they ask for files, remind them they can type 'find notes for [subject]' "
+                f"to trigger your automated search system."
+            )
+
+            chat_completion = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": context  # <-- Now the AI knows everything!
+                    },
+                    {
+                        "role": "user",
+                        "content": user_question,
+                    }
+                ],
+                model="llama-3.1-8b-instant",
+            )
+
+            return jsonify({
+                "answer": chat_completion.choices[0].message.content,
+                "data": []
+            })
+
+    except Exception as e:
+        # This prints the REAL error to your PyCharm console for debugging
+        print(f"SRS AI Error: {e}")
+        return jsonify({
+            "answer": "System core down, but you can still search the system for notes manually!",
+            "data": []
+        })

@@ -4,9 +4,10 @@ from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.core.routes import create_log, notify_class_rep
 
+
 auth = Blueprint('auth', __name__)
 
-
+@auth.route('/')
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
