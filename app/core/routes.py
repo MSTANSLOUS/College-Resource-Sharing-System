@@ -8,6 +8,7 @@ from werkzeug.security import check_password_hash
 from app.models import db, Program, Resource, User, Log, Module, TransferRequest
 
 from datetime import date # Make sure to import date
+from app import send_email
 
 core = Blueprint('core', __name__)
 
@@ -24,7 +25,7 @@ def create_log(action, details=None):
 
 
 
-def notify_class_rep(student):
+def notify_class_rep(student, user_actions = None):
     """Finds the Rep for the student's campus/program and sends an email"""
     # Note: Ensure 'Message' and 'mail' are imported if you use Flask-Mail
     # For now, we will log the attempt to prevent crashes
@@ -35,11 +36,11 @@ def notify_class_rep(student):
     ).first()
 
     if rep and rep.email:
-        print(f"Notification logic triggered for Rep: {rep.email}")
+        #print(f"Notification logic triggered for Rep: {rep.email}")
+        subjects = f"Account Creation"
+        message_body = f"Hie class admin am {student.full_name} and i created an account waiting for yout approval"
         # Add your Flask-Mail logic here when ready
-
-
-
+        send_email(recipients=rep.email, subject=subjects, massage_body=message_body)
 
 # --- DASHBOARD & PROFILE ---
 
@@ -73,6 +74,7 @@ def dashboard():
     return render_template('core/student/dashboard.html',
                            pending_students=pending_students,
                            recent_uploads=recent_uploads)
+
 
 
 
@@ -161,6 +163,9 @@ def cross_campus():
         organized_notes[campus][module_name].append(note)
 
     return render_template('core/student/cross_campus.html', organized_notes=organized_notes)
+
+
+
 
 @core.route('/vault')
 @login_required
@@ -520,82 +525,3 @@ def get_student_context():
     # Tell Ngrok NOT to show the warning page to the Android app
     response.headers.add("ngrok-skip-browser-warning", "true")
     return response
-
-
-from groq import Groq
-
-# Replace your Gemini config with this:
-client = Groq(api_key="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")
-
-
-@core.route('/api/ai-query', methods=['POST'])
-@login_required
-def ai_query():
-    data = request.json
-    user_question = data.get('question', '')
-
-    if not user_question:
-        return jsonify({"answer": "I didn't catch that. What would you like to ask?", "data": []})
-
-    # --- PART 1: SYSTEM SEARCH (SRS Academic Files) ---
-    # Logic: If they ask for notes/files, look in our database first.
-    if any(word in user_question.lower() for word in ["note", "file", "pdf", "resource"]):
-        # Clean the search term
-        search_term = user_question.lower().replace("find notes for", "").replace("notes", "").strip()
-
-        # Search resources matching the title or module name for the student's specific campus
-        resources = Resource.query.join(Module).filter(
-            (Module.name.ilike(f"%{search_term}%")) | (Resource.title.ilike(f"%{search_term}%")),
-            Resource.campus == current_user.campus
-        ).all()
-
-        if resources:
-            file_data = [{"title": r.title, "link": f"/static/{r.file_path}"} for r in resources]
-            return jsonify({
-                "answer": f"Walala! I found {len(resources)} resources for you in the {current_user.campus} database.",
-                "data": file_data
-            })
-
-        # --- PART 2: GROQ INTELLIGENCE (With "Brain Cells" added) ---
-        try:
-            # 1. GATHER THE DATA (The "Textbook" for the AI)
-            # We get the student's modules and their recent activity
-            student_modules = [m.name for m in current_user.program.modules]
-            modules_string = ", ".join(student_modules)
-
-            # 2. CREATE THE "CONTEXT"
-            # We tell the AI EXACTLY what it needs to know so it can't lie to us
-            context = (
-                f"You are the SRS AI. You are talking to {current_user.full_name}, "
-                f"a student at MCA {current_user.campus} campus. "
-                f"Their registered modules are: {modules_string}. "
-                f"If they ask for files, remind them they can type 'find notes for [subject]' "
-                f"to trigger your automated search system."
-            )
-
-            chat_completion = client.chat.completions.create(
-                messages=[
-                    {
-                        "role": "system",
-                        "content": context  # <-- Now the AI knows everything!
-                    },
-                    {
-                        "role": "user",
-                        "content": user_question,
-                    }
-                ],
-                model="llama-3.1-8b-instant",
-            )
-
-            return jsonify({
-                "answer": chat_completion.choices[0].message.content,
-                "data": []
-            })
-
-    except Exception as e:
-        # This prints the REAL error to your PyCharm console for debugging
-        print(f"SRS AI Error: {e}")
-        return jsonify({
-            "answer": "System core down, but you can still search the system for notes manually!",
-            "data": []
-        })

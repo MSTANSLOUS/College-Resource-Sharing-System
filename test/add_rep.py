@@ -26,6 +26,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         target_email = sys.argv[1]
     else:
-        target_email = "noel@gmail.com"  # <-- Change this to your test user's email!
+        target_email = "musayatechdynamics@gmail.com"  # <-- Change this to your test user's email!
 
     promote_to_rep(target_email)

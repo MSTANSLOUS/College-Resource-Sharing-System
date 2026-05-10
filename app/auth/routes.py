@@ -54,7 +54,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        notify_class_rep(student=new_user)
+        notify_class_rep(student=new_user, user_actions=f"{new_user.email} created an account and is waiting for your approval")
         create_log("Registration Request", f"New sign-up: {new_user.full_name}")
         flash('Registration successful! Waiting for Rep approval.')
         return redirect(url_for('auth.login'))
@@ -66,6 +66,8 @@ def register():
 @auth.route('/logout')
 @login_required
 def logout():
+
     create_log("User Logout", f"{current_user.full_name} logged out")
+
     logout_user()
     return redirect(url_for('auth.login'))

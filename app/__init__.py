@@ -8,7 +8,7 @@ from flask_login import LoginManager
 
 from werkzeug.security import generate_password_hash
 
-from flask_mail import Mail
+from flask_mail import Mail, Message
 
 from flask_cors import CORS # Import this
 
@@ -17,6 +17,16 @@ login_manager = LoginManager()
 
 # Initialize Mail
 mail = Mail()
+
+
+def send_email(recipients, subject, massage_body):
+    msg = Message(
+        subject=subject,
+        sender='musayalous@gmail.com',
+        recipients=[recipients],
+        body=massage_body,
+    )
+    mail.send(msg)
 
 def create_app():
     # 1. Create the app instance inside the factory
@@ -40,7 +50,7 @@ def create_app():
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USERNAME'] = 'musayalous@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'hoexnlwpoecigkbf'
+    app.config['MAIL_PASSWORD'] = 'etvkgbgnmecmcjgs'
 
     mail.init_app(app=app)
 
