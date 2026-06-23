@@ -1,47 +1,117 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="space-y-6 max-w-6xl">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Cross-Campus Archive</h1>
-        <p class="text-sm text-gray-500 mt-1">Resources shared from other MCA campuses for your program.</p>
+<div class="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 p-8 sm:p-10 text-white shadow-xl shadow-indigo-950/10 border border-slate-800">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center opacity-[0.07] mix-blend-overlay blur-[2px]"></div>
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 mb-3 backdrop-blur-md">
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
+                Inter-Campus Network
+            </span>
+            <h1 class="text-3xl font-black text-white tracking-tight sm:text-4xl">Cross-Campus Archive</h1>
+            <p class="text-slate-400 text-sm mt-2 font-medium max-w-xl">Resources shared from other MCA campuses for your academic track.</p>
+        </div>
     </div>
 
     {% if organized_notes %}
-        <div class="border-b border-gray-200">
-            <nav class="flex space-x-8" aria-label="Campus Tabs">
+        <div class="border-b border-slate-200/80 sticky top-0 bg-slate-50/80 backdrop-blur-md z-10 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <nav class="flex space-x-6 overflow-x-auto no-scrollbar py-1" aria-label="Campus Tabs">
                 {% for campus in organized_notes.keys() %}
                 <button onclick="switchCampus('{{ campus|replace(' ', '-') }}')"
                         id="tab-{{ campus|replace(' ', '-') }}"
-                        class="campus-tab-btn border-b-2 {% if loop.first %}border-indigo-600 text-indigo-600{% else %}border-transparent text-gray-500{% endif %} px-1 py-4 text-sm font-semibold focus:outline-none">
+                        class="campus-tab-btn border-b-2 px-1 py-4 text-sm font-bold focus:outline-none whitespace-nowrap transition-all duration-200 relative group
+                        {% if loop.first %}border-indigo-600 text-indigo-600{% else %}border-transparent text-slate-400 hover:text-slate-700{% endif %}">
                     {{ campus }}
                 </button>
                 {% endfor %}
             </nav>
         </div>
 
-        <div class="mt-6">
+        <div id="cross-campus-skeleton" class="mt-8 space-y-10">
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4 animate-pulse">
+                    <div class="h-4 bg-slate-200 rounded w-48"></div>
+                    <div class="flex-1 h-px bg-slate-200/80"></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for idx in range(3) %}
+                    <div class="bg-white border border-slate-200/60 rounded-2xl p-6 space-y-5 animate-pulse">
+                        <div class="flex items-center justify-between">
+                            <div class="h-10 w-10 bg-slate-200 rounded-xl"></div>
+                            <div class="h-5 bg-slate-200 rounded w-16"></div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="h-4 bg-slate-200 rounded w-5/6"></div>
+                            <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                        </div>
+                        <div class="flex items-center space-x-2 pt-1">
+                            <div class="w-4 h-4 rounded-full bg-slate-200"></div>
+                            <div class="h-3 bg-slate-200 rounded w-24"></div>
+                        </div>
+                        <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+                            <div class="h-4 bg-slate-200 rounded w-32"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="cross-campus-real-content" class="mt-8 hidden">
             {% for campus, modules in organized_notes.items() %}
-            <div id="content-{{ campus|replace(' ', '-') }}" class="campus-content {% if not loop.first %}hidden{% endif %} space-y-10">
+            <div id="content-{{ campus|replace(' ', '-') }}" class="campus-content animate-fadeIn {% if not loop.first %}hidden{% endif %} space-y-10">
 
                 {% for module_name, notes in modules.items() %}
-                <section>
-                    <div class="flex items-center mb-4">
-                        <h2 class="text-sm font-bold text-gray-900 uppercase tracking-widest">{{ module_name }}</h2>
-                        <div class="ml-4 flex-1 h-px bg-gray-200"></div>
+                <section class="space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <h2 class="text-xs font-black text-slate-800 uppercase tracking-widest whitespace-nowrap">{{ module_name }}</h2>
+                        <div class="flex-1 h-px bg-slate-200/80 bg-gradient-to-r from-slate-200 to-transparent"></div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {% for note in notes %}
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all group">
-                            <div class="flex justify-between items-start">
-                                <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{ note.title }}</h3>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Uploaded by: {{ note.uploader.full_name }}</p>
+                        <div class="group bg-white/60 backdrop-blur-md border border-slate-200/60 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
 
-                            <div class="mt-4 flex items-center justify-between border-t border-gray-50 pt-4">
-                                <span class="text-xs font-medium text-gray-400">{{ note.academic_year }}</span>
-                                <a href="{{ url_for('static', filename=note.file_path) }}" target="_blank" class="text-sm font-bold text-indigo-600 hover:text-indigo-800">
+                            <div class="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-indigo-500/5 to-teal-500/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 group-hover:scale-110 transition-transform duration-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                                        </svg>
+                                    </div>
+                                    <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-200/40 uppercase tracking-wider">
+                                        Year {{ note.academic_year }}
+                                    </span>
+                                </div>
+
+                                <div class="mb-5">
+                                    <h3 class="text-base font-bold text-slate-800 group-hover:text-indigo-900 transition-colors duration-200 leading-snug tracking-tight line-clamp-2" title="{{ note.title }}">
+                                        {{ note.title }}
+                                    </h3>
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <div class="w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-[9px] font-bold flex items-center justify-center uppercase">
+                                            {{ note.uploader.full_name[:1] }}
+                                        </div>
+                                        <p class="text-[11px] text-slate-400 font-medium">
+                                            Uploaded by <span class="text-slate-600 font-semibold">{{ note.uploader.full_name }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-2 z-10 relative">
+                                <a href="{{ url_for('static', filename=note.file_path) }}" target="_blank" data-turbo="false"
+                                   class="inline-flex items-center text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors duration-150 group/link">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-slate-400 group-hover/link:text-indigo-500 group-hover/link:translate-y-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
                                     Download PDF
                                 </a>
                             </div>
@@ -55,29 +125,63 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="border-2 border-dashed border-gray-200 rounded-xl h-96 flex flex-col items-center justify-center bg-white text-center p-6">
-             <p class="text-gray-400 font-medium">No resources found from other campuses yet.</p>
+        <div class="py-20 text-center rounded-2xl border border-dashed border-slate-200 bg-white/40 backdrop-blur-sm">
+            <div class="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200/50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <h3 class="text-slate-700 font-bold text-lg">No Archive Files Found</h3>
+            <p class="text-slate-400 text-sm mt-1 max-w-xs mx-auto">No resources have been shared from other campuses for your program track yet.</p>
         </div>
     {% endif %}
 </div>
 
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+</style>
+
 <script>
+    // Tab switching engine remains a standalone global helper
     function switchCampus(campusId) {
-        // Hide all campus content
         document.querySelectorAll('.campus-content').forEach(el => el.classList.add('hidden'));
 
-        // Show selected campus content
-        document.getElementById('content-' + campusId).classList.remove('hidden');
+        const targetContent = document.getElementById('content-' + campusId);
+        if (targetContent) {
+            targetContent.classList.remove('hidden');
+        }
 
-        // Update tab styling
         document.querySelectorAll('.campus-tab-btn').forEach(btn => {
             btn.classList.remove('border-indigo-600', 'text-indigo-600');
-            btn.classList.add('border-transparent', 'text-gray-500');
+            btn.classList.add('border-transparent', 'text-slate-400', 'hover:text-slate-700');
         });
 
         const activeTab = document.getElementById('tab-' + campusId);
-        activeTab.classList.remove('border-transparent', 'text-gray-500');
-        activeTab.classList.add('border-indigo-600', 'text-indigo-600');
+        if (activeTab) {
+            activeTab.classList.remove('border-transparent', 'text-slate-400', 'hover:text-slate-700');
+            activeTab.classList.add('border-indigo-600', 'text-indigo-600');
+        }
     }
+
+    // Encapsulated setup execution handler hooked into Hotwire lifecycle events
+    function initializeCrossCampusArchive() {
+        const crossCampusSkeleton = document.getElementById("cross-campus-skeleton");
+        const crossCampusRealContent = document.getElementById("cross-campus-real-content");
+
+        if (crossCampusSkeleton && crossCampusRealContent) {
+            crossCampusSkeleton.classList.add("hidden");
+            crossCampusRealContent.classList.remove("hidden");
+        }
+    }
+
+    // Safely fire initialization on modern asynchronous layout changes
+    document.addEventListener("turbo:load", initializeCrossCampusArchive);
 </script>
 {% endblock %}

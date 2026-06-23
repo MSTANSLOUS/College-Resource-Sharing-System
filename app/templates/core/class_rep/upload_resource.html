@@ -1,101 +1,137 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="space-y-6 max-w-4xl">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Upload Resource</h1>
-        <p class="text-sm text-gray-500 mt-1">Publish notes to the system and target specific levels and programs.</p>
+<div class="space-y-8 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+
+    <div id="upload-loading-shimmer" class="fixed inset-0 bg-slate-50/60 backdrop-blur-[4px] z-50 opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center">
+        <div class="flex flex-col items-center space-y-3 p-6 bg-white/80 rounded-2xl border border-slate-200/50 shadow-lg max-w-xs text-center">
+            <div class="relative w-10 h-10">
+                <div class="w-10 h-10 rounded-full border-4 border-slate-100"></div>
+                <div class="w-10 h-10 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin absolute top-0 left-0"></div>
+            </div>
+            <p class="text-xs font-semibold text-slate-600">Encrypting & Streaming Resource File...</p>
+        </div>
     </div>
 
-    <form action="{{ url_for('core.upload_resource') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 p-8 sm:p-10 text-white shadow-xl shadow-indigo-950/10 border border-slate-800">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center opacity-[0.07] mix-blend-overlay blur-[2px]"></div>
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 mb-3 backdrop-blur-md">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                Publishing System
+            </span>
+            <h1 class="text-3xl font-black text-white tracking-tight sm:text-4xl">Upload Resource</h1>
+            <p class="text-slate-400 text-sm mt-2 font-medium max-w-xl">Publish notes to the system and target specific structural levels, module codes, and program tracks.</p>
+        </div>
+    </div>
+
+    <form id="resource-upload-form" action="{{ url_for('core.upload_resource') }}" method="POST" enctype="multipart/form-data" class="space-y-8 bg-white/60 backdrop-blur-md border border-slate-200/60 rounded-3xl p-6 sm:p-8 shadow-sm">
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-            <div>
-                <label for="module_id" class="block text-sm font-medium text-gray-700">Module Name</label>
-                <select id="module_id" name="module_id" required
-                        class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
-                    <option value="" disabled selected class="text-gray-300">Select Registered Module</option>
-                    {% for module in modules %}
-                        <option value="{{ module.id }}">{{ module.name }} ({{ module.code }})</option>
-                    {% endfor %}
-                </select>
+            <div class="relative">
+                <label for="module_id" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Module Name</label>
+                <div class="relative">
+                    <select id="module_id" name="module_id" required
+                            class="block w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer appearance-none">
+                        <option value="" disabled selected class="text-slate-400">Select Registered Module</option>
+                        {% for module in modules %}
+                            <option value="{{ module.id }}">{{ module.name }} ({{ module.code }})</option>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
             </div>
 
             <div>
-                <label for="title" class="block text-sm font-medium text-gray-700">Document Title</label>
+                <label for="title" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Document Title</label>
                 <input type="text" id="title" name="title" required
                        placeholder="e.g. End of Sem Revision Notes"
-                       class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors placeholder-gray-300">
+                       class="block w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-300">
             </div>
 
-            <div>
-                <label for="academic_year" class="block text-sm font-medium text-gray-700">Target Year</label>
+            <div class="relative">
+                <label for="academic_year" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Target Year</label>
                 <div class="relative">
                     <select id="academic_year" name="academic_year" required
-                            class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
-                        <option value="" disabled selected class="text-gray-300">Select Target Year</option>
+                            class="block w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer appearance-none">
+                        <option value="" disabled selected class="text-slate-400">Select Target Year</option>
                         <option value="1">Year 1</option>
                         <option value="2">Year 2</option>
                         <option value="3">Year 3</option>
                         <option value="4">Year 4</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>
             </div>
 
-            <div>
-                <label for="semester" class="block text-sm font-medium text-gray-700">Target Semester</label>
+            <div class="relative">
+                <label for="semester" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Target Semester</label>
                 <div class="relative">
                     <select id="semester" name="semester" required
-                            class="mt-2 block w-full px-0 py-3 bg-transparent border-0 border-b border-gray-200 text-base text-gray-900 focus:outline-none focus:ring-0 focus:border-gray-900 transition-colors cursor-pointer appearance-none">
-                        <option value="" disabled selected class="text-gray-300">Select Semester</option>
+                            class="block w-full px-4 py-3 bg-white/80 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer appearance-none">
+                        <option value="" disabled selected class="text-slate-400">Select Semester</option>
                         <option value="1">Semester 1</option>
                         <option value="2">Semester 2</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="pt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-4">Target Programs</label>
-            <p class="text-xs text-gray-500 mb-4">Select which programs should have access to these notes.</p>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
+                Target Programs <span class="text-rose-500">*</span>
+            </label>
+            <p class="text-xs text-slate-400 mb-4">Select which program pathways should have access to these notes.</p>
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {% for program in programs %}
-                <label class="relative flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group">
-                    <input type="checkbox" name="programs" value="{{ program.id }}" class="sr-only peer">
-                    <div class="w-4 h-4 border border-gray-300 rounded mr-3 flex items-center justify-center peer-checked:bg-gray-900 peer-checked:border-gray-900 transition-colors">
-                        <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                    <span class="text-sm font-medium text-gray-900">{{ program.name }}</span>
+                <label class="flex items-center p-3 bg-white/40 border border-slate-200/80 rounded-xl cursor-pointer hover:border-indigo-400/60 hover:bg-white transition-all group shadow-sm">
+                    <input type="checkbox" name="programs" value="{{ program.id }}"
+                           class="program-checkbox h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20 transition-colors">
+                    <span class="ml-3 text-xs font-bold text-slate-600 uppercase group-hover:text-slate-800 transition-colors">
+                        {{ program.name }}
+                    </span>
                 </label>
                 {% endfor %}
             </div>
+
+            <p id="program-error" class="hidden mt-3 text-[11px] font-bold text-rose-500 uppercase tracking-wider animate-pulse">
+                ⚠️ Selection Required: At least one academic program pathway must be checked.
+            </p>
         </div>
 
-        <div class="pt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Document (PDF)</label>
+        <div class="pt-2">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Upload Document (PDF)</label>
             <div class="flex items-center justify-center w-full">
-                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-slate-200 hover:border-indigo-400/60 rounded-2xl cursor-pointer bg-white/40 hover:bg-white transition-all shadow-sm group">
                     <div id="dropzone-text" class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
-                        <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        <p class="text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                        <p class="text-xs text-gray-400 mt-1">PDF format only</p>
+                        <div class="h-12 w-12 bg-slate-50 group-hover:bg-indigo-50 rounded-xl flex items-center justify-center border border-slate-200/60 group-hover:border-indigo-100 transition-all mb-3">
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        </div>
+                        <p class="text-sm text-slate-600"><span class="font-bold text-indigo-600 group-hover:text-indigo-700">Click to upload</span> or drag and drop</p>
+                        <p class="text-xs text-slate-400 mt-1">PDF file configuration matrix limit only</p>
                     </div>
                     <input id="dropzone-file" type="file" name="file" accept="application/pdf" class="hidden" required />
                 </label>
             </div>
         </div>
 
-        <div class="pt-4">
+        <div class="pt-2 flex justify-end">
             <button type="submit"
-                    class="w-full sm:w-auto px-10 py-3 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+                   class="w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-600/20 hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
                 Publish Resource
             </button>
         </div>
@@ -103,18 +139,62 @@
 </div>
 
 <script>
-    const fileInput = document.getElementById('dropzone-file');
-    const dropzoneText = document.getElementById('dropzone-text');
+    // Scoped execution logic mapping into active layout containers cleanly via Turbo hooks
+    function initializeUploadResourceView() {
+        const fileInput = document.getElementById('dropzone-file');
+        const dropzoneText = document.getElementById('dropzone-text');
+        const uploadForm = document.getElementById('resource-upload-form');
 
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files.length > 0) {
-            const filename = this.files[0].name;
-            dropzoneText.innerHTML = `
-                <svg class="w-10 h-10 text-emerald-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <p class="text-sm font-semibold text-gray-900">${filename}</p>
-                <p class="text-xs text-emerald-500 mt-1">File selected! Ready to upload.</p>
-            `;
-        }
-    });
+        if (!uploadForm || !fileInput || !dropzoneText) return;
+
+        // 1. Interactive Dropzone Visual State Feedback Matrix
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const filename = this.files[0].name;
+                dropzoneText.innerHTML = `
+                    <div class="h-12 w-12 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100 mb-3 animate-bounce">
+                        <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800">${filename}</p>
+                    <p class="text-xs text-emerald-500 font-semibold mt-1">Document loaded successfully. Pipeline ready.</p>
+                `;
+            }
+        });
+
+        // 2. Client-Side Selection Checkbox Array Validation and Loading Mask Orchestration
+        uploadForm.addEventListener('submit', function(e) {
+            const checkedPrograms = document.querySelectorAll('input[name="programs"]:checked');
+            const errorMsg = document.getElementById('program-error');
+
+            if (checkedPrograms.length === 0) {
+                e.preventDefault();
+                if (errorMsg) {
+                    errorMsg.classList.remove('hidden');
+                    errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
+            const uploadMask = document.getElementById('upload-loading-shimmer');
+            if (uploadMask) {
+                uploadMask.classList.remove('opacity-0', 'pointer-events-none');
+                uploadMask.classList.add('opacity-100');
+            }
+        });
+
+        // 3. Automated Error Cleanup Event Hook
+        const programCheckboxes = document.querySelectorAll('.program-checkbox');
+        programCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const errorMsg = document.getElementById('program-error');
+                if (errorMsg && document.querySelectorAll('input[name="programs"]:checked').length > 0) {
+                    errorMsg.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    // Capture lifecycle mutations directly
+    document.addEventListener("turbo:load", initializeUploadResourceView);
 </script>
 {% endblock %}
