@@ -383,14 +383,18 @@ def add_module():
 @login_required
 def make_rep(user_id):
     if not current_user.is_admin:
-        flash('Access denied.')
+        flash('Access denied.', 'error')
         return redirect(url_for('core.dashboard'))
 
     user = User.query.get_or_404(user_id)
+
+    # Promote to rep and also approve them immediately
     user.is_class_rep = True
+    user.is_approved = True   # <--- ADD THIS LINE
+
     db.session.commit()
-    create_log("Role Change", f"Promoted {user.full_name} to Class Representative")
-    flash(f'{user.full_name} is now a Class Representative!')
+    create_log("Role Change", f"Promoted and approved {user.full_name} as Class Representative")
+    flash(f'{user.full_name} is now a Class Representative and can log in!', 'success')
     return redirect(url_for('core.admin_dashboard'))
 
 

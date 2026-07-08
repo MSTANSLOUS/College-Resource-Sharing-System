@@ -1,173 +1,220 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="space-y-10 max-w-6xl mx-auto px-1 sm:px-4">
+<div class="space-y-8 max-w-6xl mx-auto px-1 sm:px-4">
 
-    <!-- Hero Card -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 to-indigo-950 p-6 sm:p-8 rounded-2xl shadow-xl shadow-slate-900/10 text-white relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-        <div class="relative z-10">
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Welcome back, {{ current_user.full_name }}!</h1>
-            <p class="text-slate-300 text-sm mt-1 font-light">Here is what is happening on the platform today.</p>
-        </div>
-        <div class="flex-shrink-0 relative z-10">
-            <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 backdrop-blur-md">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Active Connection
-            </span>
+    <!-- ─── ONBOARDING CHECKLIST ─── -->
+    <div id="onboarding-card" class="bg-blue-50 border border-blue-200 rounded-2xl p-6 shadow-sm relative {% if not show_onboarding %}hidden{% endif %}">
+        <button onclick="dismissOnboarding()" class="absolute top-4 right-4 text-blue-400 hover:text-blue-600 transition-colors">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="flex items-start gap-4">
+            <div class="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 flex-shrink-0">
+                <i class="fas fa-rocket text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-blue-900">Welcome to Student Resource Hub! 🎉</h3>
+                <p class="text-blue-700 text-sm mt-1">Here's how to get started:</p>
+                <ul class="mt-3 space-y-2 text-sm text-blue-800">
+                    <li class="flex items-center gap-2">
+                        <span class="h-5 w-5 rounded-full bg-blue-200 flex items-center justify-center text-xs font-bold text-blue-700">1</span>
+                        Explore <strong>My Campus Notes</strong> – find resources shared by your classmates.
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <span class="h-5 w-5 rounded-full bg-blue-200 flex items-center justify-center text-xs font-bold text-blue-700">2</span>
+                        Check the <strong>Cross-Campus Archive</strong> for materials from other campuses.
+                    </li>
+                    {% if current_user.is_class_rep %}
+                    <li class="flex items-center gap-2">
+                        <span class="h-5 w-5 rounded-full bg-blue-200 flex items-center justify-center text-xs font-bold text-blue-700">3</span>
+                        <strong>Upload resources</strong> to help your fellow students succeed.
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </div>
 
-    <!-- Approvals Panel (Class Rep Only) -->
+    <!-- ─── HERO CARD ─── -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-[#ede8e0] text-[#1a1a1a] relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-[#f5f2ec] rounded-full blur-2xl"></div>
+        <div class="relative z-10">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Welcome back, {{ current_user.full_name }}!</h1>
+            <p class="text-[#7a7268] text-sm mt-1 font-light">Here is what is happening on the platform today.</p>
+        </div>
+        <div class="flex-shrink-0 relative z-10 flex flex-wrap gap-2">
+            <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 backdrop-blur-md">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active Connection
+            </span>
+            {% if current_user.is_class_rep %}
+            <a href="{{ url_for('core.upload_resource') }}" class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-[#2c2822] text-white border border-[#2c2822] hover:bg-black transition-colors">
+                <i class="fas fa-upload"></i> Quick Upload
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ─── QUICK ACTIONS ─── -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <a href="{{ url_for('core.campus_notes') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group">
+            <div class="h-10 w-10 bg-[#f5f2ec] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:bg-[#ece4da] transition-colors">
+                <i class="fas fa-file-alt text-[#6b5e50]"></i>
+            </div>
+            <p class="text-xs font-bold text-[#1a1a1a]">My Notes</p>
+        </a>
+        <a href="{{ url_for('core.cross_campus') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group">
+            <div class="h-10 w-10 bg-[#f5f2ec] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:bg-[#ece4da] transition-colors">
+                <i class="fas fa-globe text-[#6b5e50]"></i>
+            </div>
+            <p class="text-xs font-bold text-[#1a1a1a]">Cross-Campus</p>
+        </a>
+        <a href="{{ url_for('core.vault') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group">
+            <div class="h-10 w-10 bg-[#f5f2ec] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:bg-[#ece4da] transition-colors">
+                <i class="fas fa-vault text-[#6b5e50]"></i>
+            </div>
+            <p class="text-xs font-bold text-[#1a1a1a]">The Vault</p>
+        </a>
+        <a href="{{ url_for('core.profile') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group">
+            <div class="h-10 w-10 bg-[#f5f2ec] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:bg-[#ece4da] transition-colors">
+                <i class="fas fa-user text-[#6b5e50]"></i>
+            </div>
+            <p class="text-xs font-bold text-[#1a1a1a]">Profile</p>
+        </a>
+    </div>
+
+    <!-- ─── APPROVALS (Rep only) ─── -->
     {% if current_user.is_class_rep %}
         <div class="space-y-4">
             <div class="flex items-center space-x-2">
-                <div class="h-1.5 w-3 bg-indigo-600 rounded-full"></div>
-                <h2 class="text-lg font-bold text-slate-900 tracking-tight">Pending Student Approvals</h2>
+                <div class="h-1.5 w-3 bg-[#c4b09a] rounded-full"></div>
+                <h2 class="text-lg font-bold text-[#1a1a1a] tracking-tight">Pending Student Approvals</h2>
+                <span class="ml-2 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{{ pending_students|length if pending_students else 0 }}</span>
             </div>
 
-            <!-- Skeleton Loader -->
-            <div id="approvals-skeleton" class="animate-pulse space-y-3">
-                <div class="bg-white rounded-2xl border border-slate-200/60 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center space-x-3 w-full sm:w-1/3">
-                        <div class="h-10 w-10 bg-slate-200 rounded-xl flex-shrink-0"></div>
-                        <div class="space-y-2 flex-1">
-                            <div class="h-3 bg-slate-200 rounded-md w-3/4"></div>
-                            <div class="h-2.5 bg-slate-200 rounded-md w-1/2"></div>
-                        </div>
-                    </div>
-                    <div class="h-6 bg-slate-200 rounded-lg w-24 hidden sm:block"></div>
-                    <div class="h-9 bg-slate-200 rounded-xl w-full sm:w-32"></div>
-                </div>
-            </div>
-
-            <!-- Real Content Payload -->
-            <div id="approvals-real-content" class="hidden">
+            <!-- Real Content -->
+            <div id="approvals-real-content">
                 {% if pending_students %}
-                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden divide-y divide-slate-100">
+                    <div class="bg-white rounded-2xl border border-[#ede8e0] shadow-sm overflow-hidden divide-y divide-[#f0ebe3]">
                         {% for student in pending_students %}
-                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 p-5 sm:p-6 items-center hover:bg-slate-50/50 transition-colors duration-150">
-
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 p-5 sm:p-6 items-center hover:bg-[#faf8f5] transition-colors duration-150">
                             <div class="col-span-1 sm:col-span-5 flex items-center space-x-3">
-                                <div class="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-sm flex-shrink-0">
+                                <div class="h-10 w-10 rounded-xl bg-[#f5f2ec] flex items-center justify-center text-[#1a1a1a] font-bold text-sm flex-shrink-0">
                                     {{ student.full_name[:2].upper() }}
                                 </div>
                                 <div class="flex flex-col min-w-0">
-                                    <span class="text-sm font-semibold text-slate-900 truncate">{{ student.full_name }}</span>
-                                    <span class="text-xs text-slate-400 truncate mt-0.5">{{ student.email }}</span>
+                                    <span class="text-sm font-semibold text-[#1a1a1a] truncate">{{ student.full_name }}</span>
+                                    <span class="text-xs text-[#b5aaa0] truncate mt-0.5">{{ student.email }}</span>
                                 </div>
                             </div>
-
                             <div class="col-span-1 sm:col-span-3">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
-                                    <svg class="w-3 h-3 mr-1 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>
-                                    </svg>
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-[#f5f2ec] text-[#5a5248] border border-[#ede8e0]">
+                                    <i class="fas fa-map-pin mr-1 text-[#b5aaa0]"></i>
                                     {{ student.campus }}
                                 </span>
                             </div>
-
                             <div class="col-span-1 sm:col-span-4 flex justify-end items-center space-x-3 mt-2 sm:mt-0">
-                                <form action="{{ url_for('core.approve_student', user_id=student.id) }}" method="POST" class="w-full sm:w-auto approval-action-form">
-                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-semibold rounded-xl tracking-wide shadow-sm transition-all duration-150 transform active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">
-                                        Approve
+                                <form action="{{ url_for('core.approve_student', user_id=student.id) }}" method="POST" class="w-full sm:w-auto">
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-[#1a1a1a] hover:bg-black text-white text-xs font-semibold rounded-xl tracking-wide shadow-sm transition-all duration-150 active:scale-[0.98]">
+                                        <i class="fas fa-check mr-1.5"></i> Approve
                                     </button>
                                 </form>
-
-                                <form action="{{ url_for('core.reject_student', user_id=student.id) }}" method="POST" class="w-full sm:w-auto approval-action-form">
-                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 text-xs font-semibold rounded-xl border border-slate-200 hover:border-red-200 transition-all duration-150 focus:outline-none">
+                                <form action="{{ url_for('core.reject_student', user_id=student.id) }}" method="POST" class="w-full sm:w-auto">
+                                    <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-white hover:bg-red-50 text-[#b5aaa0] hover:text-red-600 text-xs font-semibold rounded-xl border border-[#ede8e0] hover:border-red-200 transition-all duration-150">
                                         Ignore
                                     </button>
                                 </form>
                             </div>
-
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl bg-white p-6">
+                    <div class="text-center py-12 border-2 border-dashed border-[#ede8e0] rounded-2xl bg-white p-6">
                         <div class="mx-auto w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center mb-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                            </svg>
+                            <i class="fas fa-check-circle text-xl"></i>
                         </div>
-                        <p class="text-sm font-medium text-slate-900">All caught up!</p>
-                        <p class="text-xs text-slate-400 mt-1">No students are currently waiting for your approval.</p>
+                        <p class="text-sm font-medium text-[#1a1a1a]">All caught up!</p>
+                        <p class="text-xs text-[#b5aaa0] mt-1">No students are currently waiting for your approval.</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     {% endif %}
 
-    <!-- Academic Uploads Section -->
+    <!-- ─── RECENT ACTIVITY ─── -->
     <div class="space-y-4">
         <div class="flex items-center space-x-2">
-            <div class="h-1.5 w-3 bg-indigo-600 rounded-full"></div>
-            <h2 class="text-lg font-bold text-slate-900 tracking-tight">Recent Academic Uploads</h2>
+            <div class="h-1.5 w-3 bg-[#c4b09a] rounded-full"></div>
+            <h2 class="text-lg font-bold text-[#1a1a1a] tracking-tight">Recent Activity</h2>
         </div>
 
-        <!-- Skeleton Loader Grid -->
-        <div id="uploads-skeleton" class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {% for idx in range(3) %}
-            <div class="p-6 bg-white border border-slate-200/60 rounded-2xl space-y-4 animate-pulse">
-                <div class="flex justify-between items-center">
-                    <div class="h-4 bg-slate-200 rounded w-1/4"></div>
-                    <div class="h-7 w-7 bg-slate-200 rounded-lg"></div>
+        <div class="bg-white rounded-2xl border border-[#ede8e0] divide-y divide-[#f0ebe3]">
+            {% if recent_activity %}
+                {% for activity in recent_activity %}
+                <div class="flex items-center gap-4 p-4 hover:bg-[#faf8f5] transition-colors">
+                    <div class="h-8 w-8 rounded-full bg-[#f5f2ec] flex items-center justify-center text-[#6b5e50] flex-shrink-0">
+                        <i class="fas {{ activity.icon|default('fa-circle-info') }}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-[#1a1a1a]">{{ activity.description }}</p>
+                        <p class="text-[10px] text-[#b5aaa0]">{{ activity.time_ago|default('Just now') }}</p>
+                    </div>
                 </div>
-                <div class="h-5 bg-slate-200 rounded w-5/6 pt-2"></div>
-                <div class="h-4 bg-slate-200 rounded w-2/3"></div>
-                <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
-                    <div class="h-5 bg-slate-200 rounded w-16"></div>
-                    <div class="h-4 bg-slate-200 rounded w-20"></div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-8 text-[#b5aaa0]">
+                    <i class="fas fa-inbox text-2xl block mb-2"></i>
+                    <p class="text-sm">No recent activity. Start exploring resources!</p>
                 </div>
-            </div>
-            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ─── RECENT UPLOADS ─── -->
+    <div class="space-y-4">
+        <div class="flex items-center space-x-2">
+            <div class="h-1.5 w-3 bg-[#c4b09a] rounded-full"></div>
+            <h2 class="text-lg font-bold text-[#1a1a1a] tracking-tight">Recent Academic Uploads</h2>
         </div>
 
-        <!-- Real Upload Content Cards -->
-        <div id="uploads-real-content" class="hidden">
+        <div id="uploads-real-content">
             {% if recent_uploads %}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {% for resource in recent_uploads %}
-                    <div class="p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group relative overflow-hidden">
-                        <div class="absolute top-0 inset-x-0 h-[2px] bg-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                    <div class="p-6 bg-white border border-[#ede8e0] rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group relative overflow-hidden">
+                        <div class="absolute top-0 inset-x-0 h-[2px] bg-[#c4b09a] opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                         <div>
                             <div class="flex items-center justify-between">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                    Notes
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#f5f2ec] text-[#5a5248] border border-[#ede8e0]">
+                                    <i class="fas fa-file-pdf mr-1 text-[#b5aaa0]"></i> Notes
                                 </span>
-                                <div class="h-7 w-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors duration-200">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
-                                    </svg>
+                                <div class="h-7 w-7 rounded-lg bg-[#f5f2ec] flex items-center justify-center text-[#b5aaa0] group-hover:text-[#6b5e50] group-hover:bg-[#ece4da] transition-colors duration-200">
+                                    <i class="fas fa-file-alt"></i>
                                 </div>
                             </div>
-                            <h3 class="text-base font-bold text-slate-900 mt-4 leading-snug group-hover:text-indigo-600 transition-colors duration-150">{{ resource.module_name }}</h3>
-                            <p class="text-sm text-slate-500 mt-2 line-clamp-2 font-light">{{ resource.title }}</p>
+                            <h3 class="text-base font-bold text-[#1a1a1a] mt-4 leading-snug group-hover:text-[#6b5e50] transition-colors duration-150">{{ resource.module_name }}</h3>
+                            <p class="text-sm text-[#7a7268] mt-2 line-clamp-2 font-light">{{ resource.title }}</p>
                         </div>
-
-                        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-400">
-                            <span class="bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Year {{ resource.academic_year }}</span>
-                            <!-- Added data-turbo="false" to native file viewers to prevent Turbo trying to process a binary PDF stream -->
-                            <a href="{{ url_for('static', filename=resource.file_path) }}" target="_blank" data-turbo="false" class="inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-                                View PDF
-                                <svg class="w-3.5 h-3.5 ml-1 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7M21 12H3"/>
-                                </svg>
+                        <div class="mt-6 pt-4 border-t border-[#f0ebe3] flex items-center justify-between text-xs font-medium text-[#b5aaa0]">
+                            <span class="bg-[#f5f2ec] px-2 py-1 rounded-md border border-[#ede8e0]">Year {{ resource.academic_year }}</span>
+                            <a href="{{ url_for('static', filename=resource.file_path) }}" target="_blank" data-turbo="false" class="inline-flex items-center text-sm font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
+                                View <i class="fas fa-arrow-right ml-1.5 text-xs"></i>
                             </a>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl bg-white p-6">
-                    <div class="mx-auto w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center mb-3">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
-                        </svg>
+                <div class="text-center py-12 border-2 border-dashed border-[#ede8e0] rounded-2xl bg-white p-6">
+                    <div class="mx-auto w-10 h-10 bg-[#f5f2ec] text-[#b5aaa0] rounded-xl flex items-center justify-center mb-3">
+                        <i class="fas fa-cloud-upload-alt text-xl"></i>
                     </div>
-                    <p class="text-sm font-medium text-slate-900">No content found</p>
-                    <p class="text-xs text-slate-400 mt-1">No notes have been uploaded for your program yet.</p>
+                    <p class="text-sm font-medium text-[#1a1a1a]">No resources yet</p>
+                    <p class="text-xs text-[#b5aaa0] mt-1">Check back later or upload the first note!</p>
+                    {% if current_user.is_class_rep %}
+                    <a href="{{ url_for('core.upload_resource') }}" class="inline-block mt-4 text-sm font-bold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
+                        Upload now <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
@@ -176,37 +223,32 @@
 </div>
 
 <script>
-    // Scoped function executing layout content toggles securely
-    function initializeDashboardViews() {
-        // Swap out approvals element once fully initialized
-        const appSkeleton = document.getElementById("approvals-skeleton");
-        const appContent = document.getElementById("approvals-real-content");
-        if(appSkeleton && appContent) {
-            appSkeleton.classList.add("hidden");
-            appContent.classList.remove("hidden");
-        }
-
-        // Swap out academic uploads cards grid
-        const uploadSkeleton = document.getElementById("uploads-skeleton");
-        const uploadContent = document.getElementById("uploads-real-content");
-        if(uploadSkeleton && uploadContent) {
-            uploadSkeleton.classList.add("hidden");
-            uploadContent.classList.remove("hidden");
-        }
-
-        // Intercept form updates to kick in the loading shimmer on submission
-        document.querySelectorAll('.approval-action-form').forEach(form => {
-            form.addEventListener('submit', function() {
-                const globalNavShimmer = document.getElementById('page-nav-shimmer');
-                if (globalNavShimmer) {
-                    globalNavShimmer.classList.remove('opacity-0', 'pointer-events-none');
-                    globalNavShimmer.classList.add('opacity-100');
-                }
-            });
-        });
+    function dismissOnboarding() {
+        document.getElementById('onboarding-card').classList.add('hidden');
+        try {
+            localStorage.setItem('onboarding-dismissed', 'true');
+        } catch (_) {}
     }
 
-    // Attach logic execution hook explicitly onto Turbo's render & static load events
-    document.addEventListener("turbo:load", initializeDashboardViews);
+    function initializePage() {
+        // Check if onboarding should be shown
+        const onboardingCard = document.getElementById('onboarding-card');
+        if (onboardingCard) {
+            try {
+                const dismissed = localStorage.getItem('onboarding-dismissed');
+                if (dismissed === 'true') {
+                    onboardingCard.classList.add('hidden');
+                } else {
+                    onboardingCard.classList.remove('hidden');
+                }
+            } catch (_) {
+                onboardingCard.classList.remove('hidden');
+            }
+        }
+    }
+
+    document.addEventListener('turbo:load', initializePage);
+    // Initial call in case Turbo doesn't fire immediately
+    setTimeout(initializePage, 100);
 </script>
 {% endblock %}

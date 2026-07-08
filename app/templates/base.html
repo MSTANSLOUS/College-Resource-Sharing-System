@@ -1,299 +1,1082 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Students Resource System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome 6 (Free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Turbo -->
     <script type="module">
         import 'https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.5/+esm';
     </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
 
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            background-color: #f8fafc;
+    <style>
+        /* ── Reset & Base ── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .custom-sidebar-scroll::-webkit-scrollbar {
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f2ec;
+            color: #1a1a1a;
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        ::-webkit-scrollbar {
             width: 4px;
         }
-        .custom-sidebar-scroll::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background: transparent;
         }
-        .custom-sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 9999px;
+        ::-webkit-scrollbar-thumb {
+            background: #d5cbbc;
+            border-radius: 8px;
         }
-        .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c4b4a2;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: sticky;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            min-width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #ede8e0;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                min-width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            z-index: 100;
+            box-shadow: 2px 0 16px rgba(0, 0, 0, 0.03);
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed {
+            width: 72px;
+            min-width: 72px;
+        }
+
+        /* ── Sidebar Header ── */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 14px 24px;
+            border-bottom: 1px solid #f0ebe3;
+            flex-shrink: 0;
+            min-height: 68px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 18px 12px 14px 12px;
+            justify-content: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .brand-icon {
+            font-size: 22px;
+            color: #b8a088;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+            color: #1a1a1a;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .sidebar.collapsed .brand-text {
+            opacity: 0;
+            transform: translateX(-8px);
+            width: 0;
+            overflow: hidden;
+        }
+
+        .toggle-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: #f5f0ea;
+            color: #7a7268;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: #e8e0d4;
+            color: #1a1a1a;
+        }
+        .toggle-btn:active {
+            transform: scale(0.94);
+        }
+        .toggle-btn .fa-chevron-left {
+            transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar.collapsed .toggle-btn .fa-chevron-left {
+            transform: rotate(180deg);
+        }
+        .sidebar.collapsed .toggle-btn {
+            background: #f0ebe3;
+        }
+
+        /* ── Navigation Scroll ── */
+        .nav-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px 10px 20px 10px;
+            scroll-behavior: smooth;
+        }
+
+        /* ── Nav Groups ── */
+        .nav-group {
+            margin-bottom: 18px;
+        }
+        .nav-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .nav-group-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #b5aaa0;
+            padding: 6px 14px 8px 14px;
+            transition: opacity 0.25s ease, height 0.25s ease, padding 0.25s ease;
+            opacity: 1;
+            height: auto;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .nav-group-label {
+            opacity: 0;
+            height: 0;
+            padding: 0 14px;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* ── Nav Item (parent) ── */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 9px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease, padding 0.18s ease;
+            color: #5a5248;
+            text-decoration: none;
+            position: relative;
+            white-space: nowrap;
+            margin-bottom: 1px;
+            min-height: 40px;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background: #f5f0ea;
+            color: #1a1a1a;
+        }
+        .nav-item.active {
+            background: #ece4da;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 22px;
+            background: #c4b09a;
+            border-radius: 0 4px 4px 0;
+            transition: height 0.2s ease;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 17px;
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+            color: #8a7e72;
+            transition: color 0.18s ease;
+        }
+        .nav-item:hover .nav-icon {
+            color: #5a5248;
+        }
+        .nav-item.active .nav-icon {
+            color: #6b5e50;
+        }
+
+        .nav-item .nav-text {
+            font-size: 14px;
+            font-weight: 450;
+            flex: 1;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-item .nav-chevron {
+            font-size: 11px;
+            color: #b5aaa0;
+            transition: transform 0.3s ease, opacity 0.25s ease;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .nav-item .nav-chevron.open {
+            transform: rotate(90deg);
+        }
+
+        .sidebar.collapsed .nav-item .nav-text {
+            opacity: 0;
+            transform: translateX(-6px);
+            width: 0;
+            overflow: hidden;
+        }
+        .sidebar.collapsed .nav-item .nav-chevron {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            margin: 0;
+        }
+        .sidebar.collapsed .nav-item {
+            padding: 9px 0;
+            justify-content: center;
+            gap: 0;
+        }
+        .sidebar.collapsed .nav-item .nav-icon {
+            font-size: 19px;
+            width: 32px;
+        }
+        .sidebar.collapsed .nav-item.active::before {
+            left: 2px;
+            width: 2px;
+            height: 18px;
+        }
+
+        /* ── Sub-menu ── */
+        .sub-menu {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease, margin 0.25s ease;
+            opacity: 0;
+            margin-left: 14px;
+            padding-left: 8px;
+            border-left: 1.5px solid #f0ebe3;
+        }
+
+        .sub-menu.open {
+            max-height: 600px;
+            opacity: 1;
+        }
+
+        .sub-menu .nav-item {
+            padding: 7px 14px 7px 20px;
+            font-size: 13px;
+            min-height: 36px;
+            gap: 12px;
+            color: #6b6258;
+        }
+        .sub-menu .nav-item .nav-icon {
+            font-size: 14px;
+            width: 18px;
+            color: #b5aaa0;
+        }
+        .sub-menu .nav-item:hover {
+            background: #f5f0ea;
+            color: #1a1a1a;
+        }
+        .sub-menu .nav-item.active {
+            background: #ece4da;
+            color: #1a1a1a;
+            font-weight: 450;
+        }
+        .sub-menu .nav-item.active::before {
+            height: 14px;
+            width: 2px;
+            left: 2px;
+        }
+
+        .sidebar.collapsed .sub-menu {
+            max-height: 0 !important;
+            opacity: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        .sidebar.collapsed .sub-menu .nav-item {
+            display: none;
+        }
+
+        /* ── Tooltip (collapsed) ── */
+        .nav-item[data-tooltip] {
+            position: relative;
+        }
+        .sidebar.collapsed .nav-item[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: calc(100% + 16px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1a1a1a;
+            color: #f5f2ec;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 450;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            z-index: 200;
+            pointer-events: none;
+            animation: tooltipFade 0.2s ease;
+        }
+        .sidebar.collapsed .nav-item[data-tooltip]:hover::before {
+            content: '';
+            position: absolute;
+            left: calc(100% + 8px);
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-right-color: #1a1a1a;
+            z-index: 200;
+            pointer-events: none;
+        }
+        @keyframes tooltipFade {
+            0% {
+                opacity: 0;
+                transform: translateY(-50%) scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(-50%) scale(1);
+            }
+        }
+
+        /* ── Main Content ── */
+        .main-content {
+            flex: 1;
+            padding: 36px 44px;
+            background: #f5f2ec;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* ── Mobile ── */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #1a1a1a;
+            cursor: pointer;
+            padding: 4px;
+            margin-right: 12px;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.15);
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 380px;
+            width: 100%;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            background: #ffffff;
+            border: 1px solid #ede8e0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: bottom right;
+        }
+        .toast.hide {
+            animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .toast-success { border-left: 4px solid #10b981; }
+        .toast-error { border-left: 4px solid #ef4444; }
+        .toast-warning { border-left: 4px solid #f59e0b; }
+        .toast-info { border-left: 4px solid #6b5e50; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideDown {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(20px) scale(0.96); }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
+                transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                    width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+                transform: translateX(-100%);
+                width: 280px;
+                min-width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+                width: 280px;
+                min-width: 280px;
+            }
+            .sidebar.collapsed .brand-text {
+                opacity: 1;
+                transform: none;
+                width: auto;
+            }
+            .sidebar.collapsed .nav-item .nav-text {
+                opacity: 1;
+                transform: none;
+                width: auto;
+            }
+            .sidebar.collapsed .nav-item {
+                padding: 9px 14px;
+                justify-content: flex-start;
+                gap: 14px;
+            }
+            .sidebar.collapsed .nav-group-label {
+                opacity: 1;
+                height: auto;
+                padding: 6px 14px 8px 14px;
+            }
+            .sidebar.collapsed .nav-item .nav-icon {
+                font-size: 17px;
+                width: 22px;
+            }
+            .sidebar.collapsed .nav-item .nav-chevron {
+                opacity: 1;
+                width: auto;
+                margin-left: auto;
+            }
+            .sidebar.collapsed .toggle-btn .fa-chevron-left {
+                transform: rotate(0deg);
+            }
+            .sidebar.collapsed .sub-menu {
+                max-height: 0 !important;
+                opacity: 0 !important;
+            }
+            .sidebar.collapsed .sub-menu .nav-item {
+                display: none;
+            }
+            .sidebar.collapsed .nav-item[data-tooltip]:hover::after,
+            .sidebar.collapsed .nav-item[data-tooltip]:hover::before {
+                display: none;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .main-content {
+                padding: 20px 18px;
+            }
+            .page-header h1 {
+                font-size: 22px;
+            }
+            .main-content-header {
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 16px 14px;
+            }
+            #toast-container {
+                max-width: 100%;
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                width: auto;
+            }
+        }
+
+        /* ── Additional Tailwind overrides ── */
+        .bg-slate-50 {
+            background-color: #f5f2ec !important;
+        }
+        .text-slate-800 {
+            color: #1a1a1a !important;
+        }
+        .border-slate-200 {
+            border-color: #ede8e0 !important;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased">
+<body>
 
-    <div class="flex h-screen w-screen overflow-hidden relative">
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="sidebar" id="sidebar" data-turbo-permanent role="navigation" aria-label="Main navigation">
 
-        <div class="md:hidden absolute top-0 left-0 right-0 h-16 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between px-6 z-20 border-b border-slate-800 shadow-md">
-            <div class="flex items-center space-x-3">
-                <div class="h-8 w-8 bg-gradient-to-br from-indigo-500 to-teal-400 rounded-lg flex items-center justify-center shadow-md shadow-indigo-500/20">
-                    <span class="text-white font-black text-xs tracking-tighter">SR</span>
-                </div>
-                <h2 class="text-base font-bold tracking-tight text-white/90">Students Resource System</h2>
+        <!-- Header -->
+        <div class="sidebar-header">
+            <div class="brand">
+                <span class="brand-icon"><i class="fas fa-graduation-cap"></i></span>
+                <span class="brand-text">Student Resource</span>
             </div>
-            <button id="menu-toggle" class="p-2 text-slate-300 hover:text-white focus:outline-none transition-colors cursor-pointer">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
+            <button class="toggle-btn" id="toggleBtn" aria-label="Toggle navigation" title="Collapse / Expand">
+                <i class="fas fa-chevron-left"></i>
             </button>
         </div>
 
-        <nav id="sidebar" data-turbo-permanent class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out w-64 h-full bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 flex flex-col justify-between z-30 md:z-auto border-r border-slate-800/60 shadow-2xl overflow-hidden flex-shrink-0">
+        <!-- Navigation -->
+        <div class="nav-scroll" id="navScroll">
 
-            <div class="flex flex-col h-full justify-between">
+            <!-- Group: Overview -->
+            <div class="nav-group">
+                <div class="nav-group-label">Overview</div>
 
-                <div class="p-6 border-b border-slate-800/50 flex items-center justify-between flex-shrink-0">
-                    <div class="flex items-center space-x-3">
-                        <div class="h-9 w-9 bg-gradient-to-br from-indigo-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <span class="text-white font-black text-sm tracking-tighter">SR</span>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold text-white tracking-tight leading-tight">Student Resource</span>
-                            <span class="text-[10px] font-medium text-slate-500 tracking-wider uppercase">Hub Platform</span>
-                        </div>
-                    </div>
-                    <button id="menu-close" class="md:hidden text-slate-400 hover:text-white focus:outline-none transition-colors cursor-pointer">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="flex-1 max-h-[calc(100vh-220px)] overflow-y-auto custom-sidebar-scroll py-4">
-                    <ul data-sidebar-links class="space-y-1.5 px-4 text-slate-300">
-
-                        {% if current_user.is_admin %}
-                        <li>
-                            <a href="{{ url_for('core.admin_dashboard') }}"
-                               class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group {% if request.endpoint == 'core.admin_dashboard' %} bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md shadow-red-600/10 {% else %} hover:bg-white/[0.04] hover:text-white {% endif %}">
-                                <svg class="w-5 h-5 mr-3 {% if request.endpoint == 'core.admin_dashboard' %} text-white {% else %} text-slate-400 group-hover:text-red-400 {% endif %} transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286z" />
-                                </svg>
-                                Admin Dashboard
-                            </a>
-                        </li>
-
-                        {% else %}
-                        <li>
-                            <a href="{{ url_for('core.dashboard') }}"
-                               class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group {% if request.endpoint == 'core.dashboard' %} bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/10 {% else %} hover:bg-white/[0.04] hover:text-white {% endif %}">
-                                <svg class="w-5 h-5 mr-3 {% if request.endpoint == 'core.dashboard' %} text-white {% else %} text-slate-400 group-hover:text-indigo-400 {% endif %} transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                                </svg>
-                                Dashboard
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{{ url_for('core.campus_notes') }}"
-                               class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group {% if request.endpoint == 'core.campus_notes' %} bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/10 {% else %} hover:bg-white/[0.04] hover:text-white {% endif %}">
-                                <svg class="w-5 h-5 mr-3 {% if request.endpoint == 'core.campus_notes' %} text-white {% else %} text-slate-400 group-hover:text-indigo-400 {% endif %} transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                </svg>
-                                My Campus Notes
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{{ url_for('core.cross_campus') }}"
-                               class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group {% if request.endpoint == 'core.cross_campus' %} bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/10 {% else %} hover:bg-white/[0.04] hover:text-white {% endif %}">
-                                <svg class="w-5 h-5 mr-3 {% if request.endpoint == 'core.cross_campus' %} text-white {% else %} text-slate-400 group-hover:text-indigo-400 {% endif %} transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253" />
-                                </svg>
-                                Cross-Campus Archive
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{{ url_for('core.vault') }}"
-                               class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group {% if request.endpoint == 'core.vault' %} bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/10 {% else %} hover:bg-white/[0.04] hover:text-white {% endif %}">
-                                <svg class="w-5 h-5 mr-3 {% if request.endpoint == 'core.vault' %} text-white {% else %} text-slate-400 group-hover:text-indigo-400 {% endif %} transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h16.5a1.5 1.5 0 001.5-1.5V12a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 12v8.25a1.5 1.5 0 001.5 1.5z" />
-                                </svg>
-                                The Vault
-                            </a>
-                        </li>
-
-                        {% if current_user.is_class_rep %}
-                        <li class="pt-3 pb-1">
-                            <span class="px-4 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Rep Controls</span>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('core.upload_resource') }}"
-                               class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group {% if request.endpoint == 'core.upload_resource' %} bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/10 {% else %} hover:bg-white/[0.04] hover:text-white {% endif %}">
-                                <svg class="w-5 h-5 mr-3 {% if request.endpoint == 'core.upload_resource' %} text-white {% else %} text-slate-400 group-hover:text-indigo-400 {% endif %} transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                                </svg>
-                                Upload Resource
-                            </a>
-                        </li>
-                        {% endif %}
-
-                        {% endif %}
-
-                        <li class="pt-3 pb-1 border-t border-slate-800/40 mt-3">
-                            <span class="px-4 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Account</span>
-                        </li>
-
-                        <li>
-                            <a href="{{ url_for('core.profile') }}"
-                               class="sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group {% if request.endpoint == 'core.profile' %} bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/10 {% else %} hover:bg-white/[0.04] hover:text-white {% endif %}">
-                                <svg class="w-5 h-5 mr-3 {% if request.endpoint == 'core.profile' %} text-white {% else %} text-slate-400 group-hover:text-indigo-400 {% endif %} transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Profile
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{{ url_for('auth.logout') }}" data-turbo="false"
-                               class="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-150 group">
-                                <svg class="w-5 h-5 mr-3 text-red-400 group-hover:text-red-300 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 00 2.25-2.25V15M19.5 12l-3-3m3 3l-3 3m3-3H9"></path>
-                                </svg>
-                                Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="p-4 border-t border-slate-800/50 bg-white/[0.01] flex-shrink-0">
-                    <div class="flex items-center space-x-3 p-2 rounded-xl bg-white/[0.02] border border-white/5">
-                        <div class="h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold text-xs flex items-center justify-center flex-shrink-0 border border-indigo-500/20">
-                            {% if current_user.is_authenticated %}{{ current_user.full_name[:2].upper() }}{% else %}GS{% endif %}
-                        </div>
-                        <div class="flex flex-col min-w-0">
-                            <span class="text-xs font-semibold text-white truncate leading-tight">
-                                {% if current_user.is_authenticated %}{{ current_user.full_name }}{% else %}Guest Account{% endif %}
-                            </span>
-                            <span class="text-[10px] text-slate-500 truncate mt-0.5">Logged In Identity</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <div id="sidebar-overlay" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-20 md:hidden"></div>
-
-        <main class="flex-1 h-full overflow-y-auto bg-slate-50 p-6 sm:p-8 pt-24 md:pt-8 relative">
-
-            <div id="page-nav-shimmer" class="absolute inset-0 bg-slate-50/60 backdrop-blur-[4px] z-40 opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center">
-                <div class="flex flex-col items-center space-y-3 p-6 bg-white/80 rounded-2xl border border-slate-200/50 shadow-lg max-w-xs text-center">
-                    <div class="relative w-10 h-10">
-                        <div class="w-10 h-10 rounded-full border-4 border-slate-100"></div>
-                        <div class="w-10 h-10 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin absolute top-0 left-0"></div>
-                    </div>
-                    <p class="text-xs font-semibold text-slate-600">Routing Data Stream...</p>
-                </div>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('core.admin_dashboard') }}"
+                       class="nav-item {% if request.endpoint == 'core.admin_dashboard' %}active{% endif %}"
+                       data-tooltip="Admin Dashboard" data-page="admin_dashboard">
+                        <span class="nav-icon"><i class="fas fa-gauge-high"></i></span>
+                        <span class="nav-text">Admin Dashboard</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('core.dashboard') }}"
+                       class="nav-item {% if request.endpoint == 'core.dashboard' %}active{% endif %}"
+                       data-tooltip="Dashboard" data-page="dashboard">
+                        <span class="nav-icon"><i class="fas fa-home"></i></span>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                {% endif %}
             </div>
 
-            {% with messages = get_flashed_messages() %}
-              {% if messages %}
-                <div id="flash-container" class="mb-6 space-y-2 max-w-4xl">
-                  {% for message in messages %}
-                    <div class="p-4 text-sm text-indigo-900 bg-indigo-50/50 border border-indigo-100 rounded-xl backdrop-blur-sm shadow-sm flex items-center space-x-2">
-                        <svg class="w-4 h-4 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.852l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0 1 18 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                        <span>{{ message }}</span>
-                    </div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-            {% endwith %}
+            <!-- Group: Resources (students) -->
+            {% if not current_user.is_admin %}
+            <div class="nav-group">
+                <div class="nav-group-label">Resources</div>
 
-            <div class="max-w-7xl mx-auto pb-12">
-                {% block content %}
-                {% endblock %}
+                <a href="{{ url_for('core.campus_notes') }}"
+                   class="nav-item {% if request.endpoint == 'core.campus_notes' %}active{% endif %}"
+                   data-tooltip="My Notes" data-page="campus_notes">
+                    <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+                    <span class="nav-text">My Campus Notes</span>
+                </a>
+
+                <a href="{{ url_for('core.cross_campus') }}"
+                   class="nav-item {% if request.endpoint == 'core.cross_campus' %}active{% endif %}"
+                   data-tooltip="Cross-Campus" data-page="cross_campus">
+                    <span class="nav-icon"><i class="fas fa-globe"></i></span>
+                    <span class="nav-text">Cross-Campus Archive</span>
+                </a>
+
+                <a href="{{ url_for('core.vault') }}"
+                   class="nav-item {% if request.endpoint == 'core.vault' %}active{% endif %}"
+                   data-tooltip="Vault" data-page="vault">
+                    <span class="nav-icon"><i class="fas fa-vault"></i></span>
+                    <span class="nav-text">The Vault</span>
+                </a>
             </div>
-        </main>
+            {% endif %}
 
-    </div>
+            <!-- Group: Management (class rep) -->
+            {% if current_user.is_class_rep and not current_user.is_admin %}
+            <div class="nav-group">
+                <div class="nav-group-label">Management</div>
+                <a href="{{ url_for('core.upload_resource') }}"
+                   class="nav-item {% if request.endpoint == 'core.upload_resource' %}active{% endif %}"
+                   data-tooltip="Upload" data-page="upload_resource">
+                    <span class="nav-icon"><i class="fas fa-upload"></i></span>
+                    <span class="nav-text">Upload Resource</span>
+                </a>
+            </div>
+            {% endif %}
 
+            <!-- Group: Account -->
+            <div class="nav-group">
+                <div class="nav-group-label">Account</div>
+                <a href="{{ url_for('core.profile') }}"
+                   class="nav-item {% if request.endpoint == 'core.profile' %}active{% endif %}"
+                   data-tooltip="Profile" data-page="profile">
+                    <span class="nav-icon"><i class="fas fa-user"></i></span>
+                    <span class="nav-text">Profile</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" data-turbo="false"
+                   class="nav-item" data-tooltip="Logout" style="color:#b91c1c;">
+                    <span class="nav-icon"><i class="fas fa-sign-out-alt" style="color:#b91c1c;"></i></span>
+                    <span class="nav-text">Logout</span>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Footer: user info -->
+        <div class="sidebar-footer" style="border-top:1px solid #f0ebe3; padding:12px 16px; flex-shrink:0;">
+            <div class="flex items-center space-x-3">
+                <div class="h-8 w-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                    {% if current_user.is_authenticated %}{{ current_user.full_name[:2].upper() }}{% else %}GS{% endif %}
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-sm font-semibold text-[#1a1a1a] truncate leading-tight">
+                        {% if current_user.is_authenticated %}{{ current_user.full_name }}{% else %}Guest{% endif %}
+                    </span>
+                    <span class="text-[10px] text-[#b5aaa0] truncate">{{ current_user.email if current_user.is_authenticated else 'Not logged in' }}</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <main class="main-content" id="mainContent">
+
+        <div class="main-content-header">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Page shimmer (loading overlay) -->
+        <div id="page-nav-shimmer" class="absolute inset-0 bg-[#f5f2ec]/60 backdrop-blur-[4px] z-40 opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center">
+            <div class="flex flex-col items-center space-y-3 p-6 bg-white/80 rounded-2xl border border-[#ede8e0] shadow-lg max-w-xs text-center">
+                <div class="relative w-10 h-10">
+                    <div class="w-10 h-10 rounded-full border-4 border-[#f0ebe3]"></div>
+                    <div class="w-10 h-10 rounded-full border-4 border-[#c4b09a] border-t-transparent animate-spin absolute top-0 left-0"></div>
+                </div>
+                <p class="text-xs font-semibold text-[#5a5248]">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Content block -->
+        <div class="max-w-7xl mx-auto pb-12">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- ─── JAVASCRIPT ─── -->
     <script>
-        function initializeLayoutControls() {
-            const menuToggle = document.getElementById('menu-toggle');
-            const menuClose = document.getElementById('menu-close');
+        (function() {
+            'use strict';
+
+            // ── DOM refs ──
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            const navItems = document.querySelectorAll('.nav-item:not(.parent)');
+            const parentItems = document.querySelectorAll('.nav-item.parent');
+            const subMenus = document.querySelectorAll('.sub-menu');
             const navShimmer = document.getElementById('page-nav-shimmer');
 
-            if (menuToggle && menuClose && sidebar && overlay) {
-                menuToggle.onclick = () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); };
-                menuClose.onclick = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
-                overlay.onclick = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
+            // ── State ──
+            let isCollapsed = false;
+            let isMobile = window.innerWidth <= 768;
+            let expandedParents = new Set();
+
+            // ── Toast System ──
+            function showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+
+                let icon = 'fa-circle-info';
+                if (type === 'success') icon = 'fa-circle-check';
+                else if (type === 'error') icon = 'fa-circle-exclamation';
+                else if (type === 'warning') icon = 'fa-triangle-exclamation';
+
+                toast.innerHTML = `
+                    <i class="fas ${icon} text-lg" style="color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#6b5e50'}"></i>
+                    <span class="text-sm font-medium text-[#1a1a1a] flex-1">${message}</span>
+                    <button class="toast-close text-[#b5aaa0] hover:text-[#5a5248] transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                container.appendChild(toast);
+
+                // Close button
+                toast.querySelector('.toast-close').addEventListener('click', function() {
+                    dismissToast(toast);
+                });
+
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    dismissToast(toast);
+                }, 5000);
             }
 
-            if (sidebar && overlay && window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
+            function dismissToast(toast) {
+                if (toast.classList.contains('hide')) return;
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    toast.remove();
+                }, 250);
             }
 
-            // Bind explicitly while checking for standard Turbo execution conditions
-            document.querySelectorAll('#sidebar a:not([href^="#"]):not([href=""])').forEach(link => {
-                link.onclick = (e) => {
-                    // Skip execution entirely if the link explicitly opts out of Turbo
-                    if (link.getAttribute('data-turbo') === 'false' || link.href.includes('logout')) {
+            // ── Flash Messages to Toasts ──
+            function processFlashMessages() {
+                const flashContainer = document.getElementById('flash-container');
+                if (flashContainer) {
+                    const messages = flashContainer.querySelectorAll('.flash-message');
+                    messages.forEach(msg => {
+                        const text = msg.textContent.trim();
+                        const type = msg.dataset.type || 'info';
+                        showToast(text, type);
+                    });
+                    flashContainer.remove();
+                }
+            }
+
+            // ── Collapse / Expand sidebar ──
+            function setCollapsed(state) {
+                isCollapsed = state;
+                if (state) {
+                    sidebar.classList.add('collapsed');
+                    sidebar.classList.remove('open');
+                    subMenus.forEach(s => s.classList.remove('open'));
+                    parentItems.forEach(p => {
+                        const ch = p.querySelector('.nav-chevron');
+                        if (ch) ch.classList.remove('open');
+                    });
+                    expandedParents.clear();
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    expandedParents.forEach(parentPage => {
+                        const sub = document.querySelector(`.sub-menu[data-parent="${parentPage}"]`);
+                        const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
+                        if (sub && parent) {
+                            sub.classList.add('open');
+                            const ch = parent.querySelector('.nav-chevron');
+                            if (ch) ch.classList.add('open');
+                        }
+                    });
+                }
+                try {
+                    localStorage.setItem('sidebar-collapsed', state ? 'true' : 'false');
+                } catch (_) {}
+            }
+
+            function toggleCollapse() {
+                setCollapsed(!isCollapsed);
+            }
+
+            // ── Mobile sidebar ──
+            function openMobileSidebar() {
+                sidebar.classList.add('open');
+                sidebar.classList.remove('collapsed');
+                overlay.classList.add('active');
+                expandedParents.forEach(parentPage => {
+                    const sub = document.querySelector(`.sub-menu[data-parent="${parentPage}"]`);
+                    const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
+                    if (sub && parent) {
+                        sub.classList.add('open');
+                        const ch = parent.querySelector('.nav-chevron');
+                        if (ch) ch.classList.add('open');
+                    }
+                });
+            }
+
+            function closeMobileSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                subMenus.forEach(s => s.classList.remove('open'));
+                parentItems.forEach(p => {
+                    const ch = p.querySelector('.nav-chevron');
+                    if (ch) ch.classList.remove('open');
+                });
+                expandedParents.clear();
+            }
+
+            // ── Toggle sub-menu ──
+            function toggleSubMenu(parentItem) {
+                const parentPage = parentItem.dataset.page;
+                const sub = document.querySelector(`.sub-menu[data-parent="${parentPage}"]`);
+                if (!sub) return;
+
+                const chevron = parentItem.querySelector('.nav-chevron');
+                const isOpen = sub.classList.contains('open');
+
+                if (isOpen) {
+                    sub.classList.remove('open');
+                    if (chevron) chevron.classList.remove('open');
+                    expandedParents.delete(parentPage);
+                } else {
+                    sub.classList.add('open');
+                    if (chevron) chevron.classList.add('open');
+                    expandedParents.add(parentPage);
+                }
+
+                if (isCollapsed && !isMobile) {
+                    setCollapsed(false);
+                }
+            }
+
+            // ── Event listeners ──
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (isMobile) {
+                    if (sidebar.classList.contains('open')) {
+                        closeMobileSidebar();
+                    } else {
+                        openMobileSidebar();
+                    }
+                } else {
+                    toggleCollapse();
+                }
+            });
+
+            mobileBtn.addEventListener('click', function() {
+                openMobileSidebar();
+            });
+
+            overlay.addEventListener('click', function() {
+                closeMobileSidebar();
+            });
+
+            parentItems.forEach(parent => {
+                parent.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (isMobile && !sidebar.classList.contains('open')) {
+                        openMobileSidebar();
+                        setTimeout(() => {
+                            toggleSubMenu(parent);
+                        }, 150);
                         return;
                     }
-                    if (e.metaKey || e.ctrlKey || link.getAttribute('target') === '_blank') return;
+                    if (isCollapsed && !isMobile) {
+                        setCollapsed(false);
+                        setTimeout(() => {
+                            toggleSubMenu(parent);
+                        }, 200);
+                        return;
+                    }
+                    toggleSubMenu(parent);
+                });
+            });
 
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (this.getAttribute('data-turbo') === 'false') return;
+                    if (isMobile) closeMobileSidebar();
                     if (navShimmer) {
                         navShimmer.classList.remove('opacity-0', 'pointer-events-none');
                         navShimmer.classList.add('opacity-100');
                     }
-                };
+                });
             });
-        }
 
-        function synchronizeActiveNavState() {
-            const currentPath = window.location.pathname;
-            document.querySelectorAll('#sidebar .sidebar-link').forEach(link => {
-                const linkUrl = new URL(link.href, window.location.origin);
-                const isCurrentRoute = linkUrl.pathname === currentPath;
-                const svgNode = link.querySelector('svg');
-
-                if (isCurrentRoute) {
-                    if (linkUrl.pathname.includes('admin')) {
-                        link.className = "sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md shadow-red-600/10";
-                    } else {
-                        link.className = "sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/10";
+            parentItems.forEach(parent => {
+                parent.addEventListener('click', function(e) {
+                    if (e.target.closest('.nav-chevron')) return;
+                    const href = this.getAttribute('href');
+                    if (href && href !== '#') {
+                        const sub = document.querySelector(`.sub-menu[data-parent="${this.dataset.page}"]`);
+                        if (sub && sub.classList.contains('open')) {
+                            if (isMobile) closeMobileSidebar();
+                            if (navShimmer) {
+                                navShimmer.classList.remove('opacity-0', 'pointer-events-none');
+                                navShimmer.classList.add('opacity-100');
+                            }
+                            return;
+                        } else {
+                            e.preventDefault();
+                        }
                     }
-                    if (svgNode) svgNode.className = "w-5 h-5 mr-3 text-white transition-colors";
-                } else {
-                    link.className = "sidebar-link flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 group text-slate-300 hover:bg-white/[0.04] hover:text-white";
-                    if (svgNode) {
-                        const hoverTextClass = linkUrl.pathname.includes('admin') ? 'group-hover:text-red-400' : 'group-hover:text-indigo-400';
-                        svgNode.className = `w-5 h-5 mr-3 text-slate-400 ${hoverTextClass} transition-colors`;
+                });
+            });
+
+            // ── Keyboard shortcut ──
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'S')) {
+                    e.preventDefault();
+                    if (isMobile) {
+                        if (sidebar.classList.contains('open')) {
+                            closeMobileSidebar();
+                        } else {
+                            openMobileSidebar();
+                        }
+                    } else {
+                        toggleCollapse();
                     }
                 }
             });
 
-            const navShimmer = document.getElementById('page-nav-shimmer');
-            if (navShimmer) {
-                navShimmer.classList.remove('opacity-100');
-                navShimmer.classList.add('opacity-0', 'pointer-events-none');
+            // ── Resize handler ──
+            function handleResize() {
+                const nowMobile = window.innerWidth <= 768;
+                if (nowMobile !== isMobile) {
+                    isMobile = nowMobile;
+                    if (isMobile) {
+                        closeMobileSidebar();
+                        setCollapsed(false);
+                    } else {
+                        overlay.classList.remove('active');
+                        try {
+                            const stored = localStorage.getItem('sidebar-collapsed');
+                            if (stored === 'true') {
+                                setCollapsed(true);
+                            } else {
+                                setCollapsed(false);
+                            }
+                        } catch (_) {
+                            setCollapsed(false);
+                        }
+                        sidebar.classList.remove('open');
+                    }
+                }
             }
-        }
 
-        document.addEventListener('turbo:load', () => {
-            initializeLayoutControls();
-        });
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(handleResize, 150);
+            });
 
-        document.addEventListener('turbo:render', () => {
-            synchronizeActiveNavState();
-        });
+            // ── Load stored preference ──
+            try {
+                const stored = localStorage.getItem('sidebar-collapsed');
+                if (stored === 'true' && !isMobile) {
+                    setCollapsed(true);
+                } else {
+                    setCollapsed(false);
+                }
+            } catch (_) {
+                setCollapsed(false);
+            }
+
+            // ── Sync active nav state ──
+            function syncActiveNav() {
+                const currentPath = window.location.pathname;
+                document.querySelectorAll('#sidebar .nav-item').forEach(link => {
+                    const linkUrl = new URL(link.href, window.location.origin);
+                    const isActive = linkUrl.pathname === currentPath;
+                    if (isActive) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+                document.querySelectorAll('.sub-menu').forEach(sub => {
+                    const parentPage = sub.dataset.parent;
+                    const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
+                    if (parent) {
+                        const childActive = sub.querySelector('.nav-item.active');
+                        if (childActive) {
+                            parent.classList.add('active');
+                        } else {
+                            parent.classList.remove('active');
+                        }
+                    }
+                });
+            }
+
+            // ── Turbo lifecycle ──
+            document.addEventListener('turbo:load', function() {
+                syncActiveNav();
+                processFlashMessages();
+                if (navShimmer) {
+                    navShimmer.classList.remove('opacity-100');
+                    navShimmer.classList.add('opacity-0', 'pointer-events-none');
+                }
+                // Re-initialize any page-specific scripts
+                if (typeof initializePage === 'function') {
+                    initializePage();
+                }
+            });
+
+            document.addEventListener('turbo:render', function() {
+                syncActiveNav();
+                processFlashMessages();
+                if (navShimmer) {
+                    navShimmer.classList.remove('opacity-100');
+                    navShimmer.classList.add('opacity-0', 'pointer-events-none');
+                }
+            });
+
+            // Initial sync
+            syncActiveNav();
+            processFlashMessages();
+
+            console.log('✨ Student Resource System · Ctrl+Shift+S to toggle sidebar');
+        })();
     </script>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>
