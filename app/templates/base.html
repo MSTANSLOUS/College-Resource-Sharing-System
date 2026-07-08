@@ -728,119 +728,76 @@
     <div id="toast-container"></div>
 
     <!-- ─── JAVASCRIPT ─── -->
-    <script>
-        (function() {
-            'use strict';
+<script>
+    (function() {
+        'use strict';
 
-            // ── DOM refs ──
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('toggleBtn');
-            const overlay = document.getElementById('sidebarOverlay');
-            const mobileBtn = document.getElementById('mobileMenuBtn');
-            const navItems = document.querySelectorAll('.nav-item:not(.parent)');
-            const parentItems = document.querySelectorAll('.nav-item.parent');
-            const subMenus = document.querySelectorAll('.sub-menu');
-            const navShimmer = document.getElementById('page-nav-shimmer');
+        // ── DOM refs (some may change, so we fetch them when needed) ──
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const overlay = document.getElementById('sidebarOverlay');
+        const navItems = document.querySelectorAll('.nav-item:not(.parent)');
+        const parentItems = document.querySelectorAll('.nav-item.parent');
+        const subMenus = document.querySelectorAll('.sub-menu');
+        const navShimmer = document.getElementById('page-nav-shimmer');
 
-            // ── State ──
-            let isCollapsed = false;
-            let isMobile = window.innerWidth <= 768;
-            let expandedParents = new Set();
+        // ── State ──
+        let isCollapsed = false;
+        let isMobile = window.innerWidth <= 768;
+        let expandedParents = new Set();
 
-            // ── Toast System ──
-            function showToast(message, type = 'info') {
-                const container = document.getElementById('toast-container');
-                if (!container) return;
+        // ── Toast System (unchanged) ──
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            let icon = 'fa-circle-info';
+            if (type === 'success') icon = 'fa-circle-check';
+            else if (type === 'error') icon = 'fa-circle-exclamation';
+            else if (type === 'warning') icon = 'fa-triangle-exclamation';
+            toast.innerHTML = `
+                <i class="fas ${icon} text-lg" style="color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#6b5e50'}"></i>
+                <span class="text-sm font-medium text-[#1a1a1a] flex-1">${message}</span>
+                <button class="toast-close text-[#b5aaa0] hover:text-[#5a5248] transition-colors"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(toast);
+            toast.querySelector('.toast-close').addEventListener('click', function() { dismissToast(toast); });
+            setTimeout(() => { dismissToast(toast); }, 5000);
+        }
+        function dismissToast(toast) {
+            if (toast.classList.contains('hide')) return;
+            toast.classList.add('hide');
+            setTimeout(() => { toast.remove(); }, 250);
+        }
 
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type}`;
-
-                let icon = 'fa-circle-info';
-                if (type === 'success') icon = 'fa-circle-check';
-                else if (type === 'error') icon = 'fa-circle-exclamation';
-                else if (type === 'warning') icon = 'fa-triangle-exclamation';
-
-                toast.innerHTML = `
-                    <i class="fas ${icon} text-lg" style="color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#6b5e50'}"></i>
-                    <span class="text-sm font-medium text-[#1a1a1a] flex-1">${message}</span>
-                    <button class="toast-close text-[#b5aaa0] hover:text-[#5a5248] transition-colors">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-
-                container.appendChild(toast);
-
-                // Close button
-                toast.querySelector('.toast-close').addEventListener('click', function() {
-                    dismissToast(toast);
+        function processFlashMessages() {
+            const flashContainer = document.getElementById('flash-container');
+            if (flashContainer) {
+                const messages = flashContainer.querySelectorAll('.flash-message');
+                messages.forEach(msg => {
+                    const text = msg.textContent.trim();
+                    const type = msg.dataset.type || 'info';
+                    showToast(text, type);
                 });
-
-                // Auto dismiss after 5 seconds
-                setTimeout(() => {
-                    dismissToast(toast);
-                }, 5000);
+                flashContainer.remove();
             }
+        }
 
-            function dismissToast(toast) {
-                if (toast.classList.contains('hide')) return;
-                toast.classList.add('hide');
-                setTimeout(() => {
-                    toast.remove();
-                }, 250);
-            }
-
-            // ── Flash Messages to Toasts ──
-            function processFlashMessages() {
-                const flashContainer = document.getElementById('flash-container');
-                if (flashContainer) {
-                    const messages = flashContainer.querySelectorAll('.flash-message');
-                    messages.forEach(msg => {
-                        const text = msg.textContent.trim();
-                        const type = msg.dataset.type || 'info';
-                        showToast(text, type);
-                    });
-                    flashContainer.remove();
-                }
-            }
-
-            // ── Collapse / Expand sidebar ──
-            function setCollapsed(state) {
-                isCollapsed = state;
-                if (state) {
-                    sidebar.classList.add('collapsed');
-                    sidebar.classList.remove('open');
-                    subMenus.forEach(s => s.classList.remove('open'));
-                    parentItems.forEach(p => {
-                        const ch = p.querySelector('.nav-chevron');
-                        if (ch) ch.classList.remove('open');
-                    });
-                    expandedParents.clear();
-                } else {
-                    sidebar.classList.remove('collapsed');
-                    expandedParents.forEach(parentPage => {
-                        const sub = document.querySelector(`.sub-menu[data-parent="${parentPage}"]`);
-                        const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
-                        if (sub && parent) {
-                            sub.classList.add('open');
-                            const ch = parent.querySelector('.nav-chevron');
-                            if (ch) ch.classList.add('open');
-                        }
-                    });
-                }
-                try {
-                    localStorage.setItem('sidebar-collapsed', state ? 'true' : 'false');
-                } catch (_) {}
-            }
-
-            function toggleCollapse() {
-                setCollapsed(!isCollapsed);
-            }
-
-            // ── Mobile sidebar ──
-            function openMobileSidebar() {
-                sidebar.classList.add('open');
+        // ── Sidebar functions ──
+        function setCollapsed(state) {
+            isCollapsed = state;
+            if (state) {
+                sidebar.classList.add('collapsed');
+                sidebar.classList.remove('open');
+                subMenus.forEach(s => s.classList.remove('open'));
+                parentItems.forEach(p => {
+                    const ch = p.querySelector('.nav-chevron');
+                    if (ch) ch.classList.remove('open');
+                });
+                expandedParents.clear();
+            } else {
                 sidebar.classList.remove('collapsed');
-                overlay.classList.add('active');
                 expandedParents.forEach(parentPage => {
                     const sub = document.querySelector(`.sub-menu[data-parent="${parentPage}"]`);
                     const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
@@ -851,86 +808,131 @@
                     }
                 });
             }
+            try {
+                localStorage.setItem('sidebar-collapsed', state ? 'true' : 'false');
+            } catch (_) {}
+        }
 
-            function closeMobileSidebar() {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('active');
-                subMenus.forEach(s => s.classList.remove('open'));
-                parentItems.forEach(p => {
-                    const ch = p.querySelector('.nav-chevron');
-                    if (ch) ch.classList.remove('open');
-                });
-                expandedParents.clear();
-            }
+        function toggleCollapse() {
+            setCollapsed(!isCollapsed);
+        }
 
-            // ── Toggle sub-menu ──
-            function toggleSubMenu(parentItem) {
-                const parentPage = parentItem.dataset.page;
+        function openMobileSidebar() {
+            sidebar.classList.add('open');
+            sidebar.classList.remove('collapsed');
+            overlay.classList.add('active');
+            expandedParents.forEach(parentPage => {
                 const sub = document.querySelector(`.sub-menu[data-parent="${parentPage}"]`);
-                if (!sub) return;
-
-                const chevron = parentItem.querySelector('.nav-chevron');
-                const isOpen = sub.classList.contains('open');
-
-                if (isOpen) {
-                    sub.classList.remove('open');
-                    if (chevron) chevron.classList.remove('open');
-                    expandedParents.delete(parentPage);
-                } else {
+                const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
+                if (sub && parent) {
                     sub.classList.add('open');
-                    if (chevron) chevron.classList.add('open');
-                    expandedParents.add(parentPage);
+                    const ch = parent.querySelector('.nav-chevron');
+                    if (ch) ch.classList.add('open');
                 }
+            });
+        }
 
-                if (isCollapsed && !isMobile) {
-                    setCollapsed(false);
-                }
+        function closeMobileSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            subMenus.forEach(s => s.classList.remove('open'));
+            parentItems.forEach(p => {
+                const ch = p.querySelector('.nav-chevron');
+                if (ch) ch.classList.remove('open');
+            });
+            expandedParents.clear();
+        }
+
+        function toggleSubMenu(parentItem) {
+            const parentPage = parentItem.dataset.page;
+            const sub = document.querySelector(`.sub-menu[data-parent="${parentPage}"]`);
+            if (!sub) return;
+
+            const chevron = parentItem.querySelector('.nav-chevron');
+            const isOpen = sub.classList.contains('open');
+
+            if (isOpen) {
+                sub.classList.remove('open');
+                if (chevron) chevron.classList.remove('open');
+                expandedParents.delete(parentPage);
+            } else {
+                sub.classList.add('open');
+                if (chevron) chevron.classList.add('open');
+                expandedParents.add(parentPage);
             }
 
-            // ── Event listeners ──
-            toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (isMobile) {
-                    if (sidebar.classList.contains('open')) {
-                        closeMobileSidebar();
-                    } else {
-                        openMobileSidebar();
-                    }
+            if (isCollapsed && !isMobile) {
+                setCollapsed(false);
+            }
+        }
+
+        // ── Bind mobile menu button (re‑attached on each Turbo navigation) ──
+        function bindMobileMenu() {
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            if (!mobileBtn) return;
+            // Avoid duplicate listeners by checking a custom flag
+            if (mobileBtn._bound) return;
+            mobileBtn._bound = true;
+            mobileBtn.addEventListener('click', function() {
+                if (sidebar.classList.contains('open')) {
+                    closeMobileSidebar();
                 } else {
-                    toggleCollapse();
+                    openMobileSidebar();
                 }
             });
+        }
 
-            mobileBtn.addEventListener('click', function() {
-                openMobileSidebar();
-            });
+        // ── Bind permanent elements (toggle, overlay, etc.) ──
+        function bindPermanentControls() {
+            // Toggle button (inside permanent sidebar – safe to bind once)
+            if (toggleBtn && !toggleBtn._bound) {
+                toggleBtn._bound = true;
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (isMobile) {
+                        if (sidebar.classList.contains('open')) {
+                            closeMobileSidebar();
+                        } else {
+                            openMobileSidebar();
+                        }
+                    } else {
+                        toggleCollapse();
+                    }
+                });
+            }
 
-            overlay.addEventListener('click', function() {
-                closeMobileSidebar();
-            });
+            // Overlay (not permanent but always present; bind once)
+            if (overlay && !overlay._bound) {
+                overlay._bound = true;
+                overlay.addEventListener('click', function() {
+                    if (isMobile) closeMobileSidebar();
+                });
+            }
 
+            // Parent items (within permanent sidebar – safe once)
             parentItems.forEach(parent => {
+                if (parent._bound) return;
+                parent._bound = true;
                 parent.addEventListener('click', function(e) {
                     e.stopPropagation();
                     if (isMobile && !sidebar.classList.contains('open')) {
                         openMobileSidebar();
-                        setTimeout(() => {
-                            toggleSubMenu(parent);
-                        }, 150);
+                        setTimeout(() => { toggleSubMenu(parent); }, 150);
                         return;
                     }
                     if (isCollapsed && !isMobile) {
                         setCollapsed(false);
-                        setTimeout(() => {
-                            toggleSubMenu(parent);
-                        }, 200);
+                        setTimeout(() => { toggleSubMenu(parent); }, 200);
                         return;
                     }
                     toggleSubMenu(parent);
                 });
             });
 
+            // Child nav items (navigation) – also within permanent sidebar
             navItems.forEach(item => {
+                if (item._bound) return;
+                item._bound = true;
                 item.addEventListener('click', function(e) {
                     if (this.getAttribute('data-turbo') === 'false') return;
                     if (isMobile) closeMobileSidebar();
@@ -941,7 +943,10 @@
                 });
             });
 
+            // Parent items that are also links (navigation when sub‑menu is open)
             parentItems.forEach(parent => {
+                if (parent._linkBound) return;
+                parent._linkBound = true;
                 parent.addEventListener('click', function(e) {
                     if (e.target.closest('.nav-chevron')) return;
                     const href = this.getAttribute('href');
@@ -960,122 +965,125 @@
                     }
                 });
             });
+        }
 
-            // ── Keyboard shortcut ──
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'S')) {
-                    e.preventDefault();
-                    if (isMobile) {
-                        if (sidebar.classList.contains('open')) {
-                            closeMobileSidebar();
+        // ── Resize handler ──
+        function handleResize() {
+            const nowMobile = window.innerWidth <= 768;
+            if (nowMobile !== isMobile) {
+                isMobile = nowMobile;
+                if (isMobile) {
+                    closeMobileSidebar();
+                    setCollapsed(false);
+                } else {
+                    overlay.classList.remove('active');
+                    try {
+                        const stored = localStorage.getItem('sidebar-collapsed');
+                        if (stored === 'true') {
+                            setCollapsed(true);
                         } else {
-                            openMobileSidebar();
-                        }
-                    } else {
-                        toggleCollapse();
-                    }
-                }
-            });
-
-            // ── Resize handler ──
-            function handleResize() {
-                const nowMobile = window.innerWidth <= 768;
-                if (nowMobile !== isMobile) {
-                    isMobile = nowMobile;
-                    if (isMobile) {
-                        closeMobileSidebar();
-                        setCollapsed(false);
-                    } else {
-                        overlay.classList.remove('active');
-                        try {
-                            const stored = localStorage.getItem('sidebar-collapsed');
-                            if (stored === 'true') {
-                                setCollapsed(true);
-                            } else {
-                                setCollapsed(false);
-                            }
-                        } catch (_) {
                             setCollapsed(false);
                         }
-                        sidebar.classList.remove('open');
+                    } catch (_) {
+                        setCollapsed(false);
                     }
+                    sidebar.classList.remove('open');
                 }
             }
+        }
 
-            let resizeTimer;
-            window.addEventListener('resize', function() {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(handleResize, 150);
-            });
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handleResize, 150);
+        });
 
-            // ── Load stored preference ──
-            try {
-                const stored = localStorage.getItem('sidebar-collapsed');
-                if (stored === 'true' && !isMobile) {
-                    setCollapsed(true);
+        // ── Keyboard shortcut ──
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+                if (isMobile) {
+                    if (sidebar.classList.contains('open')) {
+                        closeMobileSidebar();
+                    } else {
+                        openMobileSidebar();
+                    }
                 } else {
-                    setCollapsed(false);
+                    toggleCollapse();
                 }
-            } catch (_) {
+            }
+        });
+
+        // ── Sync active nav state ──
+        function syncActiveNav() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('#sidebar .nav-item').forEach(link => {
+                const linkUrl = new URL(link.href, window.location.origin);
+                const isActive = linkUrl.pathname === currentPath;
+                if (isActive) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            document.querySelectorAll('.sub-menu').forEach(sub => {
+                const parentPage = sub.dataset.parent;
+                const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
+                if (parent) {
+                    const childActive = sub.querySelector('.nav-item.active');
+                    if (childActive) {
+                        parent.classList.add('active');
+                    } else {
+                        parent.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // ── Load stored preference ──
+        try {
+            const stored = localStorage.getItem('sidebar-collapsed');
+            if (stored === 'true' && !isMobile) {
+                setCollapsed(true);
+            } else {
                 setCollapsed(false);
             }
+        } catch (_) {
+            setCollapsed(false);
+        }
 
-            // ── Sync active nav state ──
-            function syncActiveNav() {
-                const currentPath = window.location.pathname;
-                document.querySelectorAll('#sidebar .nav-item').forEach(link => {
-                    const linkUrl = new URL(link.href, window.location.origin);
-                    const isActive = linkUrl.pathname === currentPath;
-                    if (isActive) {
-                        link.classList.add('active');
-                    } else {
-                        link.classList.remove('active');
-                    }
-                });
-                document.querySelectorAll('.sub-menu').forEach(sub => {
-                    const parentPage = sub.dataset.parent;
-                    const parent = document.querySelector(`.nav-item.parent[data-page="${parentPage}"]`);
-                    if (parent) {
-                        const childActive = sub.querySelector('.nav-item.active');
-                        if (childActive) {
-                            parent.classList.add('active');
-                        } else {
-                            parent.classList.remove('active');
-                        }
-                    }
-                });
-            }
-
-            // ── Turbo lifecycle ──
-            document.addEventListener('turbo:load', function() {
-                syncActiveNav();
-                processFlashMessages();
-                if (navShimmer) {
-                    navShimmer.classList.remove('opacity-100');
-                    navShimmer.classList.add('opacity-0', 'pointer-events-none');
-                }
-                // Re-initialize any page-specific scripts
-                if (typeof initializePage === 'function') {
-                    initializePage();
-                }
-            });
-
-            document.addEventListener('turbo:render', function() {
-                syncActiveNav();
-                processFlashMessages();
-                if (navShimmer) {
-                    navShimmer.classList.remove('opacity-100');
-                    navShimmer.classList.add('opacity-0', 'pointer-events-none');
-                }
-            });
-
-            // Initial sync
+        // ── Initialise everything ──
+        function init() {
+            bindMobileMenu();              // re‑bound on each Turbo navigation
+            bindPermanentControls();       // bound once (since elements are permanent)
             syncActiveNav();
             processFlashMessages();
+            if (navShimmer) {
+                navShimmer.classList.remove('opacity-100');
+                navShimmer.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
 
-            console.log('✨ Student Resource System · Ctrl+Shift+S to toggle sidebar');
-        })();
-    </script>
+        // ── Turbo lifecycle ──
+        document.addEventListener('turbo:load', function() {
+            init();
+            // Re‑bind mobile menu again (in case it wasn't bound due to timing)
+            bindMobileMenu();
+        });
+
+        // Also run on initial page load
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Immediate call if DOM already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        console.log('✨ Student Resource System · Ctrl+Shift+S to toggle sidebar');
+    })();
+</script>
 
     {% block scripts %}{% endblock %}
 </body>
