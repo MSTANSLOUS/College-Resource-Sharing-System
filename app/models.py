@@ -33,6 +33,10 @@ class User(db.Model, UserMixin):
 
     tour_completed = db.Column(db.Boolean, default=False)
 
+    theme_preference = db.Column(db.String(20), default='light')  # 'light' or 'dark'
+    language_preference = db.Column(db.String(10), default='en')  # 'en' for now
+    is_active = db.Column(db.Boolean, default=True)  # soft delete flag
+
 class TransferRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

@@ -29,10 +29,9 @@
 
     <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12 relative overflow-x-hidden">
 
-        <!-- Left Display Panel Artwork Content Space Area (Desktop Sticky Variant Layout) -->
+        <!-- Left Display Panel Artwork -->
         <div class="hidden lg:flex lg:col-span-5 relative bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 flex-col justify-between p-16 lg:sticky lg:top-0 lg:h-screen overflow-hidden">
             <div class="absolute inset-0 dot-pattern opacity-10 pointer-events-none"></div>
-
             <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-20 right-10 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl"></div>
 
@@ -75,7 +74,7 @@
             </div>
         </div>
 
-        <!-- Right Side Interactive Registration Form Grid Component Layout Box -->
+        <!-- Right Side Interactive Registration Form -->
         <div class="lg:col-span-7 flex flex-col items-center justify-center p-4 sm:p-10 md:p-16 bg-gradient-to-b from-slate-50 to-slate-100/50 lg:bg-white lg:from-transparent lg:to-transparent z-10 relative">
 
             <div class="absolute inset-0 dot-pattern opacity-50 block lg:hidden pointer-events-none"></div>
@@ -83,7 +82,7 @@
 
             <div class="w-full max-w-2xl bg-white lg:bg-transparent p-6 sm:p-10 lg:p-0 rounded-2xl shadow-xl shadow-slate-200/50 lg:shadow-none border border-slate-100 lg:border-none relative z-10">
 
-                <!-- Mobile Responsive Branding Node Header Block -->
+                <!-- Mobile Branding -->
                 <div class="flex lg:hidden items-center space-x-3 mb-8">
                     <div class="h-9 w-9 bg-gradient-to-br from-indigo-600 to-teal-500 rounded-xl flex items-center justify-center shadow-md">
                         <span class="text-white font-black text-sm tracking-tighter">SR</span>
@@ -96,8 +95,8 @@
                     <p class="text-sm text-slate-500 mt-2">Fill in your details to request access to the platform.</p>
                 </div>
 
-                <!-- Account Pipeline Target Registration Processing Form Unit -->
-                <form id="register-auth-form" action="{{ url_for('auth.register') }}" method="POST" class="space-y-6">
+                <!-- Registration Form -->
+                <form id="register-auth-form" action="{{ url_for('auth.register') }}" method="POST" class="space-y-6" novalidate>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
@@ -108,11 +107,13 @@
                                    class="mt-2 block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:bg-white transition-all duration-200">
                         </div>
 
+                        <!-- Email with validation -->
                         <div>
                             <label for="email" class="block text-sm font-medium text-slate-700">Gmail Address</label>
                             <input type="email" id="email" name="email" required
                                    placeholder="must be @gmail.com"
                                    class="mt-2 block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:bg-white transition-all duration-200">
+                            <span id="email-feedback" class="text-xs mt-1 block"></span>
                         </div>
 
                         <div>
@@ -188,8 +189,8 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit"
-                                class="w-full py-3.5 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-xl tracking-wide transition-all duration-200 transform active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-slate-900/20 shadow-lg shadow-slate-950/10">
+                        <button type="submit" id="register-submit-btn"
+                                class="w-full py-3.5 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-xl tracking-wide transition-all duration-200 transform active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-slate-900/20 shadow-lg shadow-slate-950/10 disabled:opacity-50 disabled:cursor-not-allowed">
                             Create Account
                         </button>
                     </div>
@@ -207,14 +208,122 @@
         </div>
     </div>
 
-    <!-- Active Form Interception Loader Toggle Processing Logic -->
+    <!-- ─── JAVASCRIPT ─── -->
     <script>
-        document.getElementById('register-auth-form').addEventListener('submit', function() {
-            const authMask = document.getElementById('auth-loading-shimmer');
-            if (authMask) {
-                authMask.classList.remove('opacity-0', 'pointer-events-none');
-                authMask.classList.add('opacity-100');
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInput = document.getElementById('email');
+            const feedback = document.getElementById('email-feedback');
+            const submitBtn = document.getElementById('register-submit-btn');
+            const form = document.getElementById('register-auth-form');
+
+            let debounceTimer;
+            let isEmailValid = false;
+
+            function validateEmail() {
+                const email = emailInput.value.trim();
+
+                // Clear if empty
+                if (!email) {
+                    feedback.textContent = '';
+                    feedback.className = 'text-xs mt-1 block';
+                    isEmailValid = false;
+                    submitBtn.disabled = false; // allow submission (backend will catch)
+                    return;
+                }
+
+                // Quick client-side Gmail check
+                if (!email.endsWith('@gmail.com') || email.indexOf('@') === -1) {
+                    feedback.textContent = '⚠️ Please use a Gmail address.';
+                    feedback.className = 'text-xs mt-1 block text-amber-600';
+                    isEmailValid = false;
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                // Server-side existence check
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    fetch('/api/check-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.valid) {
+                            feedback.textContent = '✅ ' + data.message;
+                            feedback.className = 'text-xs mt-1 block text-emerald-600';
+                            isEmailValid = true;
+                            submitBtn.disabled = false;
+                        } else {
+                            feedback.textContent = '❌ ' + data.message;
+                            feedback.className = 'text-xs mt-1 block text-rose-600';
+                            isEmailValid = false;
+                            submitBtn.disabled = false;
+                        }
+                    })
+                    .catch(() => {
+                        feedback.textContent = '⚠️ Could not verify email.';
+                        feedback.className = 'text-xs mt-1 block text-amber-600';
+                        isEmailValid = false;
+                        submitBtn.disabled = false;
+                    });
+                }, 400);
             }
+
+            // ── Events ──
+            emailInput.addEventListener('input', function() {
+                // Show immediate feedback for empty or Gmail format
+                const email = this.value.trim();
+                if (!email) {
+                    feedback.textContent = '';
+                    feedback.className = 'text-xs mt-1 block';
+                    isEmailValid = false;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                if (!email.endsWith('@gmail.com')) {
+                    feedback.textContent = '⚠️ Please use a Gmail address.';
+                    feedback.className = 'text-xs mt-1 block text-amber-600';
+                    isEmailValid = false;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                // For valid format, trigger debounced server check
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    validateEmail();
+                }, 400);
+            });
+
+            emailInput.addEventListener('blur', function() {
+                // Final check on blur
+                clearTimeout(debounceTimer);
+                validateEmail();
+            });
+
+            // ── Prevent form submission if email invalid (optional) ──
+            // We'll let the backend handle it, but we can add a client-side guard
+            form.addEventListener('submit', function(e) {
+                const email = emailInput.value.trim();
+                if (email && !email.endsWith('@gmail.com')) {
+                    e.preventDefault();
+                    feedback.textContent = '❌ Please enter a valid Gmail address.';
+                    feedback.className = 'text-xs mt-1 block text-rose-600';
+                    emailInput.focus();
+                    return;
+                }
+                // If email is still being validated, we allow submit – backend will catch duplicates.
+                // Show shimmer
+                const authMask = document.getElementById('auth-loading-shimmer');
+                if (authMask) {
+                    authMask.classList.remove('opacity-0', 'pointer-events-none');
+                    authMask.classList.add('opacity-100');
+                }
+            });
+
+            // ── Loader on submit (fallback for native submit) ──
+            // Already handled above.
         });
     </script>
 

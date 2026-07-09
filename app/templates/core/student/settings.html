@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+
+    <!-- Hero -->
+    <div class="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-10 shadow-sm border border-[#ede8e0] text-[#1a1a1a]">
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] mb-3 backdrop-blur-md">
+                <i class="fas fa-sliders-h mr-1.5"></i> Preferences
+            </span>
+            <h1 class="text-3xl font-black text-[#1a1a1a] tracking-tight sm:text-4xl">Settings</h1>
+            <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">Customise your experience and manage your account.</p>
+        </div>
+    </div>
+
+    <!-- ─── PREFERENCES ─── -->
+    <div class="bg-white border border-[#ede8e0] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <h2 class="text-lg font-bold text-[#1a1a1a] border-b border-[#f0ebe3] pb-4 mb-6">Preferences</h2>
+        <form method="POST" action="{{ url_for('core.settings') }}" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Theme -->
+                <div>
+                    <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Theme</label>
+                    <select name="theme" class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all appearance-none cursor-pointer">
+                        <option value="light" {% if user.theme_preference == 'light' %}selected{% endif %}>☀️ Light</option>
+                        <option value="dark" {% if user.theme_preference == 'dark' %}selected{% endif %}>🌙 Dark</option>
+                    </select>
+                </div>
+
+                <!-- Language (placeholder for future) -->
+                <div>
+                    <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Language</label>
+                    <select name="language" class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all appearance-none cursor-pointer">
+                        <option value="en" {% if user.language_preference == 'en' %}selected{% endif %}>English</option>
+                        <!-- Add more languages later -->
+                    </select>
+                    <p class="text-xs text-[#b5aaa0] mt-1">More languages coming soon.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="inline-flex items-center justify-center bg-[#1a1a1a] hover:bg-black text-white px-8 py-3 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-[0.99]">
+                    <i class="fas fa-save mr-2"></i> Save Preferences
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ─── ACCOUNT ─── -->
+    <div class="bg-white border border-[#ede8e0] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <h2 class="text-lg font-bold text-[#1a1a1a] border-b border-[#f0ebe3] pb-4 mb-6">Account</h2>
+
+        <!-- Deactivation -->
+        <div class="space-y-4">
+            <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-rose-700">Deactivate Account</h3>
+                        <p class="text-xs text-rose-600 mt-0.5">Your account will be disabled. You can ask an admin to reactivate it later.</p>
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('core.deactivate_account') }}" class="mt-4 flex flex-wrap items-center gap-4" onsubmit="return confirm('Are you sure you want to deactivate your account? This can be reversed by an admin.');">
+                    <button type="submit" class="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.98]">
+                        <i class="fas fa-user-slash mr-2"></i> Deactivate Account
+                    </button>
+                    <p class="text-[10px] text-[#b5aaa0]">This action is reversible. Contact an admin to reactivate.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

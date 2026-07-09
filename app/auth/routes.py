@@ -20,6 +20,12 @@ def login():
             flash('Invalid email or password.')
             return redirect(url_for('auth.login'))
 
+        # ─── NEW: Check if account is deactivated ───
+        if not user.is_active:
+            create_log("Blocked Login", f"Deactivated: {user.email}")
+            flash('Your account has been deactivated. Please contact an admin to reactivate.', 'error')
+            return redirect(url_for('auth.login'))
+
         if not user.is_approved and not user.is_admin:
             create_log("Blocked Login", f"Unapproved: {user.email}")
             flash('Account pending approval by Class Rep.')
@@ -71,3 +77,29 @@ def logout():
 
     logout_user()
     return redirect(url_for('auth.login'))
+
+
+
+
+
+
+from flask import jsonify  # if not already imported
+
+@auth.route('/api/check-email', methods=['POST'])
+def check_email():
+    data = request.get_json()
+    email = data.get('email', '').strip()
+
+    if not email:
+        return jsonify({'valid': False, 'message': 'Email is required.'})
+
+    # Must be a Gmail address
+    if not email.endswith('@gmail.com') or '@' not in email:
+        return jsonify({'valid': False, 'message': 'Please use a valid Gmail address.'})
+
+    # Check if already registered
+    exists = User.query.filter_by(email=email).first() is not None
+    if exists:
+        return jsonify({'valid': False, 'message': 'This email is already registered.'})
+
+    return jsonify({'valid': True, 'message': 'Email is available.'})

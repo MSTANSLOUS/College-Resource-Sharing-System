@@ -580,9 +580,117 @@
         .border-slate-200 {
             border-color: #ede8e0 !important;
         }
+
+
+
+
+
+
+
+
+        /* ── Theme Variables ── */
+:root {
+    --bg-body: #f5f2ec;
+    --bg-card: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #5a5248;
+    --text-muted: #b5aaa0;
+    --border-color: #ede8e0;
+    --border-light: #f0ebe3;
+    --shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* ── Dark Theme ── */
+body.dark-theme {
+    --bg-body: #1a1a1a;
+    --bg-card: #2d2d2d;
+    --text-primary: #e8e0d4;
+    --text-secondary: #c4b4a2;
+    --text-muted: #8a7e72;
+    --border-color: #3d3d3d;
+    --border-light: #3d3d3d;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+body.dark-theme {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+body.dark-theme .sidebar {
+    background: #2d2d2d;
+    border-color: var(--border-color);
+}
+
+body.dark-theme .sidebar-header,
+body.dark-theme .sidebar-footer {
+    border-color: var(--border-color);
+}
+
+body.dark-theme .nav-item {
+    color: var(--text-secondary);
+}
+
+body.dark-theme .nav-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+body.dark-theme .nav-item.active {
+    background: rgba(255,255,255,0.08);
+    color: var(--text-primary);
+}
+
+body.dark-theme .bg-white,
+body.dark-theme .bg-white\/60,
+body.dark-theme .bg-white\/80,
+body.dark-theme .bg-white\/40 {
+    background: var(--bg-card) !important;
+}
+
+body.dark-theme .border-\[#ede8e0\],
+body.dark-theme .border-slate-200,
+body.dark-theme .border {
+    border-color: var(--border-color) !important;
+}
+
+body.dark-theme .text-\[\#1a1a1a\],
+body.dark-theme .text-slate-800,
+body.dark-theme .text-slate-900 {
+    color: var(--text-primary) !important;
+}
+
+body.dark-theme .text-\[\#5a5248\],
+body.dark-theme .text-slate-600,
+body.dark-theme .text-slate-700 {
+    color: var(--text-secondary) !important;
+}
+
+body.dark-theme .text-\[\#b5aaa0\],
+body.dark-theme .text-slate-400,
+body.dark-theme .text-slate-500 {
+    color: var(--text-muted) !important;
+}
+
+body.dark-theme .bg-\[\#f5f2ec\],
+body.dark-theme .bg-slate-50,
+body.dark-theme .bg-slate-100 {
+    background: rgba(255,255,255,0.05) !important;
+}
+
+body.dark-theme .bg-\[\#faf8f5\] {
+    background: rgba(255,255,255,0.03) !important;
+}
+
+/* ── Apply theme class to body ── */
+body {
+    background: var(--bg-body);
+    color: var(--text-primary);
+    transition: background 0.2s ease, color 0.2s ease;
+}
     </style>
 </head>
-<body>
+<body class="{% if current_user.is_authenticated and current_user.theme_preference == 'dark' %}dark-theme{% endif %}">
 
     <!-- ─── SIDEBAR ─── -->
     <aside class="sidebar" id="sidebar" data-turbo-permanent role="navigation" aria-label="Main navigation">
@@ -680,6 +788,11 @@
                    data-tooltip="Profile" data-page="profile">
                     <span class="nav-icon"><i class="fas fa-user"></i></span>
                     <span class="nav-text">Profile</span>
+                </a>
+                    <!-- NEW: Settings link -->
+                <a href="{{ url_for('core.settings') }}" class="nav-item {% if request.endpoint == 'core.settings' %}active{% endif %}" data-tooltip="Settings" data-page="settings">
+                    <span class="nav-icon"><i class="fas fa-sliders-h"></i></span>
+                    <span class="nav-text">Settings</span>
                 </a>
                 <a href="{{ url_for('auth.logout') }}" data-turbo="false"
                    class="nav-item" data-tooltip="Logout" style="color:#b91c1c;">

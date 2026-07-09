@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, redirect, current_app, fl
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from flask import jsonify
-from flask_login import login_user
+from flask_login import login_user, logout_user
 from werkzeug.security import check_password_hash
 from app.models import db, Program, Resource, User, Log, Module, TransferRequest
 
@@ -613,3 +613,42 @@ def admin_analytics():
                            campus_data=campus_data,
                            status_labels=status_labels,
                            status_data=status_data)
+
+
+
+
+@core.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'POST':
+        # Update theme
+        theme = request.form.get('theme')
+        if theme in ['light', 'dark']:
+            current_user.theme_preference = theme
+
+        # Update language (optional)
+        lang = request.form.get('language')
+        if lang in ['en']:  # add more languages later
+            current_user.language_preference = lang
+
+        db.session.commit()
+        flash('Settings updated successfully!', 'success')
+        return redirect(url_for('core.settings'))
+
+    return render_template('core/student/settings.html', user=current_user)
+
+
+@core.route('/settings/deactivate', methods=['POST'])
+@login_required
+def deactivate_account():
+    if not current_user.is_admin:  # Prevent admin from deleting themselves
+        # soft delete – set is_active = False
+        current_user.is_active = False
+        db.session.commit()
+        # Logout the user
+        logout_user()
+        flash('Your account has been deactivated. You can contact an admin to reactivate.', 'info')
+        return redirect(url_for('auth.login'))
+    else:
+        flash('Admin accounts cannot be deactivated via this form. Contact another admin.', 'error')
+        return redirect(url_for('core.settings'))
