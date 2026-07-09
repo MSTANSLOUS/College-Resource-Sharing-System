@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+
+    <!-- Hero -->
+    <div class="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-10 shadow-sm border border-[#ede8e0] text-[#1a1a1a]">
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] mb-3 backdrop-blur-md">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#c4b09a]"></span>
+                Data Insights
+            </span>
+            <h1 class="text-3xl font-black text-[#1a1a1a] tracking-tight sm:text-4xl">Analytics Dashboard</h1>
+            <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">Visualise student distribution across modules, years, semesters, and campuses.</p>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Chart 1: Students per Module -->
+        <div class="bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm">
+            <h3 class="text-sm font-bold text-[#1a1a1a] mb-4">Students per Module</h3>
+            <canvas id="moduleChart" height="200"></canvas>
+        </div>
+
+        <!-- Chart 2: Year Distribution -->
+        <div class="bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm">
+            <h3 class="text-sm font-bold text-[#1a1a1a] mb-4">Students by Year</h3>
+            <canvas id="yearChart" height="200"></canvas>
+        </div>
+
+        <!-- Chart 3: Semester Distribution -->
+        <div class="bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm">
+            <h3 class="text-sm font-bold text-[#1a1a1a] mb-4">Students by Semester</h3>
+            <canvas id="semChart" height="200"></canvas>
+        </div>
+
+        <!-- Chart 4: Campus Distribution -->
+        <div class="bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm">
+            <h3 class="text-sm font-bold text-[#1a1a1a] mb-4">Students by Campus</h3>
+            <canvas id="campusChart" height="200"></canvas>
+        </div>
+
+        <!-- Chart 5: Approval Status (full width) -->
+        <div class="bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm lg:col-span-2">
+            <h3 class="text-sm font-bold text-[#1a1a1a] mb-4">Approval Status</h3>
+            <div class="max-w-sm mx-auto">
+                <canvas id="statusChart" height="200"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    /* eslint-disable no-undef */
+    /** 
+     * @type {Array} modules_labels - Provided by Flask template
+     * @type {Array} modules_data - Provided by Flask template
+     * @type {Array} years_labels - Provided by Flask template
+     * @type {Array} years_data - Provided by Flask template
+     * @type {Array} sem_labels - Provided by Flask template
+     * @type {Array} sem_data - Provided by Flask template
+     * @type {Array} campus_labels - Provided by Flask template
+     * @type {Array} campus_data - Provided by Flask template
+     * @type {Array} status_labels - Provided by Flask template
+     * @type {Array} status_data - Provided by Flask template
+     */
+    // ── Helper to initialise all charts ──
+    function initCharts() {
+        // Check if Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded yet. Retrying...');
+            setTimeout(initCharts, 500);
+            return;
+        }
+
+        // Ensure canvas elements exist
+        const chartIds = ['moduleChart', 'yearChart', 'semChart', 'campusChart', 'statusChart'];
+        for (const id of chartIds) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.error(`Canvas element #${id} not found.`);
+                return;
+            }
+        }
+
+        try {
+            // ── Module Chart ──
+            const ctxModule = document.getElementById('moduleChart').getContext('2d');
+            new Chart(ctxModule, {
+                type: 'bar',
+                data: {
+                    labels: {{ modules_labels|tojson }},
+                    datasets: [{
+                        label: 'Students',
+                        data: {{ modules_data|tojson }},
+                        backgroundColor: 'rgba(196, 176, 154, 0.6)',
+                        borderColor: 'rgba(196, 176, 154, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // ── Year Chart ──
+            const ctxYear = document.getElementById('yearChart').getContext('2d');
+            new Chart(ctxYear, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ years_labels|tojson }},
+                    datasets: [{
+                        data: {{ years_data|tojson }},
+                        backgroundColor: ['#c4b09a', '#b8a088', '#a8947c', '#988470'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // ── Semester Chart ──
+            const ctxSem = document.getElementById('semChart').getContext('2d');
+            new Chart(ctxSem, {
+                type: 'pie',
+                data: {
+                    labels: {{ sem_labels|tojson }},
+                    datasets: [{
+                        data: {{ sem_data|tojson }},
+                        backgroundColor: ['#c4b09a', '#e8d9cc'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // ── Campus Chart ──
+            const ctxCampus = document.getElementById('campusChart').getContext('2d');
+            new Chart(ctxCampus, {
+                type: 'bar',
+                data: {
+                    labels: {{ campus_labels|tojson }},
+                    datasets: [{
+                        label: 'Students',
+                        data: {{ campus_data|tojson }},
+                        backgroundColor: 'rgba(180, 160, 140, 0.6)',
+                        borderColor: 'rgba(180, 160, 140, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // ── Status Chart ──
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ status_labels|tojson }},
+                    datasets: [{
+                        data: {{ status_data|tojson }},
+                        backgroundColor: ['#34d399', '#fbbf24'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            console.log('✅ All charts initialised successfully.');
+        } catch (error) {
+            console.error('Error initialising charts:', error);
+        }
+    }
+
+    // ── Initialise on DOM ready and on Turbo navigation ──
+    document.addEventListener('DOMContentLoaded', initCharts);
+    document.addEventListener('turbo:load', initCharts);
+
+    // If Turbo is not used, DOMContentLoaded is enough.
+</script>
+{% endblock %}

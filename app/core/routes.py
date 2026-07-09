@@ -529,3 +529,75 @@ def get_student_context():
     # Tell Ngrok NOT to show the warning page to the Android app
     response.headers.add("ngrok-skip-browser-warning", "true")
     return response
+
+from sqlalchemy import func
+
+@core.route('/admin/analytics')
+@login_required
+def admin_analytics():
+    if not current_user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('core.dashboard'))
+
+    # ── 1. Students per module ──
+    # Join User -> Program -> Module via the many-to-many table
+    module_counts = db.session.query(
+        Module.name,
+        func.count(User.id).label('count')
+    ).join(Module.programs).join(Program.users).filter(User.is_approved == True).group_by(Module.id).all()
+
+    modules_labels = [row[0] for row in module_counts]
+    modules_data = [row[1] for row in module_counts]
+
+    # If no modules, provide placeholder data to avoid empty charts
+    if not modules_labels:
+        modules_labels = ['No modules']
+        modules_data = [0]
+
+    # ── 2. Students per year ──
+    year_counts = db.session.query(
+        User.year,
+        func.count(User.id).label('count')
+    ).filter(User.is_approved == True).group_by(User.year).all()
+    years_dict = {y: 0 for y in range(1, 5)}
+    for y, c in year_counts:
+        years_dict[y] = c
+    years_labels = ['Year 1', 'Year 2', 'Year 3', 'Year 4']
+    years_data = [years_dict[1], years_dict[2], years_dict[3], years_dict[4]]
+
+    # ── 3. Students per semester ──
+    sem_counts = db.session.query(
+        User.semester,
+        func.count(User.id).label('count')
+    ).filter(User.is_approved == True).group_by(User.semester).all()
+    sem_dict = {1: 0, 2: 0}
+    for s, c in sem_counts:
+        sem_dict[s] = c
+    sem_labels = ['Semester 1', 'Semester 2']
+    sem_data = [sem_dict[1], sem_dict[2]]
+
+    # ── 4. Students per campus ──
+    campus_counts = db.session.query(
+        User.campus,
+        func.count(User.id).label('count')
+    ).filter(User.is_approved == True).group_by(User.campus).all()
+    campus_labels = [row[0] for row in campus_counts]
+    campus_data = [row[1] for row in campus_counts]
+
+    # ── 5. Approval status ──
+    approved_count = User.query.filter_by(is_approved=True).count()
+    pending_count = User.query.filter_by(is_approved=False).count()
+    status_labels = ['Approved', 'Pending']
+    status_data = [approved_count, pending_count]
+
+    return render_template('core/admin/analytics.html',
+                           modules_labels=modules_labels,
+                           modules_data=modules_data,
+                           years_labels=years_labels,
+                           years_data=years_data,
+                           sem_labels=sem_labels,
+                           sem_data=sem_data,
+                           campus_labels=campus_labels,
+                           campus_data=campus_data,
+                           status_labels=status_labels,
+                           status_data=status_data)

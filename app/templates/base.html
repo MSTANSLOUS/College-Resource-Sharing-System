@@ -603,21 +603,30 @@
             <div class="nav-group">
                 <div class="nav-group-label">Overview</div>
 
-                {% if current_user.is_admin %}
-                    <a href="{{ url_for('core.admin_dashboard') }}"
-                       class="nav-item {% if request.endpoint == 'core.admin_dashboard' %}active{% endif %}"
-                       data-tooltip="Admin Dashboard" data-page="admin_dashboard">
-                        <span class="nav-icon"><i class="fas fa-gauge-high"></i></span>
-                        <span class="nav-text">Admin Dashboard</span>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('core.dashboard') }}"
-                       class="nav-item {% if request.endpoint == 'core.dashboard' %}active{% endif %}"
-                       data-tooltip="Dashboard" data-page="dashboard">
-                        <span class="nav-icon"><i class="fas fa-home"></i></span>
-                        <span class="nav-text">Dashboard</span>
-                    </a>
-                {% endif %}
+                    <!-- Inside the Overview group -->
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('core.admin_dashboard') }}"
+                        class="nav-item {% if request.endpoint == 'core.admin_dashboard' %}active{% endif %}"
+                        data-tooltip="Admin Dashboard" data-page="admin_dashboard">
+                            <span class="nav-icon"><i class="fas fa-gauge-high"></i></span>
+                            <span class="nav-text">Admin Dashboard</span>
+                        </a>
+                        <!-- NEW: Analytics link -->
+                        <a href="{{ url_for('core.admin_analytics') }}"
+                        class="nav-item {% if request.endpoint == 'core.admin_analytics' %}active{% endif %}"
+                        data-tooltip="Analytics" data-page="admin_analytics">
+                            <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+                            <span class="nav-text">Analytics</span>
+                        </a>
+                    {% else %}
+                        <!-- Student dashboard link -->
+                        <a href="{{ url_for('core.dashboard') }}"
+                        class="nav-item {% if request.endpoint == 'core.dashboard' %}active{% endif %}"
+                        data-tooltip="Dashboard" data-page="dashboard">
+                            <span class="nav-icon"><i class="fas fa-home"></i></span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    {% endif %}
             </div>
 
             <!-- Group: Resources (students) -->
