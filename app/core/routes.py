@@ -1,14 +1,12 @@
 import os
-from flask import Blueprint, render_template, request, redirect, current_app, flash, url_for, abort
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, request, redirect, current_app, flash, url_for, abort, jsonify
+from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.utils import secure_filename
-from flask import jsonify
-from flask_login import login_user, logout_user
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import db, Program, Resource, User, Log, Module, TransferRequest
-
-from datetime import date # Make sure to import date
+from datetime import date
 from app import send_email
+from sqlalchemy import func
 
 core = Blueprint('core', __name__)
 
@@ -22,64 +20,45 @@ def create_log(action, details=None):
     db.session.add(log_entry)
     db.session.commit()
 
-
-
-
-def notify_class_rep(student, user_actions = None):
-    """Finds the Rep for the student's campus/program and sends an email"""
-    # Note: Ensure 'Message' and 'mail' are imported if you use Flask-Mail
-    # For now, we will log the attempt to prevent crashes
+def notify_class_rep(student, user_actions=None):
     rep = User.query.filter_by(
         is_class_rep=True,
         campus=student.campus,
-        program_id=student.program_id
+        program_id=student.program_id,
+        year=student.year,
+        semester=student.semester
     ).first()
-
     if rep and rep.email:
-        #print(f"Notification logic triggered for Rep: {rep.email}")
         subjects = f"Account Creation"
-        message_body = f"Hie class admin am {student.full_name} and i created an account waiting for yout approval"
-        # Add your Flask-Mail logic here when ready
+        message_body = f"Hi class admin, {student.full_name} created an account and is waiting for your approval."
         send_email(recipients=rep.email, subject=subjects, massage_body=message_body)
 
-# --- DASHBOARD & PROFILE ---
-
+# ─── DASHBOARD ───
 @core.route('/dashboard')
 @login_required
 def dashboard():
     pending_students = []
-
-    # If the user is a Class Rep, only show students in their SPECIFIC class
     if current_user.is_class_rep:
         pending_students = User.query.filter_by(
             is_approved=False,
             campus=current_user.campus,
             program_id=current_user.program_id,
-            year=current_user.year,  # ADD THIS: Filter by the Rep's year
-            semester=current_user.semester  # ADD THIS: Filter by the Rep's semester
+            year=current_user.year,
+            semester=current_user.semester
         ).all()
 
-    # Fetch recent uploads (Same logic here - filter by year/semester)
     recent_uploads = Resource.query.filter_by(
         campus=current_user.campus,
-        target_year=current_user.year,  # Only show notes for their year
-        target_semester=current_user.semester  # Only show notes for their semester
-    ) \
-        .join(Resource.programs) \
-        .filter(Program.id == current_user.program_id) \
-        .order_by(Resource.id.desc()) \
-        .limit(3) \
-        .all()
-    
-        # Determine if tour should be shown
+        target_year=current_user.year,
+        target_semester=current_user.semester
+    ).join(Resource.programs).filter(Program.id == current_user.program_id).order_by(Resource.id.desc()).limit(3).all()
+
     show_tour = current_user.is_approved and not current_user.tour_completed
 
     return render_template('core/student/dashboard.html',
                            pending_students=pending_students,
                            recent_uploads=recent_uploads,
                            show_tour=show_tour)
-
-
 
 @core.route('/mark-tour-complete', methods=['POST'])
 @login_required
@@ -89,12 +68,12 @@ def mark_tour_complete():
     create_log("Tour Completed", "User finished onboarding tour")
     return jsonify({"status": "success"})
 
-
-
+# ─── PROFILE ───
 @core.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     if request.method == 'POST':
+        old_name = current_user.full_name
         current_user.full_name = request.form.get('fullname')
         current_user.student_id = request.form.get('student_id')
         current_user.phone_number = request.form.get('phone')
@@ -109,7 +88,6 @@ def profile():
 
         if (req_campus and req_campus != current_user.campus) or \
            (req_prog_id and int(req_prog_id) != current_user.program_id):
-
             existing = TransferRequest.query.filter_by(user_id=current_user.id, status='pending').first()
             if not existing:
                 new_req = TransferRequest(
@@ -119,9 +97,10 @@ def profile():
                 )
                 db.session.add(new_req)
                 flash('Institutional change request sent to Admin.', 'info')
+                create_log("Transfer Request", f"User requested transfer to {req_campus} / Program {req_prog_id}")
 
         db.session.commit()
-        create_log("Profile Update", "Updated user profile info")
+        create_log("Profile Update", f"Updated profile info (name changed from {old_name})")
         flash('Profile updated successfully!')
         return redirect(url_for('core.profile'))
 
@@ -130,11 +109,7 @@ def profile():
     return render_template('core/student/profile.html', user=current_user, programs=programs,
                            pending_request=pending_request)
 
-
-
-
-# --- NOTES & RESOURCES ---
-
+# ─── NOTES & RESOURCES ───
 @core.route('/campus_notes')
 @login_required
 def campus_notes():
@@ -143,17 +118,13 @@ def campus_notes():
         .filter(Program.id == current_user.program_id) \
         .order_by(Resource.id.desc()) \
         .all()
-
     grouped_notes = {}
     for note in notes:
         m_name = note.module.name
         if m_name not in grouped_notes:
             grouped_notes[m_name] = []
         grouped_notes[m_name].append(note)
-
     return render_template('core/student/campus_notes.html', grouped_notes=grouped_notes)
-
-
 
 @core.route('/cross_campus')
 @login_required
@@ -163,7 +134,6 @@ def cross_campus():
         .filter(Program.id == current_user.program_id) \
         .order_by(Resource.id.desc()) \
         .all()
-
     organized_notes = {}
     for note in cross_notes:
         campus = note.campus
@@ -173,21 +143,14 @@ def cross_campus():
         if module_name not in organized_notes[campus]:
             organized_notes[campus][module_name] = []
         organized_notes[campus][module_name].append(note)
-
     return render_template('core/student/cross_campus.html', organized_notes=organized_notes)
-
-
-
 
 @core.route('/vault')
 @login_required
 def vault():
     return render_template('core/student/vault.html')
 
-
-
-
-
+# ─── UPLOAD RESOURCE ───
 @core.route('/upload-resource', methods=['GET', 'POST'])
 @login_required
 def upload_resource():
@@ -202,43 +165,43 @@ def upload_resource():
         selected_programs = request.form.getlist('programs')
         file = request.files.get('file')
 
-        if file and file.filename.endswith('.pdf'):
-            filename = secure_filename(file.filename)
-            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
-            os.makedirs(upload_folder, exist_ok=True)
-            file.save(os.path.join(upload_folder, filename))
+        if not module_id or not title or not selected_programs or not file or not file.filename.endswith('.pdf'):
+            flash('All fields are required and file must be a PDF.', 'error')
+            return redirect(url_for('core.upload_resource'))
 
-            new_resource = Resource(
-                title=title,
-                file_path=f"uploads/{filename}",
-                module_id=module_id,
-                campus=current_user.campus,
-                academic_year=academic_year,
-                uploader_id=current_user.id,
-                target_year=1, # Default placeholder
-                target_semester=1 # Default placeholder
-            )
+        filename = secure_filename(file.filename)
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+        file.save(os.path.join(upload_folder, filename))
 
-            for prog_id in selected_programs:
-                program = Program.query.get(int(prog_id))
-                if program:
-                    new_resource.programs.append(program)
+        new_resource = Resource(
+            title=title,
+            file_path=f"uploads/{filename}",
+            module_id=module_id,
+            campus=current_user.campus,
+            academic_year=academic_year,
+            uploader_id=current_user.id,
+            target_year=current_user.year,
+            target_semester=current_user.semester
+        )
 
-            db.session.add(new_resource)
-            db.session.commit()
-            module = Module.query.get(module_id)
-            create_log("Resource Upload", f"Uploaded {title} for {module.name}")
-            flash('Resource uploaded successfully!')
-            return redirect(url_for('core.dashboard'))
+        for prog_id in selected_programs:
+            program = Program.query.get(int(prog_id))
+            if program:
+                new_resource.programs.append(program)
+
+        db.session.add(new_resource)
+        db.session.commit()
+        module = Module.query.get(module_id)
+        create_log("Resource Upload", f"Uploaded '{title}' for module '{module.name}' (ID: {module.id})")
+        flash('Resource uploaded successfully!')
+        return redirect(url_for('core.dashboard'))
 
     modules = current_user.program.modules.all()
     programs = Program.query.all()
     return render_template('core/class_rep/upload_resource.html', modules=modules, programs=programs)
 
-
-
-# --- CLASS REP ACTIONS ---
-
+# ─── CLASS REP ACTIONS ───
 @core.route('/approve-student/<int:user_id>', methods=['POST'])
 @login_required
 def approve_student(user_id):
@@ -250,15 +213,11 @@ def approve_student(user_id):
     if student.campus == current_user.campus and student.program_id == current_user.program_id:
         student.is_approved = True
         db.session.commit()
-        create_log("Student Approval", f"Approved student: {student.full_name}")
+        create_log("Student Approval", f"Approved student: {student.full_name} (ID: {student.id})")
         flash(f'Successfully approved {student.full_name}.')
     else:
         flash('You do not have permission to approve this student.')
     return redirect(url_for('core.dashboard'))
-
-
-
-
 
 @core.route('/reject-student/<int:user_id>', methods=['POST'])
 @login_required
@@ -272,17 +231,13 @@ def reject_student(user_id):
         student_name = student.full_name
         db.session.delete(student)
         db.session.commit()
-        create_log("Registration Rejected", f"Rejected request from: {student_name}")
+        create_log("Registration Rejected", f"Rejected request from: {student_name} (ID: {user_id})")
         flash(f'Ignored registration request from {student_name}.')
     else:
         flash('You do not have permission to reject this student.')
     return redirect(url_for('core.dashboard'))
 
-
-
-
-# --- ADMIN DASHBOARD & ACTIONS ---
-
+# ─── ADMIN DASHBOARD ───
 @core.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
@@ -290,20 +245,14 @@ def admin_dashboard():
         flash('Access denied.')
         return redirect(url_for('core.dashboard'))
 
-    # --- PRO LOG CLEANUP ---
-    # This deletes all logs where the date is older than today
+    # Clean old logs (older than today)
     today = date.today()
     Log.query.filter(Log.created_at < today).delete()
     db.session.commit()
 
-    # Get filter values from the URL (e.g., /admin/dashboard?year=2)
     year_filter = request.args.get('year', type=int)
     sem_filter = request.args.get('semester', type=int)
-
-    # Start with all users
     user_query = User.query
-
-    # Apply filters if they exist
     if year_filter:
         user_query = user_query.filter_by(year=year_filter)
     if sem_filter:
@@ -315,17 +264,18 @@ def admin_dashboard():
     system_logs = Log.query.order_by(Log.created_at.desc()).limit(50).all()
     pending_requests = TransferRequest.query.filter_by(status='pending').all()
 
+    # Log admin dashboard access (only if filter applied, to avoid clutter)
+    if year_filter or sem_filter:
+        create_log("Admin Dashboard Filter", f"Filtered by Year={year_filter}, Semester={sem_filter}")
+
     return render_template('core/admin/dashboard.html',
                            users=all_users,
                            logs=system_logs,
                            programs=all_programs,
                            modules=all_modules,
                            requests=pending_requests,
-                           current_year=year_filter,    # Pass these back to keep dropdowns selected
+                           current_year=year_filter,
                            current_sem=sem_filter)
-
-
-
 
 @core.route('/admin/request/<int:req_id>/<action>')
 @login_required
@@ -338,18 +288,15 @@ def handle_request(req_id, action):
         req.user.campus = req.target_campus
         req.user.program_id = req.target_program_id
         req.status = 'approved'
-        create_log("Transfer Approved", f"Approved transfer for {req.user.full_name}")
+        create_log("Transfer Approved", f"Approved transfer for {req.user.full_name} (ID: {req.user.id})")
         flash(f"Approved changes for {req.user.full_name}")
     else:
         req.status = 'rejected'
+        create_log("Transfer Rejected", f"Rejected transfer for {req.user.full_name} (ID: {req.user.id})")
         flash("Request rejected.")
 
     db.session.commit()
     return redirect(url_for('core.admin_dashboard'))
-
-
-
-
 
 @core.route('/admin/add-module', methods=['POST'])
 @login_required
@@ -379,17 +326,13 @@ def add_module():
                 new_module.programs.append(prog)
         db.session.add(new_module)
         db.session.commit()
-        create_log("Module Created", f"Admin registered module: {name} ({code})")
+        create_log("Module Created", f"Admin registered module: {name} ({code}) linked to {len(program_ids)} programs")
         flash(f'Module {name} registered successfully!')
     except Exception as e:
         db.session.rollback()
         flash('Something went wrong.')
         print(f"Database Error: {e}")
-
     return redirect(url_for('core.admin_dashboard'))
-
-
-
 
 @core.route('/admin/make-rep/<int:user_id>', methods=['POST'])
 @login_required
@@ -399,36 +342,26 @@ def make_rep(user_id):
         return redirect(url_for('core.dashboard'))
 
     user = User.query.get_or_404(user_id)
-
-    # Promote to rep and also approve them immediately
     user.is_class_rep = True
-    user.is_approved = True   # <--- ADD THIS LINE
-
+    user.is_approved = True
     db.session.commit()
-    create_log("Role Change", f"Promoted and approved {user.full_name} as Class Representative")
+    create_log("Role Change", f"Promoted and approved {user.full_name} (ID: {user.id}) as Class Representative")
     flash(f'{user.full_name} is now a Class Representative and can log in!', 'success')
     return redirect(url_for('core.admin_dashboard'))
-
 
 @core.route('/admin/remove-rep/<int:user_id>', methods=['POST'])
 @login_required
 def remove_rep(user_id):
     if not current_user.is_admin:
-        flash('Access denied.', 'error')  # Added 'error' category for red styling
+        flash('Access denied.', 'error')
         return redirect(url_for('core.dashboard'))
 
-    # STANDARD SQLALCHEMY WAY
     user = User.query.get_or_404(user_id)
-
     user.is_class_rep = False
     db.session.commit()
-
-    # Good job on the log!
-    create_log("Role Change", f"Removed {user.full_name} from being Class Representative")
-
+    create_log("Role Change", f"Removed {user.full_name} (ID: {user.id}) from being Class Representative")
     flash(f'{user.full_name} is no longer a Class Representative!', 'info')
     return redirect(url_for('core.admin_dashboard'))
-
 
 @core.route('/admin/delete-module/<int:module_id>', methods=['POST'])
 @login_required
@@ -438,8 +371,6 @@ def delete_module(module_id):
         return redirect(url_for('core.dashboard'))
 
     module = Module.query.get_or_404(module_id)
-
-    # Check if the module has resources
     if module.resources:
         flash(f'Cannot delete "{module.name}" because it contains resources. Delete the notes first!', 'error')
         return redirect(url_for('core.admin_dashboard'))
@@ -447,103 +378,93 @@ def delete_module(module_id):
     module_name = module.name
     db.session.delete(module)
     db.session.commit()
-
-    create_log("Database Change", f"Deleted Module: {module_name}")
+    create_log("Module Deleted", f"Deleted Module: {module_name} (ID: {module_id})")
     flash(f'Module "{module_name}" removed successfully.', 'info')
-
     return redirect(url_for('core.admin_dashboard'))
-
-
 
 @core.route('/notes/delete/<int:note_id>', methods=['POST'])
 @login_required
 def delete_note(note_id):
-    # 1. Fetch the note or 404 if it's missing
     note = Resource.query.get_or_404(note_id)
-
-    # 2. SECURITY CHECK: Ensure it's a Rep and THEY are the owner
     if not current_user.is_class_rep or current_user.id != note.user_id:
         flash('Permission denied. You can only delete your own uploads.', 'error')
-        return redirect(url_for('core.notes'))
+        return redirect(url_for('core.campus_notes'))
 
     try:
-        # 3. DELETE THE PHYSICAL FILE FROM THE FOLDER
-        # This finds the exact path on your Kali machine
         file_path = os.path.join(current_app.root_path, 'static', note.file_path)
-
         if os.path.exists(file_path):
-            os.remove(file_path)  # Boom. File is gone from the folder.
-
-        # 4. DELETE THE RECORD FROM THE DATABASE
+            os.remove(file_path)
         db.session.delete(note)
         db.session.commit()
-
-        # 5. LOG THE ACTION
-        create_log("File Removed", f"Rep {current_user.full_name} deleted: {note.title}")
-        flash('File deleted successfully. You can now upload the correct version!', 'info')
-
+        create_log("File Removed", f"Rep {current_user.full_name} deleted note: {note.title} (ID: {note_id})")
+        flash('File deleted successfully.', 'info')
     except Exception as e:
         db.session.rollback()
         print(f"Delete Error: {e}")
         flash('Something went wrong while removing the file.', 'error')
+    return redirect(url_for('core.campus_notes'))
 
-    return redirect(url_for('core.notes'))
-
-
-
-
-
-"""AI LOGIC HERE BELOW THE ENDPOINTS """
-
-@core.route('/api/login', methods=['POST'])
-def api_login():
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
-
-    user = User.query.filter_by(email=email).first()
-
-    if user:
-        if check_password_hash(user.password_hash, password):
-            if user.is_approved:
-                # 1. Use remember=True to make the cookie persistent
-                login_user(user, remember=True)
-
-                response = jsonify({"status": "success", "message": "Welcome!"})
-
-                # 2. Ngrok skip header (for the app)
-                response.headers.add("ngrok-skip-browser-warning", "true")
-
-                # 3. CRITICAL: Manual Cookie Header (if SESSION_COOKIE settings are failing)
-                # This ensures the cookie is sent back with 'None' SameSite policy
-                response.set_cookie('session', request.cookies.get('session', ''),
-                                    samesite='None', secure=True)
-
-                return response, 200
-            else:
-                return jsonify({"status": "error", "message": "Account pending approval"}), 403
-        else:
-            return jsonify({"status": "error", "message": "Incorrect password"}), 401
-
-    return jsonify({"status": "error", "message": "User not found"}), 404
-
-
-@core.route('/api/v1/student-context', methods=['GET'])
+# ─── ADMIN CHANGE PASSWORD ───
+@core.route('/admin/change-password/<int:user_id>', methods=['POST'])
 @login_required
-def get_student_context():
-    active_modules = current_user.program.modules.all()
-    modules_list = [{"name": m.name, "code": m.code} for m in active_modules]
+def admin_change_password(user_id):
+    if not current_user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('core.admin_dashboard'))
 
-    response = jsonify({
-        "student_name": current_user.full_name,
-        "modules": modules_list
-    })
-    # Tell Ngrok NOT to show the warning page to the Android app
-    response.headers.add("ngrok-skip-browser-warning", "true")
-    return response
+    user = User.query.get_or_404(user_id)
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
 
-from sqlalchemy import func
+    if not new_password or len(new_password) < 6:
+        flash('Password must be at least 6 characters.', 'error')
+        return redirect(url_for('core.admin_dashboard'))
 
+    if new_password != confirm_password:
+        flash('Passwords do not match.', 'error')
+        return redirect(url_for('core.admin_dashboard'))
+
+    user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    create_log("Password Reset", f"Admin reset password for {user.full_name} (ID: {user.id})")
+    flash(f'Password for {user.full_name} has been reset successfully.', 'success')
+    return redirect(url_for('core.admin_dashboard'))
+
+# ─── SETTINGS ───
+@core.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'POST':
+        theme = request.form.get('theme')
+        lang = request.form.get('language')
+
+        if theme in ['light', 'dark']:
+            current_user.theme_preference = theme
+        if lang in ['en']:
+            current_user.language_preference = lang
+
+        db.session.commit()
+        create_log("Settings Update", f"User updated theme to '{theme}', language to '{lang}'")
+        flash('Settings updated successfully!', 'success')
+        return redirect(url_for('core.settings'))
+
+    return render_template('core/student/settings.html', user=current_user)
+
+@core.route('/settings/deactivate', methods=['POST'])
+@login_required
+def deactivate_account():
+    if current_user.is_admin:
+        flash('Admin accounts cannot be deactivated via this form. Contact another admin.', 'error')
+        return redirect(url_for('core.settings'))
+
+    current_user.is_active = False
+    db.session.commit()
+    create_log("Account Deactivation", f"User {current_user.full_name} (ID: {current_user.id}) deactivated their account")
+    logout_user()
+    flash('Your account has been deactivated. You can contact an admin to reactivate.', 'info')
+    return redirect(url_for('auth.login'))
+
+# ─── ANALYTICS ───
 @core.route('/admin/analytics')
 @login_required
 def admin_analytics():
@@ -551,22 +472,15 @@ def admin_analytics():
         flash('Access denied.', 'error')
         return redirect(url_for('core.dashboard'))
 
-    # ── 1. Students per module ──
-    # Join User -> Program -> Module via the many-to-many table
+    # Students per module
     module_counts = db.session.query(
         Module.name,
         func.count(User.id).label('count')
     ).join(Module.programs).join(Program.users).filter(User.is_approved == True).group_by(Module.id).all()
+    modules_labels = [row[0] for row in module_counts] or ['No modules']
+    modules_data = [row[1] for row in module_counts] or [0]
 
-    modules_labels = [row[0] for row in module_counts]
-    modules_data = [row[1] for row in module_counts]
-
-    # If no modules, provide placeholder data to avoid empty charts
-    if not modules_labels:
-        modules_labels = ['No modules']
-        modules_data = [0]
-
-    # ── 2. Students per year ──
+    # Students per year
     year_counts = db.session.query(
         User.year,
         func.count(User.id).label('count')
@@ -577,7 +491,7 @@ def admin_analytics():
     years_labels = ['Year 1', 'Year 2', 'Year 3', 'Year 4']
     years_data = [years_dict[1], years_dict[2], years_dict[3], years_dict[4]]
 
-    # ── 3. Students per semester ──
+    # Students per semester
     sem_counts = db.session.query(
         User.semester,
         func.count(User.id).label('count')
@@ -588,7 +502,7 @@ def admin_analytics():
     sem_labels = ['Semester 1', 'Semester 2']
     sem_data = [sem_dict[1], sem_dict[2]]
 
-    # ── 4. Students per campus ──
+    # Students per campus
     campus_counts = db.session.query(
         User.campus,
         func.count(User.id).label('count')
@@ -596,7 +510,7 @@ def admin_analytics():
     campus_labels = [row[0] for row in campus_counts]
     campus_data = [row[1] for row in campus_counts]
 
-    # ── 5. Approval status ──
+    # Approval status
     approved_count = User.query.filter_by(is_approved=True).count()
     pending_count = User.query.filter_by(is_approved=False).count()
     status_labels = ['Approved', 'Pending']
@@ -614,41 +528,35 @@ def admin_analytics():
                            status_labels=status_labels,
                            status_data=status_data)
 
+# ─── API ENDPOINTS ───
+@core.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
 
+    user = User.query.filter_by(email=email).first()
 
-
-@core.route('/settings', methods=['GET', 'POST'])
-@login_required
-def settings():
-    if request.method == 'POST':
-        # Update theme
-        theme = request.form.get('theme')
-        if theme in ['light', 'dark']:
-            current_user.theme_preference = theme
-
-        # Update language (optional)
-        lang = request.form.get('language')
-        if lang in ['en']:  # add more languages later
-            current_user.language_preference = lang
-
-        db.session.commit()
-        flash('Settings updated successfully!', 'success')
-        return redirect(url_for('core.settings'))
-
-    return render_template('core/student/settings.html', user=current_user)
-
-
-@core.route('/settings/deactivate', methods=['POST'])
-@login_required
-def deactivate_account():
-    if not current_user.is_admin:  # Prevent admin from deleting themselves
-        # soft delete – set is_active = False
-        current_user.is_active = False
-        db.session.commit()
-        # Logout the user
-        logout_user()
-        flash('Your account has been deactivated. You can contact an admin to reactivate.', 'info')
-        return redirect(url_for('auth.login'))
+    if user and check_password_hash(user.password_hash, password):
+        if user.is_approved:
+            login_user(user, remember=True)
+            response = jsonify({"status": "success", "message": "Welcome!"})
+            response.headers.add("ngrok-skip-browser-warning", "true")
+            response.set_cookie('session', request.cookies.get('session', ''), samesite='None', secure=True)
+            return response, 200
+        else:
+            return jsonify({"status": "error", "message": "Account pending approval"}), 403
     else:
-        flash('Admin accounts cannot be deactivated via this form. Contact another admin.', 'error')
-        return redirect(url_for('core.settings'))
+        return jsonify({"status": "error", "message": "Invalid credentials"}), 401
+
+@core.route('/api/v1/student-context', methods=['GET'])
+@login_required
+def get_student_context():
+    active_modules = current_user.program.modules.all()
+    modules_list = [{"name": m.name, "code": m.code} for m in active_modules]
+    response = jsonify({
+        "student_name": current_user.full_name,
+        "modules": modules_list
+    })
+    response.headers.add("ngrok-skip-browser-warning", "true")
+    return response

@@ -382,6 +382,22 @@
 
     // ─── TOUR LOGIC ───
     var tourInstance = null;
+    var TOUR_COMPLETED_KEY = 'tour-completed';
+
+    function hasTourBeenCompleted() {
+        try {
+            return localStorage.getItem(TOUR_COMPLETED_KEY) === 'true';
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function persistTourCompleted() {
+        try {
+            localStorage.setItem(TOUR_COMPLETED_KEY, 'true');
+        } catch (_) {}
+        window.__showTour = false;
+    }
 
     function createTour() {
         if (typeof Shepherd === 'undefined') {
@@ -530,6 +546,7 @@
 
         // ── Fix UI freeze: always hide modal when done ──
         tour.on('complete', function() {
+            tourInstance = null;
             markTourComplete();
             // Ensure the overlay is removed
             tour.hide();
@@ -538,6 +555,7 @@
             overlayContainers.forEach(function(el) { el.remove(); });
         });
         tour.on('cancel', function() {
+            tourInstance = null;
             markTourComplete();
             tour.hide();
             var overlayContainers = document.querySelectorAll('.shepherd-modal-overlay-container');
@@ -598,9 +616,9 @@
 
         // Check if tour should be shown
         var showTour = {{ show_tour|tojson }};
-        window.__showTour = showTour;
+        window.__showTour = showTour && !hasTourBeenCompleted();
 
-        if (showTour && window.location.pathname === '/dashboard') {
+        if (window.__showTour && window.location.pathname === '/dashboard') {
             // Reset so we can recreate a fresh tour instance
             tourInstance = null;
             // Start the tour with a slight delay
@@ -618,6 +636,7 @@
     }
 
     function markTourComplete() {
+        persistTourCompleted();
         fetch('/mark-tour-complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -627,7 +646,7 @@
         .then(function(data) {
             if (data.status === 'success') {
                 console.log('✅ Tour marked as complete.');
-                window.__showTour = false;
+                persistTourCompleted();
             }
         })
         .catch(function(err) { console.error('Error marking tour complete:', err); });
@@ -636,6 +655,11 @@
     // ── Run on Turbo and initial load ──
     document.addEventListener('turbo:load', initializePage);
     document.addEventListener('DOMContentLoaded', initializePage);
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            initializePage();
+        }
+    });
 
     // Fallback immediate call if DOM already loaded
     if (document.readyState !== 'loading') {

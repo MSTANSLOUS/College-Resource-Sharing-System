@@ -3,22 +3,21 @@
 {% block content %}
 <div class="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
 
-    <!-- System Administrative Shimmer Backdrop (cream themed) -->
+    <!-- System Administrative Shimmer Backdrop -->
     <div id="admin-loading-shimmer" class="fixed inset-0 bg-[#f5f2ec]/60 backdrop-blur-[4px] z-50 opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center">
         <div class="flex flex-col items-center space-y-3 p-6 bg-white/80 rounded-2xl border border-[#ede8e0] shadow-lg max-w-xs text-center">
             <div class="relative w-10 h-10">
                 <div class="w-10 h-10 rounded-full border-4 border-[#f0ebe3]"></div>
                 <div class="w-10 h-10 rounded-full border-4 border-[#c4b09a] border-t-transparent animate-spin absolute top-0 left-0"></div>
             </div>
-            <p id="admin-shimmer-text" class="text-xs font-semibold text-[#5a5248]">Processing structural modification...</p>
+            <p id="admin-shimmer-text" class="text-xs font-semibold text-[#5a5248]">Processing...</p>
         </div>
     </div>
 
-    <!-- Administrative Header Panel Banner -->
+    <!-- Header Panel -->
     <div class="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-10 shadow-sm border border-[#ede8e0] text-[#1a1a1a]">
         <div class="absolute -top-24 -right-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
-
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] mb-3 backdrop-blur-md">
@@ -26,7 +25,7 @@
                     Central Administration
                 </span>
                 <h1 class="text-3xl font-black text-[#1a1a1a] tracking-tight sm:text-4xl">Management Console</h1>
-                <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">System‑wide operational oversight for user privileges, curriculum configurations, and systemic audit logging.</p>
+                <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">System‑wide operational oversight for users, modules, and logs.</p>
             </div>
             <div class="md:self-center flex items-center space-x-2 text-[11px] font-bold text-[#5a5248] uppercase tracking-widest bg-[#f5f2ec] px-4 py-2 rounded-xl border border-[#ede8e0] backdrop-blur-md self-start">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -35,7 +34,7 @@
         </div>
     </div>
 
-    <!-- Interface Segmentation Control Tabs -->
+    <!-- Tabs -->
     <div class="border-b border-[#ede8e0]">
         <nav class="flex space-x-8 overflow-x-auto no-scrollbar" aria-label="Tabs">
             <button onclick="switchAdminTab('reps')" id="tab-reps-btn" class="tab-btn border-b-2 border-[#c4b09a] text-[#1a1a1a] px-1 py-4 text-sm font-bold focus:outline-none whitespace-nowrap transition-all cursor-pointer">
@@ -47,16 +46,19 @@
             <button onclick="switchAdminTab('modules')" id="tab-modules-btn" class="tab-btn border-b-2 border-transparent text-[#b5aaa0] hover:text-[#5a5248] hover:border-[#ddd6ca] px-1 py-4 text-sm font-bold focus:outline-none whitespace-nowrap transition-all cursor-pointer">
                 Curriculum Modules
             </button>
+            <button onclick="switchAdminTab('users')" id="tab-users-btn" class="tab-btn border-b-2 border-transparent text-[#b5aaa0] hover:text-[#5a5248] hover:border-[#ddd6ca] px-1 py-4 text-sm font-bold focus:outline-none whitespace-nowrap transition-all cursor-pointer">
+                User Management
+            </button>
             <button onclick="switchAdminTab('logs')" id="tab-logs-btn" class="tab-btn border-b-2 border-transparent text-[#b5aaa0] hover:text-[#5a5248] hover:border-[#ddd6ca] px-1 py-4 text-sm font-bold focus:outline-none whitespace-nowrap transition-all cursor-pointer">
                 Audit Logs
             </button>
         </nav>
     </div>
 
-    <!-- Control Content Segment Outputs -->
+    <!-- Content Areas -->
     <div class="mt-2">
 
-        <!-- ─── 1. Class Representatives Grid Module ─── -->
+        <!-- ─── 1. Class Representatives ─── -->
         <div id="section-reps" class="tab-content block animate-fadeIn">
             <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -64,10 +66,10 @@
                         <thead class="bg-[#faf8f5] hidden sm:table-header-group">
                             <tr>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Representative</th>
-                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Campus Location</th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Campus</th>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Level</th>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Status</th>
-                                <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Management</th>
+                                <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#f0ebe3] text-sm">
@@ -116,7 +118,7 @@
             </div>
         </div>
 
-        <!-- ─── 2. Student Directory Filter Matrix Module ─── -->
+        <!-- ─── 2. Student Directory ─── -->
         <div id="section-students" class="tab-content hidden space-y-6 animate-fadeIn">
             <!-- Filter Bar -->
             <div class="bg-white p-5 border border-[#ede8e0] rounded-3xl shadow-sm flex flex-wrap gap-6 items-end">
@@ -149,7 +151,6 @@
                 </form>
             </div>
 
-            <!-- Student Table (Mobile-Friendly) -->
             <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-[#f0ebe3]">
@@ -218,9 +219,8 @@
             </div>
         </div>
 
-        <!-- ─── 3. Curriculum Modules Generation & Ledger Module ─── -->
+        <!-- ─── 3. Curriculum Modules ─── -->
         <div id="section-modules" class="tab-content hidden space-y-8 animate-fadeIn">
-            <!-- Add Module Form -->
             <div class="bg-white p-6 sm:p-8 border border-[#ede8e0] rounded-3xl shadow-sm">
                 <h3 class="text-sm font-black text-[#b5aaa0] uppercase tracking-widest mb-4">
                     <i class="fas fa-plus-circle mr-2"></i> Add New Module
@@ -255,7 +255,6 @@
                 </form>
             </div>
 
-            <!-- Module List -->
             <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-[#f0ebe3]">
@@ -309,7 +308,102 @@
             </div>
         </div>
 
-        <!-- ─── 4. System Audit Log Ledger Module ─── -->
+        <!-- ─── 4. User Management (NEW) ─── -->
+        <div id="section-users" class="tab-content hidden animate-fadeIn">
+            <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-[#f0ebe3]">
+                        <thead class="bg-[#faf8f5] hidden sm:table-header-group">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Name / Email</th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Campus &amp; Program</th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Level</th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Roles</th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#f0ebe3] text-sm">
+                            {% for user in users %}
+                            <tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
+                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Name</span>
+                                    <div class="font-bold text-[#1a1a1a]">{{ user.full_name }}</div>
+                                    <div class="text-[#b5aaa0] text-xs mt-0.5">{{ user.email }}</div>
+                                </td>
+                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Campus</span>
+                                    <div class="text-[#5a5248] font-semibold text-xs uppercase tracking-wide">{{ user.campus or 'N/A' }}</div>
+                                    <div class="text-[#6b5e50] text-[10px] font-bold uppercase tracking-tight mt-0.5">{{ user.program.name }}</div>
+                                </td>
+                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Level</span>
+                                    <span class="font-mono font-black text-[#5a5248] bg-[#f5f2ec] border border-[#ede8e0] px-2 py-0.5 rounded text-xs">Y{{ user.year }} S{{ user.semester }}</span>
+                                </td>
+                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Roles</span>
+                                    <div class="flex flex-wrap gap-1">
+                                        {% if user.is_admin %}
+                                        <span class="bg-red-100 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-red-200">Admin</span>
+                                        {% endif %}
+                                        {% if user.is_class_rep %}
+                                        <span class="bg-amber-100 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-amber-200">Rep</span>
+                                        {% endif %}
+                                        {% if not user.is_admin and not user.is_class_rep %}
+                                        <span class="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-md border border-slate-200">Student</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Status</span>
+                                    <div class="flex flex-col gap-1">
+                                        {% if user.is_approved %}
+                                        <span class="inline-flex items-center text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                            <span class="w-1 h-1 rounded-full bg-emerald-500 mr-1"></span>Approved
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center text-amber-600 text-[10px] font-extrabold uppercase tracking-wide bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                            <span class="w-1 h-1 rounded-full bg-amber-400 mr-1"></span>Pending
+                                        </span>
+                                        {% endif %}
+                                        {% if user.is_active %}
+                                        <span class="inline-flex items-center text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                            Active
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center text-rose-600 text-[10px] font-extrabold uppercase tracking-wide bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                                            Deactivated
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
+                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Actions</span>
+                                    <div class="flex justify-end gap-2">
+                                        <!-- Password Reset Button -->
+                                        <button onclick="openPasswordModal({{ user.id }}, '{{ user.full_name }}')"
+                                                class="text-[11px] font-bold text-[#6b5e50] hover:text-[#1a1a1a] underline underline-offset-4 decoration-[#ede8e0] transition-colors cursor-pointer">
+                                            Change Password
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
+                                    <i class="fas fa-users text-3xl block mb-3 text-[#b5aaa0]"></i>
+                                    <p class="text-[#1a1a1a] font-bold">No users found</p>
+                                    <p class="text-sm mt-1">There are no registered users in the system.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 5. Audit Logs ─── -->
         <div id="section-logs" class="tab-content hidden animate-fadeIn">
             <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -354,6 +448,44 @@
     </div>
 </div>
 
+<!-- ─── PASSWORD RESET MODAL ─── -->
+<div id="passwordModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-[#ede8e0] shadow-xl max-w-md w-full p-6 sm:p-8 relative">
+        <button onclick="closePasswordModal()" class="absolute top-4 right-4 text-[#b5aaa0] hover:text-[#1a1a1a] transition-colors">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <h3 class="text-lg font-bold text-[#1a1a1a] mb-1">Reset Password</h3>
+        <p class="text-sm text-[#7a7268] mb-6">Set a new password for <span id="modal-user-name" class="font-semibold text-[#1a1a1a]"></span></p>
+
+        <form id="passwordResetForm" method="POST" action="">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">New Password</label>
+                    <input type="password" id="new_password" name="new_password" required
+                           class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required
+                           class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closePasswordModal()"
+                        class="px-4 py-2 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-6 py-2 bg-[#1a1a1a] hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]">
+                    Reset Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -364,7 +496,6 @@
     }
     .animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
 
-    /* Mobile card styling for table rows */
     @media (max-width: 640px) {
         tbody tr {
             padding: 12px 0;
@@ -372,7 +503,7 @@
         tbody tr td:last-child {
             border-bottom: none;
         }
-        .sm\\:table-header-group {
+        .sm\:table-header-group {
             display: none !important;
         }
     }
@@ -404,6 +535,27 @@
         }
     };
 
+    // ── Password Reset Modal ──
+    function openPasswordModal(userId, userName) {
+        document.getElementById('modal-user-name').textContent = userName;
+        document.getElementById('passwordResetForm').action = "/admin/change-password/" + userId;
+        document.getElementById('passwordModal').classList.remove('hidden');
+        // Clear any previous values
+        document.getElementById('new_password').value = '';
+        document.getElementById('confirm_password').value = '';
+    }
+
+    function closePasswordModal() {
+        document.getElementById('passwordModal').classList.add('hidden');
+    }
+
+    // Click outside to close
+    document.getElementById('passwordModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePasswordModal();
+        }
+    });
+
     // ── Admin dashboard initialisation ──
     function initializeAdminDashboardView() {
         // Shimmer on admin actions
@@ -426,6 +578,15 @@
         if (urlParams.has('year') || urlParams.has('semester')) {
             window.switchAdminTab('students');
         }
+
+        // If password form submits, show shimmer
+        document.getElementById('passwordResetForm').addEventListener('submit', function() {
+            const adminMask = document.getElementById('admin-loading-shimmer');
+            if (adminMask) {
+                adminMask.classList.remove('opacity-0', 'pointer-events-none');
+                adminMask.classList.add('opacity-100');
+            }
+        });
     }
 
     document.addEventListener("turbo:load", initializeAdminDashboardView);
