@@ -70,12 +70,24 @@ def dashboard():
         .order_by(Resource.id.desc()) \
         .limit(3) \
         .all()
+    
+        # Determine if tour should be shown
+    show_tour = current_user.is_approved and not current_user.tour_completed
 
     return render_template('core/student/dashboard.html',
                            pending_students=pending_students,
-                           recent_uploads=recent_uploads)
+                           recent_uploads=recent_uploads,
+                           show_tour=show_tour)
 
 
+
+@core.route('/mark-tour-complete', methods=['POST'])
+@login_required
+def mark_tour_complete():
+    current_user.tour_completed = True
+    db.session.commit()
+    create_log("Tour Completed", "User finished onboarding tour")
+    return jsonify({"status": "success"})
 
 
 

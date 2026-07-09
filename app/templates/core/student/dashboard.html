@@ -43,11 +43,16 @@
             <p class="text-[#7a7268] text-sm mt-1 font-light">Here is what is happening on the platform today.</p>
         </div>
         <div class="flex-shrink-0 relative z-10 flex flex-wrap gap-2">
+            {% if show_tour %}
+            <button type="button" id="start-tour-btn" class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-[#f5f2ec] text-[#5a5248] border border-[#ede8e0] hover:bg-[#ece4da] transition-colors">
+                <i class="fas fa-route"></i> Start Tour
+            </button>
+            {% endif %}
             <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 backdrop-blur-md">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active Connection
             </span>
             {% if current_user.is_class_rep %}
-            <a href="{{ url_for('core.upload_resource') }}" class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-[#2c2822] text-white border border-[#2c2822] hover:bg-black transition-colors">
+            <a href="{{ url_for('core.upload_resource') }}" class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-[#2c2822] text-white border border-[#2c2822] hover:bg-black transition-colors upload-link">
                 <i class="fas fa-upload"></i> Quick Upload
             </a>
             {% endif %}
@@ -55,8 +60,8 @@
     </div>
 
     <!-- ─── QUICK ACTIONS ─── -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <a href="{{ url_for('core.campus_notes') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 quick-actions-grid">
+        <a href="{{ url_for('core.campus_notes') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group campus-notes-link">
             <div class="h-10 w-10 bg-[#f5f2ec] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:bg-[#ece4da] transition-colors">
                 <i class="fas fa-file-alt text-[#6b5e50]"></i>
             </div>
@@ -74,7 +79,7 @@
             </div>
             <p class="text-xs font-bold text-[#1a1a1a]">The Vault</p>
         </a>
-        <a href="{{ url_for('core.profile') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group">
+        <a href="{{ url_for('core.profile') }}" class="bg-white border border-[#ede8e0] rounded-2xl p-4 text-center hover:shadow-md transition-shadow group profile-link">
             <div class="h-10 w-10 bg-[#f5f2ec] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:bg-[#ece4da] transition-colors">
                 <i class="fas fa-user text-[#6b5e50]"></i>
             </div>
@@ -84,7 +89,7 @@
 
     <!-- ─── APPROVALS (Rep only) ─── -->
     {% if current_user.is_class_rep %}
-        <div class="space-y-4">
+        <div class="space-y-4 approvals-section">
             <div class="flex items-center space-x-2">
                 <div class="h-1.5 w-3 bg-[#c4b09a] rounded-full"></div>
                 <h2 class="text-lg font-bold text-[#1a1a1a] tracking-tight">Pending Student Approvals</h2>
@@ -222,6 +227,151 @@
 
 </div>
 
+<!-- ─── CUSTOM SHEPHERD STYLES (Mobile-Friendly) ─── -->
+<style>
+    /* ── Shepherd Theme Override ── */
+    .shepherd-theme-arrows {
+        --shepherd-theme-primary: #c4b09a;
+        --shepherd-theme-secondary: #f5f2ec;
+        --shepherd-theme-text: #1a1a1a;
+        --shepherd-theme-border: #ede8e0;
+        --shepherd-theme-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .shepherd-theme-arrows .shepherd-content {
+        border-radius: 16px !important;
+        background: #ffffff !important;
+        border: 1px solid #ede8e0 !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.1) !important;
+        padding: 20px 24px !important;
+        max-width: 400px !important;
+        width: 90vw !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-header {
+        background: transparent !important;
+        padding: 0 0 12px 0 !important;
+        border-bottom: 1px solid #f0ebe3 !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-title {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        color: #1a1a1a !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-text {
+        font-size: 15px !important;
+        color: #5a5248 !important;
+        line-height: 1.6 !important;
+        padding: 16px 0 !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-footer {
+        padding-top: 12px !important;
+        border-top: 1px solid #f0ebe3 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-button {
+        padding: 10px 24px !important;
+        border-radius: 10px !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        background: #f5f2ec !important;
+        color: #5a5248 !important;
+        border: 1px solid #ede8e0 !important;
+        transition: all 0.2s ease !important;
+        cursor: pointer !important;
+        min-height: 44px !important;
+        min-width: 80px !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-button:hover {
+        background: #ece4da !important;
+        color: #1a1a1a !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-button-primary {
+        background: #1a1a1a !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-button-primary:hover {
+        background: #000000 !important;
+        transform: scale(1.02) !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-cancel-icon {
+        color: #b5aaa0 !important;
+        font-size: 24px !important;
+        transition: color 0.2s ease !important;
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        margin-left: auto !important;
+        min-height: 44px !important;
+        min-width: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .shepherd-theme-arrows .shepherd-cancel-icon:hover {
+        color: #1a1a1a !important;
+    }
+
+    /* Overlay with blur */
+    .shepherd-modal-overlay-container {
+        backdrop-filter: blur(4px) !important;
+        background: rgba(0,0,0,0.15) !important;
+    }
+
+    /* Arrow styling */
+    .shepherd-arrow {
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)) !important;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 640px) {
+        .shepherd-theme-arrows .shepherd-content {
+            max-width: 92vw !important;
+            padding: 16px 18px !important;
+            border-radius: 12px !important;
+        }
+        .shepherd-theme-arrows .shepherd-title {
+            font-size: 17px !important;
+        }
+        .shepherd-theme-arrows .shepherd-text {
+            font-size: 14px !important;
+            padding: 12px 0 !important;
+        }
+        .shepherd-theme-arrows .shepherd-button {
+            padding: 8px 16px !important;
+            font-size: 14px !important;
+            min-height: 40px !important;
+            min-width: 60px !important;
+        }
+        .shepherd-theme-arrows .shepherd-footer {
+            justify-content: center !important;
+            gap: 6px !important;
+        }
+        .shepherd-theme-arrows .shepherd-header {
+            padding: 0 0 8px 0 !important;
+        }
+        .shepherd-theme-arrows .shepherd-cancel-icon {
+            font-size: 22px !important;
+            min-height: 40px !important;
+            min-width: 40px !important;
+        }
+    }
+</style>
+
 <script>
     function dismissOnboarding() {
         document.getElementById('onboarding-card').classList.add('hidden');
@@ -230,12 +380,212 @@
         } catch (_) {}
     }
 
+    // ─── TOUR LOGIC ───
+    var tourInstance = null;
+
+    function createTour() {
+        if (typeof Shepherd === 'undefined') {
+            console.warn('Shepherd not loaded. Retrying...');
+            return null;
+        }
+
+        var tour = new Shepherd.Tour({
+            defaultStepOptions: {
+                cancelIcon: {
+                    enabled: true,
+                    label: '✕'
+                },
+                classes: 'shepherd-theme-arrows',
+                scrollTo: { behavior: 'smooth', block: 'center', offset: { top: 20 } }
+            },
+            useModalOverlay: true
+        });
+
+        // Step 1: Welcome – centered
+        tour.addStep({
+            id: 'welcome',
+            title: '👋 Welcome!',
+            text: "You're now approved! Let's take a quick tour to get you started.",
+            attachTo: false,
+            buttons: [
+                {
+                    text: 'Next',
+                    action: function() {
+                        return tour.next();
+                    }
+                }
+            ]
+        });
+
+        // Step 2: Quick Actions
+        tour.addStep({
+            id: 'quick-actions',
+            title: 'Quick Actions',
+            text: 'Use these cards to jump to the main sections of the platform.',
+            attachTo: { element: '.quick-actions-grid', on: 'auto' },
+            buttons: [
+                {
+                    text: 'Back',
+                    action: function() {
+                        return tour.back();
+                    }
+                },
+                {
+                    text: 'Next',
+                    action: function() {
+                        return tour.next();
+                    }
+                }
+            ]
+        });
+
+        // Step 3: Campus Notes
+        tour.addStep({
+            id: 'campus-notes',
+            title: '📚 My Campus Notes',
+            text: 'Find all resources shared by your classmates. You can view and download PDFs.',
+            attachTo: { element: '.campus-notes-link', on: 'auto' },
+            buttons: [
+                {
+                    text: 'Back',
+                    action: function() {
+                        return tour.back();
+                    }
+                },
+                {
+                    text: 'Next',
+                    action: function() {
+                        return tour.next();
+                    }
+                }
+            ]
+        });
+
+        {% if current_user.is_class_rep %}
+        tour.addStep({
+            id: 'upload-resource',
+            title: '📤 Upload Resources',
+            text: 'As a Class Representative, you can upload notes and share them with your program.',
+            attachTo: { element: '.upload-link', on: 'auto' },
+            buttons: [
+                {
+                    text: 'Back',
+                    action: function() {
+                        return tour.back();
+                    }
+                },
+                {
+                    text: 'Next',
+                    action: function() {
+                        return tour.next();
+                    }
+                }
+            ]
+        });
+        {% endif %}
+
+        {% if current_user.is_class_rep %}
+        tour.addStep({
+            id: 'approvals',
+            title: '✅ Approve Students',
+            text: 'You can approve or ignore new student registrations from your class.',
+            attachTo: { element: '.approvals-section', on: 'auto' },
+            buttons: [
+                {
+                    text: 'Back',
+                    action: function() {
+                        return tour.back();
+                    }
+                },
+                {
+                    text: 'Next',
+                    action: function() {
+                        return tour.next();
+                    }
+                }
+            ]
+        });
+        {% endif %}
+
+        tour.addStep({
+            id: 'profile',
+            title: '👤 Your Profile',
+            text: 'Manage your personal details, update your year/semester, and view your student ID.',
+            attachTo: { element: '.profile-link', on: 'auto' },
+            buttons: [
+                {
+                    text: 'Back',
+                    action: function() {
+                        return tour.back();
+                    }
+                },
+                {
+                    text: 'Done',
+                    action: function() {
+                        tour.complete();
+                    }
+                }
+            ]
+        });
+
+        // ── Fix UI freeze: always hide modal when done ──
+        tour.on('complete', function() {
+            markTourComplete();
+            // Ensure the overlay is removed
+            tour.hide();
+            // Also remove the modal overlay container if it exists
+            var overlayContainers = document.querySelectorAll('.shepherd-modal-overlay-container');
+            overlayContainers.forEach(function(el) { el.remove(); });
+        });
+        tour.on('cancel', function() {
+            markTourComplete();
+            tour.hide();
+            var overlayContainers = document.querySelectorAll('.shepherd-modal-overlay-container');
+            overlayContainers.forEach(function(el) { el.remove(); });
+        });
+
+        return tour;
+    }
+
+    function startTour() {
+        if (!window.__showTour) {
+            return;
+        }
+
+        // Clean up any leftover overlays
+        var oldOverlays = document.querySelectorAll('.shepherd-modal-overlay-container');
+        oldOverlays.forEach(function(el) { el.remove(); });
+
+        // If a tour instance exists, try to start it
+        if (tourInstance) {
+            try {
+                tourInstance.start();
+                return;
+            } catch (e) {
+                console.warn('Error restarting tour, recreating:', e);
+                tourInstance = null;
+            }
+        }
+
+        // Create a new tour instance
+        tourInstance = createTour();
+        if (tourInstance) {
+            setTimeout(function() {
+                try {
+                    tourInstance.start();
+                } catch (e) {
+                    console.error('Error starting tour:', e);
+                }
+            }, 300);
+        }
+    }
+
     function initializePage() {
-        // Check if onboarding should be shown
-        const onboardingCard = document.getElementById('onboarding-card');
+        // Onboarding card
+        var onboardingCard = document.getElementById('onboarding-card');
         if (onboardingCard) {
             try {
-                const dismissed = localStorage.getItem('onboarding-dismissed');
+                var dismissed = localStorage.getItem('onboarding-dismissed');
                 if (dismissed === 'true') {
                     onboardingCard.classList.add('hidden');
                 } else {
@@ -245,10 +595,51 @@
                 onboardingCard.classList.remove('hidden');
             }
         }
+
+        // Check if tour should be shown
+        var showTour = {{ show_tour|tojson }};
+        window.__showTour = showTour;
+
+        if (showTour && window.location.pathname === '/dashboard') {
+            // Reset so we can recreate a fresh tour instance
+            tourInstance = null;
+            // Start the tour with a slight delay
+            setTimeout(startTour, 500);
+        }
+
+        // Bind "Start Tour" button if present
+        var startBtn = document.getElementById('start-tour-btn');
+        if (startBtn) {
+            // Remove old listeners by cloning
+            var newBtn = startBtn.cloneNode(true);
+            startBtn.parentNode.replaceChild(newBtn, startBtn);
+            newBtn.addEventListener('click', startTour);
+        }
     }
 
+    function markTourComplete() {
+        fetch('/mark-tour-complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.status === 'success') {
+                console.log('✅ Tour marked as complete.');
+                window.__showTour = false;
+            }
+        })
+        .catch(function(err) { console.error('Error marking tour complete:', err); });
+    }
+
+    // ── Run on Turbo and initial load ──
     document.addEventListener('turbo:load', initializePage);
-    // Initial call in case Turbo doesn't fire immediately
-    setTimeout(initializePage, 100);
+    document.addEventListener('DOMContentLoaded', initializePage);
+
+    // Fallback immediate call if DOM already loaded
+    if (document.readyState !== 'loading') {
+        initializePage();
+    }
 </script>
 {% endblock %}
