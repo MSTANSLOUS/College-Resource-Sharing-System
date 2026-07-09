@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+
+    <!-- Hero -->
+    <div class="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-10 shadow-sm border border-[#ede8e0] text-[#1a1a1a]">
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] mb-3 backdrop-blur-md">
+                <i class="fas fa-code mr-1.5"></i> About
+            </span>
+            <h1 class="text-3xl font-black text-[#1a1a1a] tracking-tight sm:text-4xl">The Developers</h1>
+            <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">Meet the team behind this student resource sharing platform.</p>
+        </div>
+    </div>
+
+    <!-- Lead Developer Card -->
+    <div class="bg-white border border-[#ede8e0] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div class="flex-shrink-0">
+                <div class="h-24 w-24 rounded-full bg-gradient-to-br from-[#c4b09a] to-[#a8947c] flex items-center justify-center text-4xl font-black text-white shadow-lg shadow-[#c4b09a]/20">
+                    M S
+                </div>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-[#1a1a1a]">MSTANSLOUS</h2>
+                <p class="text-sm text-[#5a5248] font-medium">Lead Developer &amp; System Architect</p>
+                <p class="text-sm text-[#7a7268] mt-2 leading-relaxed max-w-xl">
+                    Passionate about building intuitive, scalable platforms for education and collaboration.
+                    Designed and developed the entire Student Resource System from the ground up with
+                    a focus on user experience, security, and modern design.
+                </p>
+                <div class="flex flex-wrap gap-3 mt-4">
+                    <a href="https://github.com/MSTANSLOUS" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                        <i class="fab fa-github text-lg"></i> GitHub
+                    </a>
+                    <a href="#" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                        <i class="fab fa-linkedin text-lg"></i> LinkedIn
+                    </a>
+                    <a href="#" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                        <i class="fas fa-globe text-lg"></i> Portfolio
+                    </a>
+                    <a href="mailto:stanslous.makwinja@gmail.com" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                        <i class="fas fa-envelope text-lg"></i> Email
+                    </a>
+                    <!-- WhatsApp Click-to-Chat -->
+                    <a href="https://wa.me/265893001301" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                        <i class="fab fa-whatsapp text-lg text-emerald-500"></i> WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CONTRIBUTORS TABLE ─── -->
+    <div class="bg-white border border-[#ede8e0] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <h3 class="text-sm font-bold text-[#5a5248] uppercase tracking-widest mb-4">
+            <i class="fas fa-users mr-2"></i> Contributors
+        </h3>
+        <p class="text-sm text-[#7a7268] mb-4">The following individuals have contributed to the development and success of this platform.</p>
+
+        <!-- Table Wrapper for Horizontal Scroll -->
+        <div class="overflow-x-auto -mx-4 sm:mx-0">
+            <table class="min-w-full divide-y divide-[#f0ebe3]">
+                <thead class="bg-[#faf8f5]">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-[#5a5248] uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-[#5a5248] uppercase tracking-wider">Campus</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-[#5a5248] uppercase tracking-wider">Connect</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#f0ebe3]">
+                    <!-- Noel -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Noel (Noel867)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Blantyre</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/Noel867" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265899050755" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Jabulani -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Jabulani (Nym500)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Blantyre</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/Jabulani769" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265896362899" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Bakali -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Bakali (MR2MAZZA)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Blantyre</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/MR2MAZZA" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265991162309" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Martin Liwonde -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Martin Liwonde</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Blantyre</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/martin-leo-frontend-developer" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265882955862" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Victory -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Victory (CalhimPhil)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Blantyre</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/CalhimPhil" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265888776703" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Bright -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Bright (Spetsnaz35)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Blantyre</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/Spetsnaz35" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265993973434" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Brown -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Brown (mwalwandabrown)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Lilongwe</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/mwalwandabrown-code" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265886334141" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Praise Kanjuchi -->
+                    <tr class="hover:bg-[#faf8f5] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap font-bold text-[#1a1a1a]">Praise Kanjuchi (South)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-[#5a5248]">Blantyre</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="https://github.com/PRAISESOUTH" target="_blank" class="text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" title="GitHub">
+                                    <i class="fab fa-github text-lg"></i>
+                                </a>
+                                <a href="https://wa.me/265992718285" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-[#5a5248] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fab fa-whatsapp text-lg"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-xs text-[#b5aaa0] mt-4">
+            <i class="fas fa-info-circle mr-1"></i> Click the GitHub or WhatsApp icons to connect with a contributor.
+            <span class="block sm:inline mt-1 sm:mt-0">Want to join the team? <a href="musayalous@gmail.com" class="text-[#6b5e50] font-bold hover:underline">Reach out</a>.</span>
+        </p>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="bg-white border border-[#ede8e0] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <h3 class="text-sm font-bold text-[#5a5248] uppercase tracking-widest mb-4">Built With</h3>
+        <div class="flex flex-wrap gap-2">
+            <span class="bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] px-3 py-1 rounded-full text-xs font-medium">Flask</span>
+            <span class="bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] px-3 py-1 rounded-full text-xs font-medium">SQLAlchemy</span>
+            <span class="bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] px-3 py-1 rounded-full text-xs font-medium">Turbo</span>
+            <span class="bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] px-3 py-1 rounded-full text-xs font-medium">Tailwind CSS</span>
+            <span class="bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] px-3 py-1 rounded-full text-xs font-medium">Chart.js</span>
+            <span class="bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] px-3 py-1 rounded-full text-xs font-medium">Shepherd.js</span>
+            <span class="bg-[#f5f2ec] border border-[#ede8e0] text-[#5a5248] px-3 py-1 rounded-full text-xs font-medium">Font Awesome</span>
+        </div>
+        <p class="text-xs text-[#b5aaa0] mt-3">Version 2.0 · Released 2026</p>
+    </div>
+
+    <!-- Credits -->
+    <div class="text-center text-xs text-[#b5aaa0] border-t border-[#ede8e0] pt-6">
+        <p>Made with <i class="fas fa-heart text-rose-400"></i> by <span class="font-semibold text-[#5a5248]">MSTANSLOUS</span> &amp; the open-source community.</p>
+    </div>
+</div>
+{% endblock %}

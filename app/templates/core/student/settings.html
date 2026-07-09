@@ -3,6 +3,17 @@
 {% block content %}
 <div class="space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
 
+    <!-- Loading Shimmer (for form submits) -->
+    <div id="settings-loading-shimmer" class="fixed inset-0 bg-[#f5f2ec]/60 backdrop-blur-[4px] z-50 opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center">
+        <div class="flex flex-col items-center space-y-3 p-6 bg-white/80 rounded-2xl border border-[#ede8e0] shadow-lg max-w-xs text-center">
+            <div class="relative w-10 h-10">
+                <div class="w-10 h-10 rounded-full border-4 border-[#f0ebe3]"></div>
+                <div class="w-10 h-10 rounded-full border-4 border-[#c4b09a] border-t-transparent animate-spin absolute top-0 left-0"></div>
+            </div>
+            <p class="text-xs font-semibold text-[#5a5248]">Saving your preferences...</p>
+        </div>
+    </div>
+
     <!-- Hero -->
     <div class="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-10 shadow-sm border border-[#ede8e0] text-[#1a1a1a]">
         <div class="absolute -top-24 -right-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
@@ -30,7 +41,7 @@
                     </select>
                 </div>
 
-                <!-- Language (placeholder for future) -->
+                <!-- Language (placeholder) -->
                 <div>
                     <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Language</label>
                     <select name="language" class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all appearance-none cursor-pointer">
@@ -54,26 +65,53 @@
         <h2 class="text-lg font-bold text-[#1a1a1a] border-b border-[#f0ebe3] pb-4 mb-6">Account</h2>
 
         <!-- Deactivation -->
-        <div class="space-y-4">
-            <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
-                <div class="flex items-center gap-3">
-                    <div class="h-8 w-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 flex-shrink-0">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-rose-700">Deactivate Account</h3>
-                        <p class="text-xs text-rose-600 mt-0.5">Your account will be disabled. You can ask an admin to reactivate it later.</p>
-                    </div>
+        <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
+            <div class="flex items-center gap-3">
+                <div class="h-8 w-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <form method="POST" action="{{ url_for('core.deactivate_account') }}" class="mt-4 flex flex-wrap items-center gap-4" onsubmit="return confirm('Are you sure you want to deactivate your account? This can be reversed by an admin.');">
-                    <button type="submit" class="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.98]">
-                        <i class="fas fa-user-slash mr-2"></i> Deactivate Account
-                    </button>
-                    <p class="text-[10px] text-[#b5aaa0]">This action is reversible. Contact an admin to reactivate.</p>
-                </form>
+                <div>
+                    <h3 class="text-sm font-bold text-rose-700">Deactivate Account</h3>
+                    <p class="text-xs text-rose-600 mt-0.5">Your account will be disabled. You can ask an admin to reactivate it later.</p>
+                </div>
             </div>
+            <form method="POST" action="{{ url_for('core.deactivate_account') }}" class="mt-4 flex flex-wrap items-center gap-4" onsubmit="return confirm('Are you sure you want to deactivate your account? This can be reversed by an admin.');">
+                <button type="submit" class="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.98]">
+                    <i class="fas fa-user-slash mr-2"></i> Deactivate Account
+                </button>
+                <p class="text-[10px] text-[#b5aaa0]">This action is reversible. Contact an admin to reactivate.</p>
+            </form>
         </div>
     </div>
 
+    <!-- ─── ABOUT DEVELOPERS ─── -->
+    <div class="bg-white border border-[#ede8e0] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <h2 class="text-lg font-bold text-[#1a1a1a] border-b border-[#f0ebe3] pb-4 mb-6">About</h2>
+        <div class="flex items-center gap-4">
+            <div class="h-12 w-12 rounded-full bg-gradient-to-br from-[#c4b09a] to-[#a8947c] flex items-center justify-center text-lg font-black text-white flex-shrink-0">
+                MS
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-[#1a1a1a]">Student Resource System</p>
+                <p class="text-xs text-[#7a7268]">Developed by <span class="font-medium">MSTANSLOUS</span> &bull; Version 2.0</p>
+                <a href="{{ url_for('core.about') }}" class="inline-block mt-1 text-xs font-bold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
+                    Learn more <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    // ── Show shimmer on form submissions ──
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const mask = document.getElementById('settings-loading-shimmer');
+            if (mask) {
+                mask.classList.remove('opacity-0', 'pointer-events-none');
+                mask.classList.add('opacity-100');
+            }
+        });
+    });
+</script>
 {% endblock %}

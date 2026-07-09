@@ -560,3 +560,8 @@ def get_student_context():
     })
     response.headers.add("ngrok-skip-browser-warning", "true")
     return response
+
+
+@core.route('/about')
+def about():
+    return render_template('core/about.html')
