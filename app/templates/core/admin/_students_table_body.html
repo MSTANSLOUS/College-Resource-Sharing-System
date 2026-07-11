@@ -1,0 +1,49 @@
+{% for user in users if not user.is_class_rep and not user.is_admin %}
+<tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Name</span>
+        <div class="font-bold text-[#1a1a1a]">{{ user.full_name }}</div>
+        <div class="text-[#b5aaa0] text-xs mt-0.5">{{ user.email }}</div>
+    </td>
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Campus</span>
+        <div class="text-[#5a5248] font-semibold text-xs uppercase tracking-wide">{{ user.campus or 'N/A' }}</div>
+        <div class="text-[#6b5e50] text-[10px] font-bold uppercase tracking-tight mt-0.5">{{ user.program.name }}</div>
+    </td>
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Level</span>
+        <span class="font-mono font-black text-[#5a5248] bg-[#f5f2ec] border border-[#ede8e0] px-2 py-0.5 rounded text-xs">Y{{ user.year }} S{{ user.semester }}</span>
+    </td>
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Status</span>
+        {% if user.is_approved %}
+            <span class="inline-flex items-center text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                <span class="w-1 h-1 rounded-full bg-emerald-500 mr-1"></span>Approved
+            </span>
+        {% else %}
+            <span class="inline-flex items-center text-amber-600 text-[10px] font-extrabold uppercase tracking-wide bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                <span class="w-1 h-1 rounded-full bg-amber-400 mr-1 animate-pulse"></span>Reviewing
+            </span>
+        {% endif %}
+    </td>
+    <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Action</span>
+        <form action="{{ url_for('core.make_rep', user_id=user.id) }}" method="POST" class="admin-action-form" data-shimmer="Provisioning Class Representative Privileges...">
+            <button type="submit" class="text-[11px] font-bold text-[#6b5e50] hover:text-[#1a1a1a] underline underline-offset-4 decoration-[#ede8e0] transition-colors cursor-pointer">
+                Assign as Rep
+            </button>
+        </form>
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="5" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
+        <i class="fas fa-users-slash text-3xl block mb-3 text-[#b5aaa0]"></i>
+        <p class="text-[#1a1a1a] font-bold">No students found</p>
+        <p class="text-sm mt-1">Try adjusting your filter criteria or clear the filters.</p>
+        <a href="{{ url_for('core.admin_dashboard') }}" class="inline-block mt-3 text-[#6b5e50] font-bold hover:underline text-sm">
+            <i class="fas fa-undo mr-1"></i> Reset filters
+        </a>
+    </td>
+</tr>
+{% endfor %}

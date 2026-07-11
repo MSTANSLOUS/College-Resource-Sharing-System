@@ -1,0 +1,39 @@
+{% for user in users if user.is_class_rep and not user.is_admin %}
+<tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Representative</span>
+        <div class="font-bold text-[#1a1a1a]">{{ user.full_name }}</div>
+        <div class="text-[#b5aaa0] text-xs mt-0.5">{{ user.email }}</div>
+    </td>
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Campus</span>
+        <span class="text-[#5a5248] font-semibold text-xs uppercase tracking-wide">{{ user.campus or 'N/A' }}</span>
+    </td>
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Level</span>
+        <span class="font-mono text-[#6b5e50] font-black text-xs bg-[#f5f2ec] px-2 py-0.5 rounded border border-[#ede8e0]">Y{{ user.year }} S{{ user.semester }}</span>
+    </td>
+    <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Status</span>
+        <span class="inline-flex items-center gap-1 text-[#6b5e50] bg-[#f5f2ec] border border-[#ede8e0] px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide">
+            <span class="w-1 h-1 rounded-full bg-[#c4b09a]"></span>Active Rep
+        </span>
+    </td>
+    <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
+        <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Action</span>
+        <form action="{{ url_for('core.remove_rep', user_id=user.id) }}" method="POST" class="admin-action-form" data-shimmer="Revoking Representative Access Rights...">
+            <button type="submit" class="text-[11px] font-bold text-rose-500 hover:text-rose-700 underline underline-offset-4 decoration-rose-200 transition-colors cursor-pointer">
+                Revoke Access
+            </button>
+        </form>
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="5" class="px-6 py-16 text-center text-[#b5aaa0] italic font-medium">
+        <i class="fas fa-user-tie text-2xl block mb-2 text-[#b5aaa0]"></i>
+        <p>No Class Representatives registered.</p>
+        <p class="text-xs mt-1">Assign a representative from the Student Directory tab.</p>
+    </td>
+</tr>
+{% endfor %}

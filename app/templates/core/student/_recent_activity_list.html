@@ -1,0 +1,16 @@
+{% for activity in activities %}
+<div class="flex items-center gap-4 p-4 hover:bg-[#faf8f5] transition-colors">
+    <div class="h-8 w-8 rounded-full bg-[#f5f2ec] flex items-center justify-center text-[#6b5e50] flex-shrink-0">
+        <i class="fas {{ activity.icon|default('fa-circle-info') }}"></i>
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-sm text-[#1a1a1a]">{{ activity.description }}</p>
+        <p class="text-[10px] text-[#b5aaa0]">{{ activity.time_ago }}</p>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-8 text-[#b5aaa0]">
+    <i class="fas fa-inbox text-2xl block mb-2"></i>
+    <p class="text-sm">No recent activity. Start exploring resources!</p>
+</div>
+{% endfor %}

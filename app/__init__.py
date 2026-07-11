@@ -1,17 +1,15 @@
 from flask import Flask
 from config import Config
 from app.models import db, User, Program
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from werkzeug.security import generate_password_hash
 from flask_mail import Mail, Message
 from flask_cors import CORS
 from flask_socketio import SocketIO, join_room
 
-# Initialize global objects
 login_manager = LoginManager()
 mail = Mail()
 socketio = SocketIO()
-
 
 def send_email(recipients, subject, massage_body):
     msg = Message(
@@ -21,7 +19,6 @@ def send_email(recipients, subject, massage_body):
         body=massage_body,
     )
     mail.send(msg)
-
 
 def create_app():
     app = Flask(__name__)
@@ -47,7 +44,7 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
 
-    # SocketIO
+    # SocketIO with eventlet
     socketio.init_app(app, cors_allowed_origins="*", async_mode='eventlet')
 
     # Blueprints
@@ -68,7 +65,7 @@ def create_app():
 
     # ─── SocketIO Connection Handler ───
     @socketio.on('connect')
-    def handle_connect():
+    def handle_connect(auth=None):
         if current_user.is_authenticated:
             # Student room: for their specific class (program, year, semester)
             join_room(f'student-{current_user.program_id}-{current_user.year}-{current_user.semester}')
@@ -109,7 +106,6 @@ def create_app():
             db.session.commit()
 
     return app
-
 
 @login_manager.user_loader
 def load_user(user_id):

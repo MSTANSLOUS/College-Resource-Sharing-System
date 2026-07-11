@@ -19,6 +19,149 @@ def create_log(action, details=None):
     db.session.add(log_entry)
     db.session.commit()
 
+
+# Add this helper function at the top
+def paginate_query(query, page=1, per_page=10):
+    total = query.count()
+    items = query.offset((page - 1) * per_page).limit(per_page).all()
+    return {
+        'items': items,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'pages': (total + per_page - 1) // per_page if total > 0 else 1
+    }
+
+
+# ─── Paginated Table Fragments ───
+
+@core.route('/admin/table/reps')
+@login_required
+def admin_reps_table():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    users = User.query.filter_by(is_class_rep=True, is_admin=False)
+    paginated = paginate_query(users, page, per_page)
+    return render_template('core/admin/_reps_table_body.html', 
+                           users=paginated['items'],
+                           page=paginated['page'],
+                           pages=paginated['pages'])
+
+
+
+@core.route('/admin/table/students')
+@login_required
+def admin_students_table():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    year_filter = request.args.get('year', type=int)
+    sem_filter = request.args.get('semester', type=int)
+    query = User.query.filter(User.is_class_rep == False, User.is_admin == False)
+    if year_filter:
+        query = query.filter_by(year=year_filter)
+    if sem_filter:
+        query = query.filter_by(semester=sem_filter)
+    paginated = paginate_query(query, page, per_page)
+    return render_template('core/admin/_students_table_body.html',
+                           users=paginated['items'],
+                           page=paginated['page'],
+                           pages=paginated['pages'],
+                           current_year=year_filter,
+                           current_sem=sem_filter)
+
+
+
+
+
+
+
+@core.route('/admin/table/modules')
+@login_required
+def admin_modules_table():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = Module.query
+    paginated = paginate_query(query, page, per_page)
+    return render_template('core/admin/_modules_table_body.html',
+                           modules=paginated['items'],
+                           page=paginated['page'],
+                           pages=paginated['pages'])
+
+@core.route('/admin/table/users')
+@login_required
+def admin_users_table():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    query = User.query
+    paginated = paginate_query(query, page, per_page)
+    return render_template('core/admin/_users_table_body.html',
+                           users=paginated['items'],
+                           page=paginated['page'],
+                           pages=paginated['pages'],
+                           now=datetime.utcnow())
+
+@core.route('/admin/table/logs')
+@login_required
+def admin_logs_table():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    action_filter = request.args.get('action')
+    user_search = request.args.get('user_search', '').strip()
+    log_query = Log.query
+    if action_filter:
+        log_query = log_query.filter(Log.action == action_filter)
+    if user_search:
+        users_matching = User.query.filter(
+            (User.full_name.ilike(f'%{user_search}%')) | (User.email.ilike(f'%{user_search}%'))
+        ).all()
+        user_ids = [u.id for u in users_matching]
+        if user_ids:
+            log_query = log_query.filter(Log.user_id.in_(user_ids))
+        else:
+            log_query = log_query.filter(False)
+    paginated = paginate_query(log_query.order_by(Log.created_at.desc()), page, per_page)
+    return render_template('core/admin/_logs_table_body.html',
+                           logs=paginated['items'],
+                           page=paginated['page'],
+                           pages=paginated['pages'])
+
+@core.route('/dashboard/recent-activity')
+@login_required
+def recent_activity():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    # For now, we'll show recent logs for the user? Actually we need a recent_activity model.
+    # We'll use Logs filtered by user_id
+    query = Log.query.filter_by(user_id=current_user.id).order_by(Log.created_at.desc())
+    paginated = paginate_query(query, page, per_page)
+    activities = []
+    for log in paginated['items']:
+        activities.append({
+            'description': f"{log.action} - {log.details or ''}",
+            'time_ago': log.created_at.strftime('%H:%M %d %b %Y'),
+            'icon': 'fa-circle-info'
+        })
+    return render_template('core/student/_recent_activity_list.html',
+                           activities=activities,
+                           page=paginated['page'],
+                           pages=paginated['pages'])
+
+
+
+
+
+
+
 def notify_class_rep(student, user_actions=None):
     rep = User.query.filter_by(
         is_class_rep=True,
@@ -31,6 +174,12 @@ def notify_class_rep(student, user_actions=None):
         subjects = f"Account Creation"
         message_body = f"Hi class admin, {student.full_name} created an account and is waiting for your approval."
         send_email(recipients=rep.email, subject=subjects, massage_body=message_body)
+
+
+
+
+
+
 
 # ─── DASHBOARD ───
 @core.route('/dashboard')
@@ -55,6 +204,12 @@ def dashboard():
     return render_template('core/student/dashboard.html',
                            pending_students=pending_students,
                            recent_uploads=recent_uploads)
+
+
+
+
+
+
 
 @core.route('/live/dashboard-data')
 @login_required
@@ -103,6 +258,12 @@ def live_dashboard_data():
         'timestamp': datetime.utcnow().isoformat() + 'Z'
     })
 
+
+
+
+
+
+
 # ─── PROFILE ───
 @core.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -144,6 +305,10 @@ def profile():
     return render_template('core/student/profile.html', user=current_user, programs=programs,
                            pending_request=pending_request)
 
+
+
+
+
 # ─── NOTES & RESOURCES ───
 @core.route('/campus_notes')
 @login_required
@@ -160,6 +325,12 @@ def campus_notes():
             grouped_notes[m_name] = []
         grouped_notes[m_name].append(note)
     return render_template('core/student/campus_notes.html', grouped_notes=grouped_notes)
+
+
+
+
+
+
 
 @core.route('/cross_campus')
 @login_required
@@ -180,10 +351,21 @@ def cross_campus():
         organized_notes[campus][module_name].append(note)
     return render_template('core/student/cross_campus.html', organized_notes=organized_notes)
 
+
+
+
+
+
 @core.route('/vault')
 @login_required
 def vault():
     return render_template('core/student/vault.html')
+
+
+
+
+
+
 
 # ─── UPLOAD RESOURCE ───
 @core.route('/upload-resource', methods=['GET', 'POST'])
@@ -260,6 +442,10 @@ def upload_resource():
     programs = Program.query.all()
     return render_template('core/class_rep/upload_resource.html', modules=modules, programs=programs)
 
+
+
+
+
 # ─── CLASS REP ACTIONS ───
 @core.route('/approve-student/<int:user_id>', methods=['POST'])
 @login_required
@@ -294,6 +480,10 @@ def approve_student(user_id):
         flash('You do not have permission to approve this student.')
     return redirect(url_for('core.dashboard'))
 
+
+
+
+
 @core.route('/reject-student/<int:user_id>', methods=['POST'])
 @login_required
 def reject_student(user_id):
@@ -311,6 +501,10 @@ def reject_student(user_id):
     else:
         flash('You do not have permission to reject this student.')
     return redirect(url_for('core.dashboard'))
+
+
+
+
 
 # ─── ADMIN DASHBOARD ───
 def get_filtered_logs(action_filter=None, user_search=''):
@@ -330,6 +524,10 @@ def get_filtered_logs(action_filter=None, user_search=''):
 
     return log_query.order_by(Log.created_at.desc()).limit(50).all()
 
+
+
+
+
 @core.route('/admin/logs')
 @login_required
 def admin_logs():
@@ -342,6 +540,11 @@ def admin_logs():
     system_logs = get_filtered_logs(action_filter, user_search)
 
     return render_template('core/admin/_logs_table.html', logs=system_logs)
+
+
+
+
+
 
 @core.route('/admin/dashboard')
 @login_required
@@ -361,16 +564,48 @@ def admin_dashboard():
     action_filter = request.args.get('action')
     user_search = request.args.get('user_search', '').strip()
 
-    # 1. Filter users (for Student Directory and User Management)
-    user_query = User.query
-    if year_filter:
-        user_query = user_query.filter_by(year=year_filter)
-    if sem_filter:
-        user_query = user_query.filter_by(semester=sem_filter)
-    all_users = user_query.all()
+    # Pagination state for dashboard table previews
+    page_reps = request.args.get('page_reps', 1, type=int)
+    page_students = request.args.get('page_students', 1, type=int)
+    page_modules = request.args.get('page_modules', 1, type=int)
+    page_users = request.args.get('page_users', 1, type=int)
+    page_logs = request.args.get('page_logs', 1, type=int)
+    per_page = 10
 
-    # 2. Filter logs
-    system_logs = get_filtered_logs(action_filter, user_search)
+    # 1. Reps
+    reps_query = User.query.filter_by(is_class_rep=True, is_admin=False)
+    reps_paginated = paginate_query(reps_query, page_reps, per_page)
+
+    # 2. Students
+    student_query = User.query.filter(User.is_class_rep == False, User.is_admin == False)
+    if year_filter:
+        student_query = student_query.filter_by(year=year_filter)
+    if sem_filter:
+        student_query = student_query.filter_by(semester=sem_filter)
+    students_paginated = paginate_query(student_query, page_students, per_page)
+
+    # 3. Modules
+    modules_query = Module.query
+    modules_paginated = paginate_query(modules_query, page_modules, per_page)
+
+    # 4. Users
+    users_query = User.query
+    users_paginated = paginate_query(users_query, page_users, per_page)
+
+    # 5. Logs
+    log_query = Log.query
+    if action_filter:
+        log_query = log_query.filter(Log.action == action_filter)
+    if user_search:
+        users_matching = User.query.filter(
+            (User.full_name.ilike(f'%{user_search}%')) | (User.email.ilike(f'%{user_search}%'))
+        ).all()
+        user_ids = [u.id for u in users_matching]
+        if user_ids:
+            log_query = log_query.filter(Log.user_id.in_(user_ids))
+        else:
+            log_query = log_query.filter(False)
+    logs_paginated = paginate_query(log_query.order_by(Log.created_at.desc()), page_logs, per_page)
 
     # 3. Get distinct actions for dropdown
     distinct_actions = db.session.query(Log.action).distinct().all()
@@ -389,10 +624,23 @@ def admin_dashboard():
         create_log("Admin Dashboard Filter", f"Filtered by Year={year_filter}, Semester={sem_filter}, Action={action_filter}, User={user_search}")
 
     return render_template('core/admin/dashboard.html',
-                           users=all_users,
-                           logs=system_logs,
+                           reps_users=reps_paginated['items'],
+                           page_reps=reps_paginated['page'],
+                           pages_reps=reps_paginated['pages'],
+                           student_users=students_paginated['items'],
+                           page_students=students_paginated['page'],
+                           pages_students=students_paginated['pages'],
+                           modules=modules_paginated['items'],
+                           page_modules=modules_paginated['page'],
+                           pages_modules=modules_paginated['pages'],
+                           admin_users=users_paginated['items'],
+                           page_users=users_paginated['page'],
+                           pages_users=users_paginated['pages'],
+                           log_items=logs_paginated['items'],
+                           page_logs=logs_paginated['page'],
+                           pages_logs=logs_paginated['pages'],
                            programs=all_programs,
-                           modules=all_modules,
+                           modules_all=all_modules,
                            requests=pending_requests,
                            current_year=year_filter,
                            current_sem=sem_filter,
@@ -400,6 +648,10 @@ def admin_dashboard():
                            selected_action=action_filter,
                            user_search=user_search,
                            now=now)
+
+
+
+
 
 @core.route('/live/admin-logs')
 @login_required
@@ -425,6 +677,10 @@ def live_admin_logs():
         'timestamp': datetime.utcnow().isoformat() + 'Z'
     })
 
+
+
+
+
 @core.route('/admin/request/<int:req_id>/<action>')
 @login_required
 def handle_request(req_id, action):
@@ -445,6 +701,10 @@ def handle_request(req_id, action):
 
     db.session.commit()
     return redirect(url_for('core.admin_dashboard'))
+
+
+
+
 
 @core.route('/admin/add-module', methods=['POST'])
 @login_required
@@ -491,6 +751,9 @@ def add_module():
         print(f"Database Error: {e}")
     return redirect(url_for('core.admin_dashboard'))
 
+
+
+
 @core.route('/admin/make-rep/<int:user_id>', methods=['POST'])
 @login_required
 def make_rep(user_id):
@@ -519,6 +782,10 @@ def make_rep(user_id):
     flash(f'{user.full_name} is now a Class Representative and can log in!', 'success')
     return redirect(url_for('core.admin_dashboard'))
 
+
+
+
+
 @core.route('/admin/remove-rep/<int:user_id>', methods=['POST'])
 @login_required
 def remove_rep(user_id):
@@ -532,6 +799,9 @@ def remove_rep(user_id):
     create_log("Role Change", f"Removed {user.full_name} (ID: {user.id}) from being Class Representative")
     flash(f'{user.full_name} is no longer a Class Representative!', 'info')
     return redirect(url_for('core.admin_dashboard'))
+
+
+
 
 @core.route('/admin/delete-module/<int:module_id>', methods=['POST'])
 @login_required
@@ -551,6 +821,9 @@ def delete_module(module_id):
     create_log("Module Deleted", f"Deleted Module: {module_name} (ID: {module_id})")
     flash(f'Module "{module_name}" removed successfully.', 'info')
     return redirect(url_for('core.admin_dashboard'))
+
+
+
 
 @core.route('/notes/delete/<int:note_id>', methods=['POST'])
 @login_required
@@ -573,6 +846,9 @@ def delete_note(note_id):
         print(f"Delete Error: {e}")
         flash('Something went wrong while removing the file.', 'error')
     return redirect(url_for('core.campus_notes'))
+
+
+
 
 # ─── ADMIN CHANGE PASSWORD ───
 @core.route('/admin/change-password/<int:user_id>', methods=['POST'])
@@ -600,6 +876,10 @@ def admin_change_password(user_id):
     flash(f'Password for {user.full_name} has been reset successfully.', 'success')
     return redirect(url_for('core.admin_dashboard'))
 
+
+
+
+
 # ─── SETTINGS ───
 @core.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -620,6 +900,9 @@ def settings():
 
     return render_template('core/student/settings.html', user=current_user)
 
+
+
+
 @core.route('/settings/deactivate', methods=['POST'])
 @login_required
 def deactivate_account():
@@ -633,6 +916,11 @@ def deactivate_account():
     logout_user()
     flash('Your account has been deactivated. You can contact an admin to reactivate.', 'info')
     return redirect(url_for('auth.login'))
+
+
+
+
+
 
 # ─── ANALYTICS ───
 @core.route('/admin/analytics')
@@ -698,6 +986,10 @@ def admin_analytics():
                            status_labels=status_labels,
                            status_data=status_data)
 
+
+
+
+
 # ─── API ENDPOINTS ───
 @core.route('/api/login', methods=['POST'])
 def api_login():
@@ -718,6 +1010,10 @@ def api_login():
             return jsonify({"status": "error", "message": "Account pending approval"}), 403
     else:
         return jsonify({"status": "error", "message": "Invalid credentials"}), 401
+
+
+
+
 
 @core.route('/api/v1/student-context', methods=['GET'])
 @login_required

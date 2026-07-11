@@ -72,48 +72,19 @@
                                 <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#f0ebe3] text-sm">
-                            {% for user in users if user.is_class_rep and not user.is_admin %}
-                            <tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Representative</span>
-                                    <div class="font-bold text-[#1a1a1a]">{{ user.full_name }}</div>
-                                    <div class="text-[#b5aaa0] text-xs mt-0.5">{{ user.email }}</div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Campus</span>
-                                    <span class="text-[#5a5248] font-semibold text-xs uppercase tracking-wide">{{ user.campus or 'N/A' }}</span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Level</span>
-                                    <span class="font-mono text-[#6b5e50] font-black text-xs bg-[#f5f2ec] px-2 py-0.5 rounded border border-[#ede8e0]">Y{{ user.year }} S{{ user.semester }}</span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Status</span>
-                                    <span class="inline-flex items-center gap-1 text-[#6b5e50] bg-[#f5f2ec] border border-[#ede8e0] px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide">
-                                        <span class="w-1 h-1 rounded-full bg-[#c4b09a]"></span>Active Rep
-                                    </span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Action</span>
-                                    <form action="{{ url_for('core.remove_rep', user_id=user.id) }}" method="POST" class="admin-action-form" data-shimmer="Revoking Representative Access Rights...">
-                                        <button type="submit" class="text-[11px] font-bold text-rose-500 hover:text-rose-700 underline underline-offset-4 decoration-rose-200 transition-colors cursor-pointer">
-                                            Revoke Access
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="5" class="px-6 py-16 text-center text-[#b5aaa0] italic font-medium">
-                                    <i class="fas fa-user-tie text-2xl block mb-2 text-[#b5aaa0]"></i>
-                                    <p>No Class Representatives registered.</p>
-                                    <p class="text-xs mt-1">Assign a representative from the Student Directory tab.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="reps-table-body" data-endpoint="{{ url_for('core.admin_reps_table') }}">
+                            {% set users = reps_users %}
+                            {% include 'core/admin/_reps_table_body.html' %}
                         </tbody>
                     </table>
+                </div>
+                <!-- Pagination Controls -->
+                <div class="pagination-container" data-page="{{ page_reps|default(1) }}" data-pages="{{ pages_reps|default(1) }}">
+                            {% set page = page_reps %}
+                            {% set pages = pages_reps %}
+                            {% set endpoint = url_for('core.admin_reps_table') %}
+                            {% set container_id = 'reps-table-body' %}
+                            {% include 'core/admin/_pagination_controls.html' %}
                 </div>
             </div>
         </div>
@@ -122,7 +93,7 @@
         <div id="section-students" class="tab-content hidden space-y-6 animate-fadeIn">
             <!-- Filter Bar -->
             <div class="bg-white p-5 border border-[#ede8e0] rounded-3xl shadow-sm flex flex-wrap gap-6 items-end">
-                <form method="GET" action="{{ url_for('core.admin_dashboard') }}" class="flex flex-wrap gap-4 items-end w-full lg:w-auto">
+                <form id="student-filter-form" method="GET" action="{{ url_for('core.admin_dashboard') }}" class="flex flex-wrap gap-4 items-end w-full lg:w-auto">
                     <div class="flex-1 min-w-[160px]">
                         <label class="block text-[10px] font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Academic Year</label>
                         <select name="year" class="block w-full px-3 py-2 bg-white border border-[#ede8e0] rounded-lg text-xs text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all cursor-pointer">
@@ -163,64 +134,25 @@
                                 <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#f0ebe3] text-sm">
-                            {% for user in users if not user.is_class_rep and not user.is_admin %}
-                            <tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Name</span>
-                                    <div class="font-bold text-[#1a1a1a]">{{ user.full_name }}</div>
-                                    <div class="text-[#b5aaa0] text-xs mt-0.5">{{ user.email }}</div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Campus</span>
-                                    <div class="text-[#5a5248] font-semibold text-xs uppercase tracking-wide">{{ user.campus or 'N/A' }}</div>
-                                    <div class="text-[#6b5e50] text-[10px] font-bold uppercase tracking-tight mt-0.5">{{ user.program.name }}</div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Level</span>
-                                    <span class="font-mono font-black text-[#5a5248] bg-[#f5f2ec] border border-[#ede8e0] px-2 py-0.5 rounded text-xs">Y{{ user.year }} S{{ user.semester }}</span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Status</span>
-                                    {% if user.is_approved %}
-                                        <span class="inline-flex items-center text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                                            <span class="w-1 h-1 rounded-full bg-emerald-500 mr-1"></span>Approved
-                                        </span>
-                                    {% else %}
-                                        <span class="inline-flex items-center text-amber-600 text-[10px] font-extrabold uppercase tracking-wide bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
-                                            <span class="w-1 h-1 rounded-full bg-amber-400 mr-1 animate-pulse"></span>Reviewing
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Action</span>
-                                    <form action="{{ url_for('core.make_rep', user_id=user.id) }}" method="POST" class="admin-action-form" data-shimmer="Provisioning Class Representative Privileges...">
-                                        <button type="submit" class="text-[11px] font-bold text-[#6b5e50] hover:text-[#1a1a1a] underline underline-offset-4 decoration-[#ede8e0] transition-colors cursor-pointer">
-                                            Assign as Rep
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="5" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
-                                    <i class="fas fa-users-slash text-3xl block mb-3 text-[#b5aaa0]"></i>
-                                    <p class="text-[#1a1a1a] font-bold">No students found</p>
-                                    <p class="text-sm mt-1">Try adjusting your filter criteria or clear the filters.</p>
-                                    <a href="{{ url_for('core.admin_dashboard') }}" class="inline-block mt-3 text-[#6b5e50] font-bold hover:underline text-sm">
-                                        <i class="fas fa-undo mr-1"></i> Reset filters
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="students-table-body" data-endpoint="{{ url_for('core.admin_students_table') }}" data-filters="{{ request.args|tojson }}">
+                            {% set users = student_users %}
+                            {% include 'core/admin/_students_table_body.html' %}
                         </tbody>
                     </table>
+                </div>
+                <div class="pagination-container" data-page="{{ page_students|default(1) }}" data-pages="{{ pages_students|default(1) }}">
+                            {% set page = page_students %}
+                            {% set pages = pages_students %}
+                            {% set endpoint = url_for('core.admin_students_table') %}
+                            {% set container_id = 'students-table-body' %}
+                            {% include 'core/admin/_pagination_controls.html' %}
                 </div>
             </div>
         </div>
 
         <!-- ─── 3. Curriculum Modules ─── -->
         <div id="section-modules" class="tab-content hidden space-y-8 animate-fadeIn">
+            <!-- Add Module Form -->
             <div class="bg-white p-6 sm:p-8 border border-[#ede8e0] rounded-3xl shadow-sm">
                 <h3 class="text-sm font-black text-[#b5aaa0] uppercase tracking-widest mb-4">
                     <i class="fas fa-plus-circle mr-2"></i> Add New Module
@@ -265,50 +197,23 @@
                                 <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#f0ebe3] text-sm">
-                            {% for module in modules %}
-                            <tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Module</span>
-                                    <div class="font-bold text-[#1a1a1a]">{{ module.name }}</div>
-                                    <span class="text-[#6b5e50] font-mono text-xs bg-[#f5f2ec] border border-[#ede8e0] px-2 py-0.5 rounded font-black">#{{ module.code }}</span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Programs</span>
-                                    <div class="flex flex-wrap gap-1.5">
-                                        {% for p in module.programs %}
-                                        <span class="bg-white border border-[#ede8e0] text-[#5a5248] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide shadow-sm">{{ p.name }}</span>
-                                        {% else %}
-                                        <span class="text-[#b5aaa0] text-xs italic">No programs linked</span>
-                                        {% endfor %}
-                                    </div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Action</span>
-                                    <form action="{{ url_for('core.delete_module', module_id=module.id) }}" method="POST" class="admin-action-form" data-shimmer="Purging Curriculum Node &amp; Access Matrix Logs..." onsubmit="return confirm('Delete this module permanently? This cannot be undone.');">
-                                        <button type="submit" class="text-rose-500 hover:text-rose-700 transition-colors cursor-pointer inline-flex items-center gap-1">
-                                            <i class="fas fa-trash-alt text-xs"></i>
-                                            <span class="text-[11px] font-bold uppercase">Delete</span>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="3" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
-                                    <i class="fas fa-book-open text-3xl block mb-3 text-[#b5aaa0]"></i>
-                                    <p class="text-[#1a1a1a] font-bold">No modules created yet</p>
-                                    <p class="text-sm mt-1">Use the form above to add your first module.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="modules-table-body" data-endpoint="{{ url_for('core.admin_modules_table') }}">
+                            {% set modules = modules %}
+                            {% include 'core/admin/_modules_table_body.html' %}
                         </tbody>
                     </table>
+                </div>
+                <div class="pagination-container" data-page="{{ page_modules|default(1) }}" data-pages="{{ pages_modules|default(1) }}">
+                            {% set page = page_modules %}
+                            {% set pages = pages_modules %}
+                            {% set endpoint = url_for('core.admin_modules_table') %}
+                            {% set container_id = 'modules-table-body' %}
+                            {% include 'core/admin/_pagination_controls.html' %}
                 </div>
             </div>
         </div>
 
-        <!-- ─── 4. User Management (with Online Status) ─── -->
+        <!-- ─── 4. User Management ─── -->
         <div id="section-users" class="tab-content hidden animate-fadeIn">
             <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -324,99 +229,24 @@
                                 <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#f0ebe3] text-sm">
-                            {% for user in users %}
-                            <tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Name</span>
-                                    <div class="font-bold text-[#1a1a1a]">{{ user.full_name }}</div>
-                                    <div class="text-[#b5aaa0] text-xs mt-0.5">{{ user.email }}</div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Campus</span>
-                                    <div class="text-[#5a5248] font-semibold text-xs uppercase tracking-wide">{{ user.campus or 'N/A' }}</div>
-                                    <div class="text-[#6b5e50] text-[10px] font-bold uppercase tracking-tight mt-0.5">{{ user.program.name }}</div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Level</span>
-                                    <span class="font-mono font-black text-[#5a5248] bg-[#f5f2ec] border border-[#ede8e0] px-2 py-0.5 rounded text-xs">Y{{ user.year }} S{{ user.semester }}</span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Roles</span>
-                                    <div class="flex flex-wrap gap-1">
-                                        {% if user.is_admin %}
-                                        <span class="bg-red-100 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-red-200">Admin</span>
-                                        {% endif %}
-                                        {% if user.is_class_rep %}
-                                        <span class="bg-amber-100 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-amber-200">Rep</span>
-                                        {% endif %}
-                                        {% if not user.is_admin and not user.is_class_rep %}
-                                        <span class="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-md border border-slate-200">Student</span>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Status</span>
-                                    <div class="flex flex-col gap-1">
-                                        {% if user.is_approved %}
-                                        <span class="inline-flex items-center text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                                            <span class="w-1 h-1 rounded-full bg-emerald-500 mr-1"></span>Approved
-                                        </span>
-                                        {% else %}
-                                        <span class="inline-flex items-center text-amber-600 text-[10px] font-extrabold uppercase tracking-wide bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
-                                            <span class="w-1 h-1 rounded-full bg-amber-400 mr-1"></span>Pending
-                                        </span>
-                                        {% endif %}
-                                        {% if user.is_active %}
-                                        <span class="inline-flex items-center text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                                            Active
-                                        </span>
-                                        {% else %}
-                                        <span class="inline-flex items-center text-rose-600 text-[10px] font-extrabold uppercase tracking-wide bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
-                                            Deactivated
-                                        </span>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Online</span>
-                                    {% if user.last_activity and (now - user.last_activity).total_seconds() < 300 %}
-                                        <span class="inline-flex items-center gap-1 text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide">
-                                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
-                                        </span>
-                                    {% else %}
-                                        <span class="inline-flex items-center gap-1 text-slate-400 text-[10px] font-extrabold uppercase tracking-wide">
-                                            <span class="w-2 h-2 rounded-full bg-slate-300"></span> Offline
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Actions</span>
-                                    <div class="flex justify-end gap-2">
-                                        <!-- Password Reset Button -->
-                                        <button onclick="openPasswordModal({{ user.id }}, '{{ user.full_name }}')"
-                                                class="text-[11px] font-bold text-[#6b5e50] hover:text-[#1a1a1a] underline underline-offset-4 decoration-[#ede8e0] transition-colors cursor-pointer">
-                                            Change Password
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="7" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
-                                    <i class="fas fa-users text-3xl block mb-3 text-[#b5aaa0]"></i>
-                                    <p class="text-[#1a1a1a] font-bold">No users found</p>
-                                    <p class="text-sm mt-1">There are no registered users in the system.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="users-table-body" data-endpoint="{{ url_for('core.admin_users_table') }}">
+                            {% set users = admin_users %}
+                            {% set now = now %}
+                            {% include 'core/admin/_users_table_body.html' %}
                         </tbody>
                     </table>
+                </div>
+                <div class="pagination-container" data-page="{{ page_users|default(1) }}" data-pages="{{ pages_users|default(1) }}">
+                            {% set page = page_users %}
+                            {% set pages = pages_users %}
+                            {% set endpoint = url_for('core.admin_users_table') %}
+                            {% set container_id = 'users-table-body' %}
+                            {% include 'core/admin/_pagination_controls.html' %}
                 </div>
             </div>
         </div>
 
-        <!-- ─── 5. Audit Logs with Filters ─── -->
+        <!-- ─── 5. Audit Logs ─── -->
         <div id="section-logs" class="tab-content hidden animate-fadeIn">
             <!-- Filter Bar -->
             <div class="bg-white p-5 border border-[#ede8e0] rounded-3xl shadow-sm mb-6">
@@ -457,10 +287,18 @@
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Event</th>
                             </tr>
                         </thead>
-                        <tbody id="logs-table-body" class="divide-y divide-[#f0ebe3]">
-                            {% include 'core/admin/_logs_table.html' %}
+                        <tbody id="logs-table-body" data-endpoint="{{ url_for('core.admin_logs_table') }}" data-filters="{{ request.args|tojson }}">
+                            {% set logs = log_items %}
+                            {% include 'core/admin/_logs_table_body.html' %}
                         </tbody>
                     </table>
+                </div>
+                <div class="pagination-container" data-page="{{ page_logs|default(1) }}" data-pages="{{ pages_logs|default(1) }}">
+                            {% set page = page_logs %}
+                            {% set pages = pages_logs %}
+                            {% set endpoint = url_for('core.admin_logs_table') %}
+                            {% set container_id = 'logs-table-body' %}
+                            {% include 'core/admin/_pagination_controls.html' %}
                 </div>
             </div>
         </div>
@@ -473,10 +311,8 @@
         <button onclick="closePasswordModal()" class="absolute top-4 right-4 text-[#b5aaa0] hover:text-[#1a1a1a] transition-colors">
             <i class="fas fa-times text-xl"></i>
         </button>
-
         <h3 class="text-lg font-bold text-[#1a1a1a] mb-1">Reset Password</h3>
         <p class="text-sm text-[#7a7268] mb-6">Set a new password for <span id="modal-user-name" class="font-semibold text-[#1a1a1a]"></span></p>
-
         <form id="passwordResetForm" method="POST" action="">
             <div class="space-y-4">
                 <div>
@@ -490,63 +326,82 @@
                            class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all">
                 </div>
             </div>
-
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" onclick="closePasswordModal()"
-                        class="px-4 py-2 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="px-6 py-2 bg-[#1a1a1a] hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]">
-                    Reset Password
-                </button>
+                <button type="button" onclick="closePasswordModal()" class="px-4 py-2 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">Cancel</button>
+                <button type="submit" class="px-6 py-2 bg-[#1a1a1a] hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]">Reset Password</button>
             </div>
         </form>
     </div>
 </div>
 
+<!-- ─── PAGINATION CONTROLS PARTIAL ─── -->
+{% macro pagination_controls(page, pages, endpoint, container_id) %}
+<div class="flex items-center justify-between px-4 py-3 border-t border-[#f0ebe3] bg-[#faf8f5]">
+    <div class="flex-1 flex justify-between sm:hidden">
+        <button class="pagination-prev relative inline-flex items-center px-4 py-2 border border-[#ede8e0] text-sm font-medium rounded-md text-[#5a5248] bg-white hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="prev" data-endpoint="{{ endpoint }}">
+            Previous
+        </button>
+        <span class="text-sm text-[#5a5248]">Page {{ page }} of {{ pages }}</span>
+        <button class="pagination-next relative inline-flex items-center px-4 py-2 border border-[#ede8e0] text-sm font-medium rounded-md text-[#5a5248] bg-white hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="next" data-endpoint="{{ endpoint }}">
+            Next
+        </button>
+    </div>
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+            <p class="text-sm text-[#5a5248]">
+                Showing page <span class="font-medium">{{ page }}</span> of <span class="font-medium">{{ pages }}</span>
+            </p>
+        </div>
+        <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button class="pagination-prev relative inline-flex items-center px-2 py-2 rounded-l-md border border-[#ede8e0] bg-white text-sm font-medium text-[#5a5248] hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="prev" data-endpoint="{{ endpoint }}">
+                    <span class="sr-only">Previous</span>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="relative inline-flex items-center px-4 py-2 border border-[#ede8e0] bg-white text-sm font-medium text-[#1a1a1a]">
+                    {{ page }} / {{ pages }}
+                </span>
+                <button class="pagination-next relative inline-flex items-center px-2 py-2 rounded-r-md border border-[#ede8e0] bg-white text-sm font-medium text-[#5a5248] hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="next" data-endpoint="{{ endpoint }}">
+                    <span class="sr-only">Next</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
 <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(4px); }
         to { opacity: 1; transform: translateY(0); }
     }
     .animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
-
     @media (max-width: 640px) {
-        tbody tr {
-            padding: 12px 0;
-        }
-        tbody tr td:last-child {
-            border-bottom: none;
-        }
-        .sm\:table-header-group {
-            display: none !important;
-        }
+        tbody tr { padding: 12px 0; }
+        tbody tr td:last-child { border-bottom: none; }
+        .sm\:table-header-group { display: none !important; }
     }
 </style>
 
 <script>
-    // ── Tab switching (global) ──
+    // ─── Tab switching ───
     window.switchAdminTab = function(tabId) {
         document.querySelectorAll('.tab-content').forEach(section => {
             section.classList.add('hidden');
             section.classList.remove('block');
         });
-
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('border-[#c4b09a]', 'text-[#1a1a1a]');
             btn.classList.add('border-transparent', 'text-[#b5aaa0]');
         });
-
         const targetSection = document.getElementById('section-' + tabId);
         if (targetSection) {
             targetSection.classList.remove('hidden');
             targetSection.classList.add('block');
         }
-
         const activeBtn = document.getElementById('tab-' + tabId + '-btn');
         if (activeBtn) {
             activeBtn.classList.remove('border-transparent', 'text-[#b5aaa0]');
@@ -554,7 +409,7 @@
         }
     };
 
-    // ── Password Reset Modal ──
+    // ─── Password Reset Modal ───
     function openPasswordModal(userId, userName) {
         document.getElementById('modal-user-name').textContent = userName;
         document.getElementById('passwordResetForm').action = "/admin/change-password/" + userId;
@@ -562,19 +417,92 @@
         document.getElementById('new_password').value = '';
         document.getElementById('confirm_password').value = '';
     }
-
     function closePasswordModal() {
         document.getElementById('passwordModal').classList.add('hidden');
     }
-
-    // Click outside to close
     document.getElementById('passwordModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closePasswordModal();
-        }
+        if (e.target === this) closePasswordModal();
     });
 
-    // ── Admin dashboard initialisation ──
+    // ─── Pagination Controls ───
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('.pagination-prev, .pagination-next');
+        if (!target) return;
+        e.preventDefault();
+        const containerId = target.dataset.container;
+        const currentPage = parseInt(target.dataset.page);
+        const totalPages = parseInt(target.dataset.pages);
+        const direction = target.dataset.direction;
+        const endpoint = target.dataset.endpoint;
+        let newPage = currentPage;
+        if (direction === 'prev' && currentPage > 1) newPage = currentPage - 1;
+        if (direction === 'next' && currentPage < totalPages) newPage = currentPage + 1;
+        if (newPage === currentPage) return;
+
+        // Get the container (table body)
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        // Build URL with parameters
+        let url = endpoint + '?page=' + newPage;
+        // If there are filters (for students and logs), append them
+        if (container.dataset.filters) {
+            const filters = JSON.parse(container.dataset.filters);
+            for (const [key, value] of Object.entries(filters)) {
+                if (value) url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+            }
+        }
+
+        // Show loading state (optional)
+        container.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-[#b5aaa0]"><i class="fas fa-spinner fa-spin mr-2"></i> Loading...</td></tr>`;
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                // Update pagination controls
+                const paginationContainer = container.closest('.bg-white').querySelector('.pagination-container');
+                if (paginationContainer) {
+                    paginationContainer.dataset.page = newPage;
+                    // Re-render pagination controls – we'll update them by re-fetching the entire pagination template? Simpler: update numbers manually.
+                    const pageSpan = paginationContainer.querySelector('.pagination-container .page-info, .pagination-container .hidden\\:sm\\:flex-1 p');
+                    const prevBtn = paginationContainer.querySelector('.pagination-prev');
+                    const nextBtn = paginationContainer.querySelector('.pagination-next');
+                    if (prevBtn) {
+                        prevBtn.dataset.page = newPage;
+                        prevBtn.disabled = newPage <= 1;
+                    }
+                    if (nextBtn) {
+                        nextBtn.dataset.page = newPage;
+                        nextBtn.disabled = newPage >= totalPages;
+                    }
+                    // Update the page number display
+                    const pageNum = paginationContainer.querySelector('.page-number, .page-info span:first-child');
+                    const totalNum = paginationContainer.querySelector('.total-pages, .page-info span:last-child');
+                    if (pageNum && totalNum) {
+                        pageNum.textContent = newPage;
+                        // totalPages remains same
+                    } else {
+                        // fallback: update the whole pagination container with new page info? we can just reload the fragment.
+                        // For simplicity, we'll update the page info text.
+                        const infoText = paginationContainer.querySelector('p.text-sm');
+                        if (infoText) {
+                            infoText.innerHTML = `Showing page <span class="font-medium">${newPage}</span> of <span class="font-medium">${totalPages}</span>`;
+                        }
+                        const centerSpan = paginationContainer.querySelector('span.relative.inline-flex.items-center.px-4.py-2');
+                        if (centerSpan) {
+                            centerSpan.textContent = `${newPage} / ${totalPages}`;
+                        }
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Pagination error:', err);
+                container.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-rose-500">Failed to load page. Please try again.</td></tr>`;
+            });
+    });
+
+    // ─── Admin dashboard initialisation ───
     function initializeAdminDashboardView() {
         // Shimmer on admin actions
         document.querySelectorAll('.admin-action-form').forEach(form => {
@@ -582,7 +510,6 @@
                 const shimmerText = form.getAttribute('data-shimmer') || 'Processing...';
                 const textElement = document.getElementById('admin-shimmer-text');
                 if (textElement) textElement.innerText = shimmerText;
-
                 const adminMask = document.getElementById('admin-loading-shimmer');
                 if (adminMask) {
                     adminMask.classList.remove('opacity-0', 'pointer-events-none');
@@ -625,23 +552,15 @@
             logsFetchController.abort();
         }
         logsFetchController = new AbortController();
-
         const params = new URLSearchParams();
         if (actionValue) params.set('action', actionValue);
         if (userSearchValue) params.set('user_search', userSearchValue);
-
         const url = `${window.location.origin}${logsFragmentUrl}` + (params.toString() ? `?${params.toString()}` : '');
         const logsBody = document.getElementById('logs-table-body');
-
         fetch(url, { signal: logsFetchController.signal })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to load filtered logs');
-                return response.text();
-            })
+            .then(response => response.text())
             .then(html => {
-                if (logsBody) {
-                    logsBody.innerHTML = html;
-                }
+                if (logsBody) logsBody.innerHTML = html;
             })
             .catch(error => {
                 if (error.name === 'AbortError') return;
@@ -654,7 +573,6 @@
         const userSearchInput = document.getElementById('logsUserSearch');
         const logsForm = document.getElementById('logsFilterForm');
         const clearButton = document.getElementById('clear-logs-filter');
-
         if (!actionSelect || !userSearchInput || !logsForm) return;
 
         const debouncedFetch = debounce(() => {
@@ -674,10 +592,7 @@
             history.replaceState({}, '', `${window.location.pathname}${query.toString() ? `?${query.toString()}` : ''}`);
         });
 
-        userSearchInput.addEventListener('input', function() {
-            debouncedFetch();
-        });
-
+        userSearchInput.addEventListener('input', function() { debouncedFetch(); });
         logsForm.addEventListener('submit', function(event) {
             event.preventDefault();
             fetchLogsFragment(actionSelect.value, userSearchInput.value.trim());
@@ -696,7 +611,6 @@
     function initializeLiveAdminLogs() {
         const logsBody = document.getElementById('logs-table-body');
         if (!logsBody) return;
-
         const adminLogsEndpoint = '{{ url_for("core.live_admin_logs") }}';
         let lastLogsHtml = '';
 
@@ -719,7 +633,6 @@
             const userSearchValue = document.getElementById('logsUserSearch')?.value.trim();
             if (actionValue) params.set('action', actionValue);
             if (userSearchValue) params.set('user_search', userSearchValue);
-
             fetch(`${adminLogsEndpoint}${params.toString() ? `?${params.toString()}` : ''}`)
                 .then(response => response.json())
                 .then(data => {
@@ -733,7 +646,6 @@
                             </td>
                         </tr>
                     `;
-
                     if (html !== lastLogsHtml) {
                         logsBody.innerHTML = html;
                         lastLogsHtml = html;

@@ -1,0 +1,33 @@
+<div class="flex items-center justify-between px-4 py-3 border-t border-[#f0ebe3] bg-[#faf8f5]">
+    <div class="flex-1 flex justify-between sm:hidden">
+        <button class="pagination-prev relative inline-flex items-center px-4 py-2 border border-[#ede8e0] text-sm font-medium rounded-md text-[#5a5248] bg-white hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="prev" data-endpoint="{{ endpoint }}">
+            Previous
+        </button>
+        <span class="text-sm text-[#5a5248]">Page {{ page }} of {{ pages }}</span>
+        <button class="pagination-next relative inline-flex items-center px-4 py-2 border border-[#ede8e0] text-sm font-medium rounded-md text-[#5a5248] bg-white hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="next" data-endpoint="{{ endpoint }}">
+            Next
+        </button>
+    </div>
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+            <p class="text-sm text-[#5a5248]">
+                Showing page <span class="font-medium">{{ page }}</span> of <span class="font-medium">{{ pages }}</span>
+            </p>
+        </div>
+        <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button class="pagination-prev relative inline-flex items-center px-2 py-2 rounded-l-md border border-[#ede8e0] bg-white text-sm font-medium text-[#5a5248] hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="prev" data-endpoint="{{ endpoint }}">
+                    <span class="sr-only">Previous</span>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="relative inline-flex items-center px-4 py-2 border border-[#ede8e0] bg-white text-sm font-medium text-[#1a1a1a]">
+                    {{ page }} / {{ pages }}
+                </span>
+                <button class="pagination-next relative inline-flex items-center px-2 py-2 rounded-r-md border border-[#ede8e0] bg-white text-sm font-medium text-[#5a5248] hover:bg-[#f5f2ec] disabled:opacity-50 disabled:cursor-not-allowed" data-container="{{ container_id }}" data-page="{{ page }}" data-pages="{{ pages }}" data-direction="next" data-endpoint="{{ endpoint }}">
+                    <span class="sr-only">Next</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </nav>
+        </div>
+    </div>
+</div>
