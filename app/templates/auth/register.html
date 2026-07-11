@@ -5,12 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register | Students Resource System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    
+    <!-- Open Graph / Social Media Preview -->
+    <meta property="og:title" content="Student Resource System" />
+    <meta property="og:description" content="Share and access academic resources across campuses. Join the student network today!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ request.url }}" />
+    <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236b5e50'/%3E%3Cstop offset='100%25' style='stop-color:%23c4b09a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='630' rx='30' fill='url(%23g)'/%3E%3Ctext x='600' y='400' font-size='240' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3ESR%3C/text%3E%3Ctext x='600' y='530' font-size='48' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-family='sans-serif' font-weight='300'%3EStudent Resource System%3C/text%3E%3C/svg%3E" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .dot-pattern {
             background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
             background-size: 20px 20px;
+        }
+
+        /* ─── Toast Notification ─── */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: 90%;
+            max-width: 500px;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            background: #ffffff;
+            border: 1px solid #ede8e0;
+            border-radius: 12px;
+            padding: 14px 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 8px;
+        }
+        .toast.hide {
+            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .toast-error { border-left: 4px solid #ef4444; }
+        .toast-success { border-left: 4px solid #10b981; }
+        .toast-warning { border-left: 4px solid #f59e0b; }
+        .toast-info { border-left: 4px solid #6b5e50; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideUp {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(-20px) scale(0.96); }
+        }
+
+        /* Highlight empty fields */
+        .field-error {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+
+        /* ── Fix for desktop scrolling ── */
+        .auth-grid {
+            height: 100vh;
+            overflow: hidden;
+        }
+        .auth-right-panel {
+            height: 100vh;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .auth-right-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .auth-right-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .auth-right-panel::-webkit-scrollbar-thumb {
+            background: #d5cbbc;
+            border-radius: 8px;
+        }
+        .auth-right-panel::-webkit-scrollbar-thumb:hover {
+            background: #c4b4a2;
+        }
+
+        @media (max-width: 1023px) {
+            .auth-grid {
+                height: auto;
+                overflow: visible;
+            }
+            .auth-right-panel {
+                height: auto;
+                overflow: visible;
+            }
         }
     </style>
 </head>
@@ -27,9 +122,9 @@
         </div>
     </div>
 
-    <div class="min-h-screen grid grid-cols-1 lg:grid-cols-12 relative overflow-x-hidden">
+    <div class="auth-grid grid grid-cols-1 lg:grid-cols-12 relative overflow-x-hidden">
 
-        <!-- Left Display Panel Artwork -->
+        <!-- Left Display Panel Artwork (fixed, never scrolls) -->
         <div class="hidden lg:flex lg:col-span-5 relative bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 flex-col justify-between p-16 lg:sticky lg:top-0 lg:h-screen overflow-hidden">
             <div class="absolute inset-0 dot-pattern opacity-10 pointer-events-none"></div>
             <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
@@ -74,8 +169,8 @@
             </div>
         </div>
 
-        <!-- Right Side Interactive Registration Form -->
-        <div class="lg:col-span-7 flex flex-col items-center justify-center p-4 sm:p-10 md:p-16 bg-gradient-to-b from-slate-50 to-slate-100/50 lg:bg-white lg:from-transparent lg:to-transparent z-10 relative">
+        <!-- Right Side Interactive Registration Form (scrollable) -->
+        <div class="auth-right-panel lg:col-span-7 flex flex-col items-center justify-start p-4 sm:p-10 md:p-16 bg-gradient-to-b from-slate-50 to-slate-100/50 lg:bg-white lg:from-transparent lg:to-transparent z-10 relative">
 
             <div class="absolute inset-0 dot-pattern opacity-50 block lg:hidden pointer-events-none"></div>
             <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/[0.02] rounded-full blur-3xl block lg:hidden pointer-events-none"></div>
@@ -94,6 +189,9 @@
                     <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Create your account</h2>
                     <p class="text-sm text-slate-500 mt-2">Fill in your details to request access to the platform.</p>
                 </div>
+
+                <!-- Toast container -->
+                <div id="toast-container"></div>
 
                 <!-- Registration Form -->
                 <form id="register-auth-form" action="{{ url_for('auth.register') }}" method="POST" class="space-y-6" novalidate>
@@ -211,27 +309,64 @@
     <!-- ─── JAVASCRIPT ─── -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('register-auth-form');
             const emailInput = document.getElementById('email');
             const feedback = document.getElementById('email-feedback');
             const submitBtn = document.getElementById('register-submit-btn');
-            const form = document.getElementById('register-auth-form');
 
+            // ─── Toast System ───
+            function showToast(message, type = 'error') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                let icon = 'fa-circle-info';
+                if (type === 'error') icon = 'fa-circle-exclamation';
+                else if (type === 'success') icon = 'fa-circle-check';
+                else if (type === 'warning') icon = 'fa-triangle-exclamation';
+
+                toast.innerHTML = `
+                    <i class="fas ${icon} text-lg" style="color: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#6b5e50'}"></i>
+                    <span class="text-sm font-medium text-slate-800 flex-1">${message}</span>
+                    <button class="toast-close text-slate-400 hover:text-slate-600 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                container.appendChild(toast);
+
+                toast.querySelector('.toast-close').addEventListener('click', function() {
+                    dismissToast(toast);
+                });
+
+                setTimeout(() => {
+                    dismissToast(toast);
+                }, 5000);
+            }
+
+            function dismissToast(toast) {
+                if (toast.classList.contains('hide')) return;
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    toast.remove();
+                }, 250);
+            }
+
+            // ─── Email Validation ───
             let debounceTimer;
             let isEmailValid = false;
 
             function validateEmail() {
                 const email = emailInput.value.trim();
 
-                // Clear if empty
                 if (!email) {
                     feedback.textContent = '';
                     feedback.className = 'text-xs mt-1 block';
                     isEmailValid = false;
-                    submitBtn.disabled = false; // allow submission (backend will catch)
+                    submitBtn.disabled = false;
                     return;
                 }
 
-                // Quick client-side Gmail check
                 if (!email.endsWith('@gmail.com') || email.indexOf('@') === -1) {
                     feedback.textContent = '⚠️ Please use a Gmail address.';
                     feedback.className = 'text-xs mt-1 block text-amber-600';
@@ -240,7 +375,6 @@
                     return;
                 }
 
-                // Server-side existence check
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(() => {
                     fetch('/api/check-email', {
@@ -271,9 +405,7 @@
                 }, 400);
             }
 
-            // ── Events ──
             emailInput.addEventListener('input', function() {
-                // Show immediate feedback for empty or Gmail format
                 const email = this.value.trim();
                 if (!email) {
                     feedback.textContent = '';
@@ -289,32 +421,53 @@
                     submitBtn.disabled = false;
                     return;
                 }
-                // For valid format, trigger debounced server check
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    validateEmail();
-                }, 400);
+                debounceTimer = setTimeout(validateEmail, 400);
             });
 
             emailInput.addEventListener('blur', function() {
-                // Final check on blur
                 clearTimeout(debounceTimer);
                 validateEmail();
             });
 
-            // ── Prevent form submission if email invalid (optional) ──
-            // We'll let the backend handle it, but we can add a client-side guard
+            // ─── Form Submission Validation ───
             form.addEventListener('submit', function(e) {
+                const requiredFields = form.querySelectorAll('[required]');
+                let emptyFields = [];
+
+                requiredFields.forEach(field => {
+                    if (field.tagName === 'SELECT') {
+                        if (!field.value || field.options[field.selectedIndex]?.disabled) {
+                            emptyFields.push(field);
+                            field.classList.add('field-error');
+                        } else {
+                            field.classList.remove('field-error');
+                        }
+                    } else {
+                        if (!field.value.trim()) {
+                            emptyFields.push(field);
+                            field.classList.add('field-error');
+                        } else {
+                            field.classList.remove('field-error');
+                        }
+                    }
+                });
+
+                if (emptyFields.length > 0) {
+                    e.preventDefault();
+                    showToast('Please fill in all fields before submitting.', 'error');
+                    emptyFields[0].focus();
+                    return;
+                }
+
                 const email = emailInput.value.trim();
                 if (email && !email.endsWith('@gmail.com')) {
                     e.preventDefault();
-                    feedback.textContent = '❌ Please enter a valid Gmail address.';
-                    feedback.className = 'text-xs mt-1 block text-rose-600';
+                    showToast('Please enter a valid Gmail address.', 'error');
                     emailInput.focus();
                     return;
                 }
-                // If email is still being validated, we allow submit – backend will catch duplicates.
-                // Show shimmer
+
                 const authMask = document.getElementById('auth-loading-shimmer');
                 if (authMask) {
                     authMask.classList.remove('opacity-0', 'pointer-events-none');
@@ -322,10 +475,21 @@
                 }
             });
 
-            // ── Loader on submit (fallback for native submit) ──
-            // Already handled above.
+            form.querySelectorAll('[required]').forEach(field => {
+                field.addEventListener('input', function() {
+                    this.classList.remove('field-error');
+                });
+                field.addEventListener('change', function() {
+                    this.classList.remove('field-error');
+                });
+            });
+
+            form.querySelectorAll('select[required]').forEach(select => {
+                select.addEventListener('change', function() {
+                    this.classList.remove('field-error');
+                });
+            });
         });
     </script>
-
 </body>
 </html>

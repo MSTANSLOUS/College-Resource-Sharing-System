@@ -31,8 +31,6 @@ class User(db.Model, UserMixin):
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    tour_completed = db.Column(db.Boolean, default=False)
-
     theme_preference = db.Column(db.String(20), default='light')  # 'light' or 'dark'
     language_preference = db.Column(db.String(10), default='en')  # 'en' for now
     is_active = db.Column(db.Boolean, default=True)  # soft delete flag

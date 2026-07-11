@@ -8,6 +8,9 @@ from datetime import date
 from app import send_email
 from sqlalchemy import func
 
+from datetime import datetime
+
+
 core = Blueprint('core', __name__)
 
 def create_log(action, details=None):
@@ -53,20 +56,9 @@ def dashboard():
         target_semester=current_user.semester
     ).join(Resource.programs).filter(Program.id == current_user.program_id).order_by(Resource.id.desc()).limit(3).all()
 
-    show_tour = current_user.is_approved and not current_user.tour_completed
-
     return render_template('core/student/dashboard.html',
                            pending_students=pending_students,
-                           recent_uploads=recent_uploads,
-                           show_tour=show_tour)
-
-@core.route('/mark-tour-complete', methods=['POST'])
-@login_required
-def mark_tour_complete():
-    current_user.tour_completed = True
-    db.session.commit()
-    create_log("Tour Completed", "User finished onboarding tour")
-    return jsonify({"status": "success"})
+                           recent_uploads=recent_uploads)
 
 # ─── PROFILE ───
 @core.route('/profile', methods=['GET', 'POST'])
@@ -201,6 +193,10 @@ def upload_resource():
     programs = Program.query.all()
     return render_template('core/class_rep/upload_resource.html', modules=modules, programs=programs)
 
+
+
+
+
 # ─── CLASS REP ACTIONS ───
 @core.route('/approve-student/<int:user_id>', methods=['POST'])
 @login_required
@@ -218,6 +214,10 @@ def approve_student(user_id):
     else:
         flash('You do not have permission to approve this student.')
     return redirect(url_for('core.dashboard'))
+
+
+
+
 
 @core.route('/reject-student/<int:user_id>', methods=['POST'])
 @login_required
@@ -237,10 +237,99 @@ def reject_student(user_id):
         flash('You do not have permission to reject this student.')
     return redirect(url_for('core.dashboard'))
 
+
+
+
 # ─── ADMIN DASHBOARD ───
+def get_filtered_logs(action_filter=None, user_search=''):
+    log_query = Log.query
+    if action_filter:
+        log_query = log_query.filter(Log.action == action_filter)
+
+    if user_search:
+        users_matching = User.query.filter(
+            (User.full_name.ilike(f'%{user_search}%')) | (User.email.ilike(f'%{user_search}%'))
+        ).all()
+        user_ids = [u.id for u in users_matching]
+        if user_ids:
+            log_query = log_query.filter(Log.user_id.in_(user_ids))
+        else:
+            return []
+
+    return log_query.order_by(Log.created_at.desc()).limit(50).all()
+
+
+@core.route('/admin/logs')
+@login_required
+def admin_logs():
+    if not current_user.is_admin:
+        flash('Access denied.')
+        return redirect(url_for('core.dashboard'))
+
+    action_filter = request.args.get('action')
+    user_search = request.args.get('user_search', '').strip()
+    system_logs = get_filtered_logs(action_filter, user_search)
+
+    return render_template('core/admin/_logs_table.html', logs=system_logs)
+
+
 @core.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
+    if not current_user.is_admin:
+        flash('Access denied.')
+        return redirect(url_for('core.dashboard'))
+
+    # Clean old logs (older than today)
+    today = date.today()
+    Log.query.filter(Log.created_at < today).delete()
+    db.session.commit()
+
+    # --- Filters ---
+    year_filter = request.args.get('year', type=int)
+    sem_filter = request.args.get('semester', type=int)
+    action_filter = request.args.get('action')
+    user_search = request.args.get('user_search', '').strip()
+
+    # 1. Filter users (for Student Directory and User Management)
+    user_query = User.query
+    if year_filter:
+        user_query = user_query.filter_by(year=year_filter)
+    if sem_filter:
+        user_query = user_query.filter_by(semester=sem_filter)
+    all_users = user_query.all()
+
+    # 2. Filter logs
+    system_logs = get_filtered_logs(action_filter, user_search)
+
+    # 3. Get distinct actions for dropdown
+    distinct_actions = db.session.query(Log.action).distinct().all()
+    actions_list = [a[0] for a in distinct_actions if a[0] is not None]
+
+    # 4. Current time for online status
+    now = datetime.utcnow()
+
+    # 5. Other data
+    all_programs = Program.query.all()
+    all_modules = Module.query.all()
+    pending_requests = TransferRequest.query.filter_by(status='pending').all()
+
+    # Log admin dashboard access (only if filter applied, to avoid clutter)
+    if year_filter or sem_filter or action_filter or user_search:
+        create_log("Admin Dashboard Filter", f"Filtered by Year={year_filter}, Semester={sem_filter}, Action={action_filter}, User={user_search}")
+
+    return render_template('core/admin/dashboard.html',
+                           users=all_users,
+                           logs=system_logs,
+                           programs=all_programs,
+                           modules=all_modules,
+                           requests=pending_requests,
+                           current_year=year_filter,
+                           current_sem=sem_filter,
+                           actions_list=actions_list,
+                           selected_action=action_filter,
+                           user_search=user_search,
+                           now=now)
     if not current_user.is_admin:
         flash('Access denied.')
         return redirect(url_for('core.dashboard'))

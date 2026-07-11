@@ -308,7 +308,7 @@
             </div>
         </div>
 
-        <!-- ─── 4. User Management (NEW) ─── -->
+        <!-- ─── 4. User Management (with Online Status) ─── -->
         <div id="section-users" class="tab-content hidden animate-fadeIn">
             <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -320,6 +320,7 @@
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Level</th>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Roles</th>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Online</th>
                                 <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -377,6 +378,18 @@
                                         {% endif %}
                                     </div>
                                 </td>
+                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
+                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Online</span>
+                                    {% if user.last_activity and (now - user.last_activity).total_seconds() < 300 %}
+                                        <span class="inline-flex items-center gap-1 text-emerald-600 text-[10px] font-extrabold uppercase tracking-wide">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1 text-slate-400 text-[10px] font-extrabold uppercase tracking-wide">
+                                            <span class="w-2 h-2 rounded-full bg-slate-300"></span> Offline
+                                        </span>
+                                    {% endif %}
+                                </td>
                                 <td class="block sm:table-cell px-6 py-4 text-right whitespace-nowrap">
                                     <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Actions</span>
                                     <div class="flex justify-end gap-2">
@@ -390,7 +403,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="6" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
+                                <td colspan="7" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
                                     <i class="fas fa-users text-3xl block mb-3 text-[#b5aaa0]"></i>
                                     <p class="text-[#1a1a1a] font-bold">No users found</p>
                                     <p class="text-sm mt-1">There are no registered users in the system.</p>
@@ -403,43 +416,49 @@
             </div>
         </div>
 
-        <!-- ─── 5. Audit Logs ─── -->
+        <!-- ─── 5. Audit Logs with Filters ─── -->
         <div id="section-logs" class="tab-content hidden animate-fadeIn">
+            <!-- Filter Bar -->
+            <div class="bg-white p-5 border border-[#ede8e0] rounded-3xl shadow-sm mb-6">
+                <form id="logsFilterForm" method="GET" action="{{ url_for('core.admin_dashboard') }}" class="flex flex-wrap gap-4 items-end">
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Event Type</label>
+                        <select id="logsActionFilter" name="action" class="block w-full px-3 py-2 bg-white border border-[#ede8e0] rounded-lg text-xs text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all cursor-pointer">
+                            <option value="">All Events</option>
+                            {% for action in actions_list %}
+                            <option value="{{ action }}" {% if selected_action == action %}selected{% endif %}>{{ action }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Search User</label>
+                        <input id="logsUserSearch" type="text" name="user_search" value="{{ user_search or '' }}"
+                               placeholder="Name or email..."
+                               class="block w-full px-3 py-2 bg-white border border-[#ede8e0] rounded-lg text-xs text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button id="logsFilterButton" type="submit" class="bg-[#1a1a1a] hover:bg-black text-white px-5 py-2 rounded-lg text-xs font-bold shadow-sm hover:shadow-md transition-all cursor-pointer">
+                            <i class="fas fa-filter mr-1.5"></i> Filter Logs
+                        </button>
+                        <a id="clear-logs-filter" href="{{ url_for('core.admin_dashboard') }}" class="bg-[#f5f2ec] text-[#5a5248] px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#ede8e0] transition-all text-center">
+                            <i class="fas fa-undo mr-1.5"></i> Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+
             <div class="bg-white border border-[#ede8e0] rounded-3xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-[#f0ebe3]">
-                        <thead class="bg-[#faf8f5] hidden sm:table-header-group">
+                    <table class="w-full divide-y divide-[#f0ebe3]">
+                        <thead class="bg-[#faf8f5]">
                             <tr>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Time</th>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Actor</th>
                                 <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Event</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#f0ebe3] text-xs">
-                            {% for log in logs %}
-                            <tr class="block sm:table-row hover:bg-[#faf8f5] transition-colors border-b sm:border-b-0 border-[#f0ebe3] mb-4 sm:mb-0 rounded-xl sm:rounded-none shadow-sm sm:shadow-none">
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Time</span>
-                                    <span class="text-[#b5aaa0] font-mono font-bold">{{ log.created_at.strftime('%H:%M | %d %b %Y') }}</span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4 whitespace-nowrap">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Actor</span>
-                                    <span class="font-bold text-[#5a5248]">{{ log.user.full_name if log.user else 'System Core' }}</span>
-                                </td>
-                                <td class="block sm:table-cell px-6 py-4">
-                                    <span class="sm:hidden text-[10px] font-bold text-[#b5aaa0] uppercase tracking-wider block">Event</span>
-                                    <span class="font-bold text-[#1a1a1a] bg-[#f5f2ec] border border-[#ede8e0] px-1.5 py-0.5 rounded mr-1">{{ log.action }}</span>{{ log.details }}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="3" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
-                                    <i class="fas fa-clipboard-list text-3xl block mb-3 text-[#b5aaa0]"></i>
-                                    <p class="text-[#1a1a1a] font-bold">No logs available</p>
-                                    <p class="text-sm mt-1">System activity will appear here as actions are performed.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="logs-table-body" class="divide-y divide-[#f0ebe3]">
+                            {% include 'core/admin/_logs_table.html' %}
                         </tbody>
                     </table>
                 </div>
@@ -540,7 +559,6 @@
         document.getElementById('modal-user-name').textContent = userName;
         document.getElementById('passwordResetForm').action = "/admin/change-password/" + userId;
         document.getElementById('passwordModal').classList.remove('hidden');
-        // Clear any previous values
         document.getElementById('new_password').value = '';
         document.getElementById('confirm_password').value = '';
     }
@@ -587,6 +605,92 @@
                 adminMask.classList.add('opacity-100');
             }
         });
+
+        initializeLogFilters();
+    }
+
+    function debounce(callback, delay) {
+        let timeoutId;
+        return function(...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => callback(...args), delay);
+        };
+    }
+
+    const logsFragmentUrl = "{{ url_for('core.admin_logs') }}";
+    let logsFetchController = null;
+
+    function fetchLogsFragment(actionValue, userSearchValue) {
+        if (logsFetchController) {
+            logsFetchController.abort();
+        }
+        logsFetchController = new AbortController();
+
+        const params = new URLSearchParams();
+        if (actionValue) params.set('action', actionValue);
+        if (userSearchValue) params.set('user_search', userSearchValue);
+
+        const url = `${window.location.origin}${logsFragmentUrl}` + (params.toString() ? `?${params.toString()}` : '');
+        const logsBody = document.getElementById('logs-table-body');
+
+        fetch(url, { signal: logsFetchController.signal })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load filtered logs');
+                return response.text();
+            })
+            .then(html => {
+                if (logsBody) {
+                    logsBody.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                if (error.name === 'AbortError') return;
+                console.error('Failed to fetch logs:', error);
+            });
+    }
+
+    function initializeLogFilters() {
+        const actionSelect = document.getElementById('logsActionFilter');
+        const userSearchInput = document.getElementById('logsUserSearch');
+        const logsForm = document.getElementById('logsFilterForm');
+        const clearButton = document.getElementById('clear-logs-filter');
+
+        if (!actionSelect || !userSearchInput || !logsForm) return;
+
+        const debouncedFetch = debounce(() => {
+            fetchLogsFragment(actionSelect.value, userSearchInput.value.trim());
+            const query = new URLSearchParams();
+            if (actionSelect.value) query.set('action', actionSelect.value);
+            if (userSearchInput.value.trim()) query.set('user_search', userSearchInput.value.trim());
+            history.replaceState({}, '', `${window.location.pathname}${query.toString() ? `?${query.toString()}` : ''}`);
+        }, 250);
+
+        actionSelect.addEventListener('change', function(event) {
+            event.preventDefault();
+            fetchLogsFragment(actionSelect.value, userSearchInput.value.trim());
+            const query = new URLSearchParams();
+            if (actionSelect.value) query.set('action', actionSelect.value);
+            if (userSearchInput.value.trim()) query.set('user_search', userSearchInput.value.trim());
+            history.replaceState({}, '', `${window.location.pathname}${query.toString() ? `?${query.toString()}` : ''}`);
+        });
+
+        userSearchInput.addEventListener('input', function() {
+            debouncedFetch();
+        });
+
+        logsForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetchLogsFragment(actionSelect.value, userSearchInput.value.trim());
+        });
+
+        if (clearButton) {
+            clearButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                logsForm.reset();
+                fetchLogsFragment('', '');
+                history.replaceState({}, '', window.location.pathname);
+            });
+        }
     }
 
     document.addEventListener("turbo:load", initializeAdminDashboardView);

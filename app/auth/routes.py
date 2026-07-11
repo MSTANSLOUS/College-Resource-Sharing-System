@@ -20,10 +20,9 @@ def login():
             flash('Invalid email or password.')
             return redirect(url_for('auth.login'))
 
-        # ─── NEW: Check if account is deactivated ───
         if not user.is_active:
             create_log("Blocked Login", f"Deactivated: {user.email}")
-            flash('Your account has been deactivated. Please contact an admin to reactivate.', 'error')
+            flash('Your account has been deactivated. Contact admin.', 'error')
             return redirect(url_for('auth.login'))
 
         if not user.is_approved and not user.is_admin:
@@ -31,9 +30,13 @@ def login():
             flash('Account pending approval by Class Rep.')
             return redirect(url_for('auth.login'))
 
-        login_user(user)
-        create_log("User Login", f"{user.full_name} logged in")
-        return redirect(url_for('core.admin_dashboard' if user.is_admin else 'core.dashboard'))
+        # Attempt to log the user in
+        if login_user(user, remember=True):
+            create_log("User Login", f"{user.full_name} logged in")
+            return redirect(url_for('core.admin_dashboard' if user.is_admin else 'core.dashboard'))
+        else:
+            flash('Login failed. Please try again.', 'error')
+            return redirect(url_for('auth.login'))
 
     return render_template('auth/login.html')
 
@@ -103,3 +106,23 @@ def check_email():
         return jsonify({'valid': False, 'message': 'This email is already registered.'})
 
     return jsonify({'valid': True, 'message': 'Email is available.'})
+
+
+
+
+@auth.route('/api/user-status', methods=['POST'])
+def user_status():
+    data = request.get_json()
+    email = data.get('email', '').strip()
+    if not email:
+        return jsonify({'exists': False, 'message': 'Email required.'})
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'exists': False, 'message': 'No account found.'})
+    return jsonify({
+        'exists': True,
+        'is_approved': user.is_approved,
+        'is_admin': user.is_admin,
+        'is_active': user.is_active,
+        'message': 'Account found.'
+    })

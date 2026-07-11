@@ -1,0 +1,23 @@
+{% for log in logs %}
+<tr class="hover:bg-[#faf8f5] transition-colors border-b border-[#f0ebe3]">
+    <td class="px-6 py-4 whitespace-nowrap text-xs text-[#b5aaa0] font-mono">
+        {{ log.created_at.strftime('%H:%M | %d %b %Y') }}
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-xs font-bold text-[#5a5248]">
+        {{ log.user.full_name if log.user else 'System Core' }}
+    </td>
+    <td class="px-6 py-4 text-xs text-[#1a1a1a]">
+        <span class="font-bold bg-[#f5f2ec] border border-[#ede8e0] px-2 py-1 rounded mr-2 text-[11px]">{{ log.action }}</span>
+        {{ log.details }}
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="3" class="px-6 py-16 text-center text-[#b5aaa0] font-medium">
+        <i class="fas fa-clipboard-list text-3xl block mb-3 text-[#b5aaa0]"></i>
+        <p class="text-[#1a1a1a] font-bold">No logs available</p>
+        <p class="text-sm mt-1">System activity will appear here as actions are performed.</p>
+        <p class="text-xs mt-2">Try adjusting your filters to see more results.</p>
+    </td>
+</tr>
+{% endfor %}

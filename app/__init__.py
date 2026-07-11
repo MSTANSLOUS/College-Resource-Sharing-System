@@ -1,16 +1,10 @@
 from flask import Flask
-
 from config import Config
-
 from app.models import db, User, Program
-
 from flask_login import LoginManager
-
 from werkzeug.security import generate_password_hash
-
 from flask_mail import Mail, Message
-
-from flask_cors import CORS # Import this
+from flask_cors import CORS
 
 # Initialize LoginManager globally outside the function
 login_manager = LoginManager()
@@ -27,6 +21,7 @@ def send_email(recipients, subject, massage_body):
         body=massage_body,
     )
     mail.send(msg)
+
 
 def create_app():
     # 1. Create the app instance inside the factory
@@ -54,7 +49,6 @@ def create_app():
 
     mail.init_app(app=app)
 
-
     # 3. Link SQLAlchemy and LoginManager to this specific Flask app
     db.init_app(app)
     login_manager.init_app(app=app)
@@ -75,8 +69,13 @@ def create_app():
         from flask_login import current_user
         return dict(current_user=current_user)
 
-    # 6. Create the tables and seed default data automatically
-    # (Fixed the indentation here so it lines up with the rest of the function)
+    # 6. ─── ADD THE NGROK SKIP HEADER ───
+    @app.after_request
+    def add_ngrok_headers(response):
+        response.headers['ngrok-skip-browser-warning'] = 'true'
+        return response
+
+    # 7. Create the tables and seed default data automatically
     with app.app_context():
         db.create_all()
 
