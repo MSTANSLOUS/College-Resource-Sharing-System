@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import db, Program, Resource, User, Log, Module, TransferRequest
 from datetime import date, datetime
-from app import send_email
+from app import send_email, socketio
 from sqlalchemy import func
 
 core = Blueprint('core', __name__)
@@ -227,6 +227,30 @@ def upload_resource():
 
         db.session.add(new_resource)
         db.session.commit()
+
+        # ─── SocketIO: Notify students in the same class ───
+        room = f'student-{current_user.program_id}-{current_user.year}-{current_user.semester}'
+        socketio.emit('new_resource', {
+            'title': new_resource.title,
+            'module_name': new_resource.module.name,
+            'academic_year': new_resource.academic_year,
+            'uploader_name': current_user.full_name,
+            'campus': current_user.campus,
+            'file_path': new_resource.file_path,
+            'program_id': current_user.program_id,
+            'year': current_user.year,
+            'semester': current_user.semester
+        }, room=room)
+
+        # Also notify admins
+        socketio.emit('new_resource', {
+            'title': new_resource.title,
+            'module_name': new_resource.module.name,
+            'uploader_name': current_user.full_name,
+            'campus': current_user.campus,
+            'file_path': new_resource.file_path,
+        }, room='admin')
+
         module = Module.query.get(module_id)
         create_log("Resource Upload", f"Uploaded '{title}' for module '{module.name}' (ID: {module.id})")
         flash('Resource uploaded successfully!')
@@ -248,6 +272,22 @@ def approve_student(user_id):
     if student.campus == current_user.campus and student.program_id == current_user.program_id:
         student.is_approved = True
         db.session.commit()
+
+        # ─── SocketIO: Notify admin, remove from rep's pending list, inform student ───
+        socketio.emit('student_approved', {
+            'user_id': student.id,
+            'full_name': student.full_name
+        }, room='admin')
+
+        rep_room = f'rep-{current_user.program_id}-{current_user.year}-{current_user.semester}'
+        socketio.emit('pending_approval_removed', {
+            'user_id': student.id
+        }, room=rep_room)
+
+        socketio.emit('approval_notification', {
+            'message': 'Your account has been approved! You can now log in.'
+        }, room=f'user-{student.id}')
+
         create_log("Student Approval", f"Approved student: {student.full_name} (ID: {student.id})")
         flash(f'Successfully approved {student.full_name}.')
     else:
@@ -434,6 +474,15 @@ def add_module():
                 new_module.programs.append(prog)
         db.session.add(new_module)
         db.session.commit()
+
+        # ─── SocketIO: Notify all admins ───
+        socketio.emit('module_added', {
+            'module_id': new_module.id,
+            'name': new_module.name,
+            'code': new_module.code,
+            'programs': [p.name for p in new_module.programs]
+        }, room='admin')
+
         create_log("Module Created", f"Admin registered module: {name} ({code}) linked to {len(program_ids)} programs")
         flash(f'Module {name} registered successfully!')
     except Exception as e:
@@ -453,6 +502,19 @@ def make_rep(user_id):
     user.is_class_rep = True
     user.is_approved = True
     db.session.commit()
+
+    # ─── SocketIO: Notify admin and user ───
+    socketio.emit('user_role_changed', {
+        'user_id': user.id,
+        'full_name': user.full_name,
+        'new_role': 'rep',
+        'is_approved': user.is_approved
+    }, room='admin')
+
+    socketio.emit('role_update', {
+        'new_role': 'rep'
+    }, room=f'user-{user.id}')
+
     create_log("Role Change", f"Promoted and approved {user.full_name} (ID: {user.id}) as Class Representative")
     flash(f'{user.full_name} is now a Class Representative and can log in!', 'success')
     return redirect(url_for('core.admin_dashboard'))

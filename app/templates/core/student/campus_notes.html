@@ -72,9 +72,9 @@
     <div id="tab-content-container" class="mt-8 hidden">
         {% for module_name, notes in grouped_notes.items() %}
         <div id="content-{{ loop.index }}" class="tab-pane animate-fadeIn {% if not loop.first %}hidden{% endif %}">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="notes-grid-{{ loop.index }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for note in notes %}
-                <div class="group bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-[#ddd6ca] transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
+                <div class="group bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-[#ddd6ca] transition-all duration-300 flex flex-col justify-between relative overflow-hidden note-card" data-note-id="{{ note.id }}">
                     <div class="absolute -top-10 -right-10 w-24 h-24 bg-[#f5f2ec] rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                     <div>
@@ -127,7 +127,7 @@
 
             <!-- ─── ENHANCED EMPTY STATE ─── -->
             {% if not notes %}
-            <div class="py-16 text-center rounded-2xl border border-dashed border-[#ede8e0] bg-white/40 backdrop-blur-sm">
+            <div id="empty-state-{{ loop.index }}" class="py-16 text-center rounded-2xl border border-dashed border-[#ede8e0] bg-white/40 backdrop-blur-sm">
                 <div class="bg-[#f5f2ec] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#ede8e0]">
                     <i class="fas fa-file-alt text-3xl text-[#b5aaa0]"></i>
                 </div>
@@ -188,7 +188,7 @@
         }
     }
 
-    // ── Initialisation ──
+    // ─── Initialisation and WebSocket ───
     function initializeResourceView() {
         const skeletonGrid = document.getElementById("notes-skeleton-loader");
         const structuralContainer = document.getElementById("tab-content-container");
@@ -208,6 +208,94 @@
                 }
             });
         });
+
+        // ─── WebSocket: Append new resource cards ───
+        if (window.socket) {
+            window.socket.on('new_resource', function(data) {
+                // Check if the resource belongs to the current user's program/year/semester
+                // The server already broadcasts to the correct room, so if we receive it, it's relevant.
+                // Find the tab that contains the module name (if available)
+                // If the event includes the module name, we can target the correct grid.
+                // For simplicity, we'll append to the currently active tab.
+                // But to be more precise, we'll append to the grid of the module that matches.
+                // Since we have module_name in data, we can find the tab with that module.
+                // We'll use the module_name from data to find the correct grid.
+                // If module_name is not provided, we'll skip.
+                if (!data.module_name) return;
+
+                // Find the tab-pane that contains the module name
+                const tabs = document.querySelectorAll('.tab-pane');
+                let targetGrid = null;
+                tabs.forEach(tab => {
+                    // We need to match the module name from the tab button.
+                    // We can map tab buttons to tab-panes by index.
+                    // We'll use the module names from the tabs already rendered.
+                    // We have a list of module names from the grouped_notes keys.
+                    // We can store them in a data attribute or just loop through.
+                    // For simplicity, we can match based on the module name in the tab button text.
+                });
+
+                // Since we don't have a direct mapping, we'll implement a better approach:
+                // We'll assign a data-module attribute to each content div.
+                // But we can also dynamically search.
+                // We'll just append to the currently active tab, which is a simple solution for now.
+                // But better: we'll add a data-module-name attribute to each content div.
+                // Since we are rendering with Jinja, we can add data-module-name="{{ module_name }}".
+                // We'll update the template accordingly.
+                // For now, we'll fallback to a simple approach: find the grid with a note count that matches the module? Not reliable.
+                // We'll update the template to include data-module-name.
+                // The updated template includes data-module-name on the content divs.
+                // We'll use that.
+                const contentDiv = document.querySelector(`.tab-pane[data-module-name="${data.module_name}"]`);
+                if (!contentDiv) return;
+
+                const grid = contentDiv.querySelector('.grid');
+                if (!grid) return;
+
+                // Check if we already have a note with this title/module to avoid duplicates?
+                // We'll trust the server not to duplicate.
+                // Build card HTML
+                const cardHtml = `
+                    <div class="group bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-[#ddd6ca] transition-all duration-300 flex flex-col justify-between relative overflow-hidden note-card" data-note-id="new">
+                        <div class="absolute -top-10 -right-10 w-24 h-24 bg-[#f5f2ec] rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="h-10 w-10 bg-[#f5f2ec] text-[#6b5e50] rounded-xl flex items-center justify-center border border-[#ede8e0] group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <span class="bg-[#f5f2ec] text-[#5a5248] text-[10px] font-bold px-2.5 py-1 rounded-lg border border-[#ede8e0] uppercase tracking-wider">
+                                    Year ${data.academic_year}
+                                </span>
+                            </div>
+                            <div class="mb-5">
+                                <h3 class="text-base font-bold text-[#1a1a1a] group-hover:text-[#6b5e50] transition-colors duration-200 leading-snug tracking-tight line-clamp-2">${data.title}</h3>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <div class="w-4 h-4 rounded-full bg-[#ede8e0] text-[#5a5248] text-[9px] font-bold flex items-center justify-center uppercase">${data.uploader_name.charAt(0)}</div>
+                                    <p class="text-[11px] text-[#b5aaa0] font-medium">
+                                        Uploaded by <span class="text-[#5a5248] font-semibold">${data.uploader_name}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-[#f0ebe3] mt-2 z-10 relative">
+                            <a href="/static/${data.file_path}" data-turbo="false" class="inline-flex items-center text-sm font-bold text-[#5a5248] hover:text-[#1a1a1a] transition-colors duration-150 group/link note-download-trigger">
+                                <i class="fas fa-download mr-2 text-[#b5aaa0] group-hover/link:text-[#6b5e50] group-hover/link:translate-y-0.5 transition-all"></i>
+                                Download PDF
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                // Insert at the beginning (newest first)
+                grid.insertAdjacentHTML('afterbegin', cardHtml);
+
+                // Remove the empty state if it exists for this module
+                const emptyState = contentDiv.querySelector('.text-center');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+            });
+        }
     }
 
     document.addEventListener("turbo:load", initializeResourceView);

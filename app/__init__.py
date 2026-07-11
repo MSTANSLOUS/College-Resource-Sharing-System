@@ -5,12 +5,12 @@ from flask_login import LoginManager
 from werkzeug.security import generate_password_hash
 from flask_mail import Mail, Message
 from flask_cors import CORS
+from flask_socketio import SocketIO, join_room
 
-# Initialize LoginManager globally outside the function
+# Initialize global objects
 login_manager = LoginManager()
-
-# Initialize Mail
 mail = Mail()
+socketio = SocketIO()
 
 
 def send_email(recipients, subject, massage_body):
@@ -24,22 +24,17 @@ def send_email(recipients, subject, massage_body):
 
 
 def create_app():
-    # 1. Create the app instance inside the factory
     app = Flask(__name__)
 
-    # Add these lines to your Flask config
+    # Config
     app.config.update(
-        SESSION_COOKIE_SAMESITE="None",  # Allows cookie to be sent across different origins
-        SESSION_COOKIE_SECURE=True,  # Required when SameSite is "None"
+        SESSION_COOKIE_SAMESITE="None",
+        SESSION_COOKIE_SECURE=True,
         REMEMBER_COOKIE_SAMESITE="None",
         REMEMBER_COOKIE_SECURE=True
     )
-
-    # This allows your Android app to communicate with your Ngrok link
-    # supports_credentials=True is needed so the session cookie works
     CORS(app, supports_credentials=True)
 
-    # 2. Load the configurations from config.py and mail
     app.config.from_object(Config)
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
@@ -47,61 +42,62 @@ def create_app():
     app.config['MAIL_USERNAME'] = 'musayalous@gmail.com'
     app.config['MAIL_PASSWORD'] = 'etvkgbgnmecmcjgs'
 
-    mail.init_app(app=app)
-
-    # 3. Link SQLAlchemy and LoginManager to this specific Flask app
+    mail.init_app(app)
     db.init_app(app)
-    login_manager.init_app(app=app)
-
-    # Tell Flask-Login where to redirect users who aren't logged in
+    login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
 
-    # 4. Register the Blueprints (so the web pages work)
+    # SocketIO
+    socketio.init_app(app, cors_allowed_origins="*", async_mode='eventlet')
+
+    # Blueprints
     from app.auth.routes import auth
-    app.register_blueprint(blueprint=auth)
-
+    app.register_blueprint(auth)
     from app.core.routes import core
-    app.register_blueprint(blueprint=core)
+    app.register_blueprint(core)
 
-    # 5. Global variable injection for Jinja
     @app.context_processor
     def inject_user():
         from flask_login import current_user
         return dict(current_user=current_user)
 
-    # 6. ─── ADD THE NGROK SKIP HEADER ───
     @app.after_request
     def add_ngrok_headers(response):
         response.headers['ngrok-skip-browser-warning'] = 'true'
         return response
 
-    # 7. Create the tables and seed default data automatically
+    # ─── SocketIO Connection Handler ───
+    @socketio.on('connect')
+    def handle_connect():
+        if current_user.is_authenticated:
+            # Student room: for their specific class (program, year, semester)
+            join_room(f'student-{current_user.program_id}-{current_user.year}-{current_user.semester}')
+            # Admin room
+            if current_user.is_admin:
+                join_room('admin')
+            # Class rep room
+            if current_user.is_class_rep:
+                join_room(f'rep-{current_user.program_id}-{current_user.year}-{current_user.semester}')
+            # Personal room
+            join_room(f'user-{current_user.id}')
+
+    # ─── Database seeding ───
     with app.app_context():
         db.create_all()
-
-        # 1. SEED YOUR ACTUAL PROGRAMS FIRST
         programs_list = ['BMIS', 'BBME', 'BAAA-IS', 'BMPR', 'BBFSM']
         for prog_name in programs_list:
             exists = Program.query.filter_by(name=prog_name).first()
             if not exists:
                 new_prog = Program(name=prog_name)
                 db.session.add(new_prog)
-
-        # Save the programs so we can grab one for the admin!
         db.session.commit()
 
-        # 2. NOW CREATE THE SUPER ADMIN
         admin = User.query.filter_by(is_admin=True).first()
-
         if not admin:
-            # Grab the BMIS program we just created to keep the database happy!
             bmis_program = Program.query.filter_by(name='BMIS').first()
-
-            print("No Super Admin found. Creating one now...")
             super_user = User(
                 full_name="System Super Admin",
                 email="admin@gmail.com",
-                # Upgraded to secure hash instead of plain text "admin"
                 password_hash=generate_password_hash("admin"),
                 is_admin=True,
                 is_approved=True,
@@ -111,12 +107,10 @@ def create_app():
             )
             db.session.add(super_user)
             db.session.commit()
-            print("Super Admin created successfully!")
 
     return app
 
 
-# CRITICAL: This function tells Flask-Login how to load a user from the database by ID
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
