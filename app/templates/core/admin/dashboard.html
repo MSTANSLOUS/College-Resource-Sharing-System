@@ -693,6 +693,60 @@
         }
     }
 
+    function initializeLiveAdminLogs() {
+        const logsBody = document.getElementById('logs-table-body');
+        if (!logsBody) return;
+
+        const adminLogsEndpoint = '{{ url_for("core.live_admin_logs") }}';
+        let lastLogsHtml = '';
+
+        function renderLogRow(log) {
+            return `
+                <tr class="hover:bg-[#faf8f5] transition-colors border-b border-[#f0ebe3]">
+                    <td class="px-6 py-4 text-sm text-[#b5aaa0] font-mono whitespace-nowrap">${log.created_at}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-[#5a5248] whitespace-nowrap">${log.actor}</td>
+                    <td class="px-6 py-4 text-sm text-[#1a1a1a]">
+                        <span class="font-bold bg-[#f5f2ec] border border-[#ede8e0] px-2 py-0.5 rounded mr-1">${log.action}</span>
+                        ${log.details}
+                    </td>
+                </tr>
+            `;
+        }
+
+        function refreshLogs() {
+            const params = new URLSearchParams();
+            const actionValue = document.getElementById('logsActionFilter')?.value;
+            const userSearchValue = document.getElementById('logsUserSearch')?.value.trim();
+            if (actionValue) params.set('action', actionValue);
+            if (userSearchValue) params.set('user_search', userSearchValue);
+
+            fetch(`${adminLogsEndpoint}${params.toString() ? `?${params.toString()}` : ''}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || !Array.isArray(data.logs)) return;
+                    const html = data.logs.length > 0 ? data.logs.map(renderLogRow).join('') : `
+                        <tr>
+                            <td colspan="3" class="px-6 py-12 text-center text-[#b5aaa0]">
+                                <i class="fas fa-clipboard-list text-3xl block mb-2"></i>
+                                <p class="font-bold text-[#1a1a1a]">No logs found</p>
+                                <p class="text-sm mt-1">Try adjusting your filters.</p>
+                            </td>
+                        </tr>
+                    `;
+
+                    if (html !== lastLogsHtml) {
+                        logsBody.innerHTML = html;
+                        lastLogsHtml = html;
+                    }
+                })
+                .catch(err => console.error('Error fetching live admin logs:', err));
+        }
+
+        setInterval(refreshLogs, 10000);
+        setTimeout(refreshLogs, 1500);
+    }
+
     document.addEventListener("turbo:load", initializeAdminDashboardView);
+    document.addEventListener("turbo:load", initializeLiveAdminLogs);
 </script>
 {% endblock %}

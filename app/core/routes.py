@@ -4,17 +4,13 @@ from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import db, Program, Resource, User, Log, Module, TransferRequest
-from datetime import date
+from datetime import date, datetime
 from app import send_email
 from sqlalchemy import func
-
-from datetime import datetime
-
 
 core = Blueprint('core', __name__)
 
 def create_log(action, details=None):
-    """Helper function to record system activity"""
     log_entry = Log(
         user_id=current_user.id if current_user.is_authenticated else None,
         action=action,
@@ -59,6 +55,53 @@ def dashboard():
     return render_template('core/student/dashboard.html',
                            pending_students=pending_students,
                            recent_uploads=recent_uploads)
+
+@core.route('/live/dashboard-data')
+@login_required
+def live_dashboard_data():
+    recent_uploads = Resource.query.filter_by(
+        campus=current_user.campus,
+        target_year=current_user.year,
+        target_semester=current_user.semester
+    ).join(Resource.programs).filter(Program.id == current_user.program_id).order_by(Resource.id.desc()).limit(3).all()
+
+    pending_students = []
+    if current_user.is_class_rep:
+        pending_students = User.query.filter_by(
+            is_approved=False,
+            campus=current_user.campus,
+            program_id=current_user.program_id,
+            year=current_user.year,
+            semester=current_user.semester
+        ).all()
+
+    uploads_data = []
+    for r in recent_uploads:
+        uploads_data.append({
+            'id': r.id,
+            'title': r.title,
+            'module_name': r.module.name if r.module else '',
+            'academic_year': r.academic_year,
+            'file_path': r.file_path,
+            'uploader_name': r.uploader.full_name if r.uploader else '',
+        })
+
+    approvals_data = []
+    for s in pending_students:
+        approvals_data.append({
+            'id': s.id,
+            'full_name': s.full_name,
+            'email': s.email,
+            'campus': s.campus,
+            'year': s.year,
+            'semester': s.semester,
+        })
+
+    return jsonify({
+        'recent_uploads': uploads_data,
+        'pending_approvals': approvals_data,
+        'timestamp': datetime.utcnow().isoformat() + 'Z'
+    })
 
 # ─── PROFILE ───
 @core.route('/profile', methods=['GET', 'POST'])
@@ -193,10 +236,6 @@ def upload_resource():
     programs = Program.query.all()
     return render_template('core/class_rep/upload_resource.html', modules=modules, programs=programs)
 
-
-
-
-
 # ─── CLASS REP ACTIONS ───
 @core.route('/approve-student/<int:user_id>', methods=['POST'])
 @login_required
@@ -214,10 +253,6 @@ def approve_student(user_id):
     else:
         flash('You do not have permission to approve this student.')
     return redirect(url_for('core.dashboard'))
-
-
-
-
 
 @core.route('/reject-student/<int:user_id>', methods=['POST'])
 @login_required
@@ -237,9 +272,6 @@ def reject_student(user_id):
         flash('You do not have permission to reject this student.')
     return redirect(url_for('core.dashboard'))
 
-
-
-
 # ─── ADMIN DASHBOARD ───
 def get_filtered_logs(action_filter=None, user_search=''):
     log_query = Log.query
@@ -258,7 +290,6 @@ def get_filtered_logs(action_filter=None, user_search=''):
 
     return log_query.order_by(Log.created_at.desc()).limit(50).all()
 
-
 @core.route('/admin/logs')
 @login_required
 def admin_logs():
@@ -271,7 +302,6 @@ def admin_logs():
     system_logs = get_filtered_logs(action_filter, user_search)
 
     return render_template('core/admin/_logs_table.html', logs=system_logs)
-
 
 @core.route('/admin/dashboard')
 @login_required
@@ -330,41 +360,30 @@ def admin_dashboard():
                            selected_action=action_filter,
                            user_search=user_search,
                            now=now)
+
+@core.route('/live/admin-logs')
+@login_required
+def live_admin_logs():
     if not current_user.is_admin:
-        flash('Access denied.')
-        return redirect(url_for('core.dashboard'))
+        return jsonify({'error': 'Unauthorized'}), 401
 
-    # Clean old logs (older than today)
-    today = date.today()
-    Log.query.filter(Log.created_at < today).delete()
-    db.session.commit()
+    action_filter = request.args.get('action')
+    user_search = request.args.get('user_search', '').strip()
+    system_logs = get_filtered_logs(action_filter, user_search)
 
-    year_filter = request.args.get('year', type=int)
-    sem_filter = request.args.get('semester', type=int)
-    user_query = User.query
-    if year_filter:
-        user_query = user_query.filter_by(year=year_filter)
-    if sem_filter:
-        user_query = user_query.filter_by(semester=sem_filter)
+    logs_data = []
+    for log in system_logs:
+        logs_data.append({
+            'created_at': log.created_at.strftime('%H:%M | %d %b %Y') if log.created_at else '',
+            'actor': log.user.full_name if log.user else 'System Core',
+            'action': log.action or '',
+            'details': log.details or ''
+        })
 
-    all_users = user_query.all()
-    all_programs = Program.query.all()
-    all_modules = Module.query.all()
-    system_logs = Log.query.order_by(Log.created_at.desc()).limit(50).all()
-    pending_requests = TransferRequest.query.filter_by(status='pending').all()
-
-    # Log admin dashboard access (only if filter applied, to avoid clutter)
-    if year_filter or sem_filter:
-        create_log("Admin Dashboard Filter", f"Filtered by Year={year_filter}, Semester={sem_filter}")
-
-    return render_template('core/admin/dashboard.html',
-                           users=all_users,
-                           logs=system_logs,
-                           programs=all_programs,
-                           modules=all_modules,
-                           requests=pending_requests,
-                           current_year=year_filter,
-                           current_sem=sem_filter)
+    return jsonify({
+        'logs': logs_data,
+        'timestamp': datetime.utcnow().isoformat() + 'Z'
+    })
 
 @core.route('/admin/request/<int:req_id>/<action>')
 @login_required
@@ -649,7 +668,6 @@ def get_student_context():
     })
     response.headers.add("ngrok-skip-browser-warning", "true")
     return response
-
 
 @core.route('/about')
 def about():
