@@ -60,6 +60,10 @@ class Resource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     file_path = db.Column(db.String(200), nullable=False)
+
+    thumbnail_path = db.Column(db.String(200), nullable=True)   # NEW
+    file_type = db.Column(db.String(10), nullable=True)         # NEW
+    
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
     campus = db.Column(db.String(50), nullable=False)
     target_year = db.Column(db.Integer, nullable=False)

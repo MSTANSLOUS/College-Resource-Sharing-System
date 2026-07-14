@@ -34,108 +34,91 @@
         </div>
 
         <!-- Skeleton -->
-        <div id="cross-campus-skeleton" class="mt-8 space-y-10">
-            <div class="space-y-4">
-                <div class="flex items-center space-x-4 animate-pulse">
-                    <div class="h-4 bg-[#f0ebe3] rounded w-48"></div>
-                    <div class="flex-1 h-px bg-[#ede8e0]"></div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {% for idx in range(3) %}
-                    <div class="bg-white border border-[#ede8e0] rounded-2xl p-6 space-y-5 animate-pulse">
-                        <div class="flex items-center justify-between">
-                            <div class="h-10 w-10 bg-[#f0ebe3] rounded-xl"></div>
-                            <div class="h-5 bg-[#f0ebe3] rounded w-16"></div>
-                        </div>
-                        <div class="space-y-2">
-                            <div class="h-4 bg-[#f0ebe3] rounded w-5/6"></div>
-                            <div class="h-4 bg-[#f0ebe3] rounded w-1/2"></div>
-                        </div>
-                        <div class="flex items-center space-x-2 pt-1">
-                            <div class="w-4 h-4 rounded-full bg-[#f0ebe3]"></div>
-                            <div class="h-3 bg-[#f0ebe3] rounded w-24"></div>
-                        </div>
-                        <div class="pt-4 border-t border-[#f0ebe3] flex justify-between items-center">
-                            <div class="h-4 bg-[#f0ebe3] rounded w-32"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
+        <div id="cross-campus-skeleton" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for idx in range(3) %}
+            <div class="bg-white border border-[#ede8e0] rounded-2xl p-4 space-y-3 animate-pulse">
+                <div class="h-48 bg-[#f0ebe3] rounded-xl"></div>
+                <div class="h-4 bg-[#f0ebe3] rounded w-3/4"></div>
+                <div class="h-3 bg-[#f0ebe3] rounded w-1/2"></div>
+                <div class="flex justify-between">
+                    <div class="h-3 bg-[#f0ebe3] rounded w-16"></div>
+                    <div class="h-3 bg-[#f0ebe3] rounded w-16"></div>
                 </div>
             </div>
+            {% endfor %}
         </div>
 
         <!-- Real Content -->
         <div id="cross-campus-real-content" class="mt-8 hidden">
             {% for campus, modules in organized_notes.items() %}
-            <div id="content-{{ campus|replace(' ', '-') }}" class="campus-content animate-fadeIn {% if not loop.first %}hidden{% endif %} space-y-10">
+            <div id="content-{{ campus|replace(' ', '-') }}" class="campus-content animate-fadeIn {% if not loop.first %}hidden{% endif %} space-y-8">
 
                 {% for module_name, notes in modules.items() %}
-                <section class="space-y-4">
-                    <div class="flex items-center space-x-4">
-                        <h2 class="text-xs font-black text-[#5a5248] uppercase tracking-widest whitespace-nowrap">{{ module_name }}</h2>
+                <div>
+                    <div class="flex items-center space-x-4 mb-3">
+                        <h2 class="text-xs font-black text-[#5a5248] uppercase tracking-widest">{{ module_name }}</h2>
                         <div class="flex-1 h-px bg-[#ede8e0] bg-gradient-to-r from-[#ede8e0] to-transparent"></div>
                     </div>
-
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {% for note in notes %}
-                        <div class="group bg-white border border-[#ede8e0] rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-[#ddd6ca] transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
-                            <div class="absolute -top-10 -right-10 w-24 h-24 bg-[#f5f2ec] rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                            <div>
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="h-10 w-10 bg-[#f5f2ec] text-[#6b5e50] rounded-xl flex items-center justify-center border border-[#ede8e0] group-hover:scale-110 transition-transform duration-300">
-                                        <i class="fas fa-file-alt"></i>
+                        <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 note-card cursor-pointer" 
+                             onclick="window.open('{{ url_for('static', filename=note.file_path) }}', '_blank')">
+                            
+                            <div class="relative h-56 bg-[#f5f2ec] overflow-hidden">
+                                {% if note.thumbnail_path %}
+                                    <img src="{{ url_for('static', filename=note.thumbnail_path) }}"
+                                         alt="{{ note.title }}"
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                         loading="lazy"
+                                         onerror="this.onerror=null; this.style.display='none'; this.parentElement.querySelector('.fallback-icon').style.display='flex';">
+                                    <div class="fallback-icon hidden absolute inset-0 flex items-center justify-center text-[#b5aaa0] text-4xl">
+                                        <i class="fas fa-file-{{ note.file_type|default('pdf') }}"></i>
                                     </div>
-                                    <span class="bg-[#f5f2ec] text-[#5a5248] text-[10px] font-bold px-2.5 py-1 rounded-lg border border-[#ede8e0] uppercase tracking-wider">
-                                        Year {{ note.academic_year }}
+                                {% else %}
+                                    <div class="flex items-center justify-center h-full text-[#b5aaa0] text-4xl">
+                                        <i class="fas fa-file-{{ note.file_type|default('pdf') }}"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <span class="absolute top-3 left-3 bg-white/90 text-[#5a5248] text-[10px] font-bold px-2 py-0.5 rounded-lg border border-[#ede8e0] uppercase">
+                                    {{ note.file_type|default('pdf') }}
+                                </span>
+                                <span class="absolute top-3 right-3 bg-[#1a1a1a]/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                                    Year {{ note.academic_year }}
+                                </span>
+                                <div class="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                    <span class="bg-white/90 text-[#1a1a1a] px-4 py-2 rounded-xl text-sm font-bold shadow-lg flex items-center gap-2">
+                                        <i class="fas fa-eye"></i> Preview
                                     </span>
-                                </div>
-
-                                <div class="mb-5">
-                                    <h3 class="text-base font-bold text-[#1a1a1a] group-hover:text-[#6b5e50] transition-colors duration-200 leading-snug tracking-tight line-clamp-2" title="{{ note.title }}">
-                                        {{ note.title }}
-                                    </h3>
-                                    <div class="flex items-center space-x-2 mt-2">
-                                        <div class="w-4 h-4 rounded-full bg-[#ede8e0] text-[#5a5248] text-[9px] font-bold flex items-center justify-center uppercase">
-                                            {{ note.uploader.full_name[:1] }}
-                                        </div>
-                                        <p class="text-[11px] text-[#b5aaa0] font-medium">
-                                            Uploaded by <span class="text-[#5a5248] font-semibold">{{ note.uploader.full_name }}</span>
-                                        </p>
-                                    </div>
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-between pt-4 border-t border-[#f0ebe3] mt-2 z-10 relative">
-                                <a href="{{ url_for('static', filename=note.file_path) }}" target="_blank" data-turbo="false"
-                                   class="inline-flex items-center text-sm font-bold text-[#5a5248] hover:text-[#1a1a1a] transition-colors duration-150 group/link">
-                                    <i class="fas fa-download mr-2 text-[#b5aaa0] group-hover/link:text-[#6b5e50] group-hover/link:translate-y-0.5 transition-all"></i>
-                                    Download PDF
-                                </a>
+                            <div class="p-4">
+                                <h3 class="text-base font-bold text-[#1a1a1a] line-clamp-2 leading-snug">{{ note.title }}</h3>
+                                <p class="text-xs text-[#7a7268] mt-1">
+                                    <span class="font-medium text-[#5a5248]">{{ note.uploader.full_name }}</span>
+                                    <span class="mx-1">·</span>
+                                    {{ note.created_at.strftime('%d %b %Y') if note.created_at else 'N/A' }}
+                                </p>
+                                <div class="flex items-center justify-between mt-4 pt-3 border-t border-[#f0ebe3]">
+                                    <a href="{{ url_for('static', filename=note.file_path) }}" download data-turbo="false"
+                                       class="inline-flex items-center text-sm font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors"
+                                       onclick="event.stopPropagation();">
+                                        <i class="fas fa-download mr-1.5"></i> Download PDF
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-
-                    <!-- ─── ENHANCED EMPTY STATE (per module) ─── -->
-                    {% if not notes %}
-                    <div class="py-12 text-center rounded-2xl border border-dashed border-[#ede8e0] bg-white/40 backdrop-blur-sm">
-                        <div class="bg-[#f5f2ec] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 border border-[#ede8e0]">
-                            <i class="fas fa-globe text-2xl text-[#b5aaa0]"></i>
-                        </div>
-                        <h4 class="text-[#1a1a1a] font-bold">No notes for {{ module_name }}</h4>
-                        <p class="text-[#7a7268] text-sm mt-1">This module doesn't have any cross‑campus resources yet.</p>
-                        <p class="text-xs text-[#b5aaa0] mt-2">Check back later or explore other campuses.</p>
-                    </div>
-                    {% endif %}
-                </section>
+                </div>
                 {% endfor %}
 
             </div>
             {% endfor %}
         </div>
     {% else %}
-        <!-- ─── ENHANCED EMPTY STATE (overall) ─── -->
+        <!-- Empty State -->
         <div class="py-20 text-center rounded-2xl border border-dashed border-[#ede8e0] bg-white/40 backdrop-blur-sm">
             <div class="bg-[#f5f2ec] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#ede8e0]">
                 <i class="fas fa-globe text-3xl text-[#b5aaa0]"></i>
@@ -143,16 +126,10 @@
             <h3 class="text-[#1a1a1a] font-bold text-xl">No Cross-Campus Resources</h3>
             <p class="text-[#7a7268] text-sm mt-2 max-w-md mx-auto">
                 No resources have been shared from other campuses for your program track yet.
-                This could mean that other campuses haven't published materials, or they haven't been shared with your program.
             </p>
-            <div class="flex flex-wrap justify-center gap-3 mt-6">
-                <span class="inline-flex items-center px-4 py-2 bg-[#f5f2ec] border border-[#ede8e0] rounded-xl text-xs font-medium text-[#5a5248]">
-                    <i class="fas fa-lightbulb mr-2 text-[#c4b09a]"></i> Tip: Check your campus notes
-                </span>
-                <a href="{{ url_for('core.campus_notes') }}" class="inline-flex items-center px-4 py-2 bg-[#1a1a1a] hover:bg-black text-white text-xs font-bold rounded-xl transition-colors">
-                    <i class="fas fa-arrow-right mr-2"></i> Go to Campus Notes
-                </a>
-            </div>
+            <a href="{{ url_for('core.campus_notes') }}" class="inline-block mt-4 text-sm font-bold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
+                <i class="fas fa-arrow-right mr-1"></i> Go to Campus Notes
+            </a>
         </div>
     {% endif %}
 </div>
@@ -166,41 +143,42 @@
         to { opacity: 1; transform: translateY(0); }
     }
     .animate-fadeIn { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    .note-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .note-card:hover {
+        transform: translateY(-4px);
+    }
 </style>
 
 <script>
-    // ── Tab switching ──
     function switchCampus(campusId) {
         document.querySelectorAll('.campus-content').forEach(el => el.classList.add('hidden'));
-
-        const targetContent = document.getElementById('content-' + campusId);
-        if (targetContent) {
-            targetContent.classList.remove('hidden');
-        }
+        const target = document.getElementById('content-' + campusId);
+        if (target) target.classList.remove('hidden');
 
         document.querySelectorAll('.campus-tab-btn').forEach(btn => {
             btn.classList.remove('border-[#c4b09a]', 'text-[#1a1a1a]');
             btn.classList.add('border-transparent', 'text-[#b5aaa0]', 'hover:text-[#5a5248]');
         });
 
-        const activeTab = document.getElementById('tab-' + campusId);
-        if (activeTab) {
-            activeTab.classList.remove('border-transparent', 'text-[#b5aaa0]', 'hover:text-[#5a5248]');
-            activeTab.classList.add('border-[#c4b09a]', 'text-[#1a1a1a]');
+        const activeBtn = document.getElementById('tab-' + campusId);
+        if (activeBtn) {
+            activeBtn.classList.remove('border-transparent', 'text-[#b5aaa0]', 'hover:text-[#5a5248]');
+            activeBtn.classList.add('border-[#c4b09a]', 'text-[#1a1a1a]');
         }
     }
 
-    // ── Initialisation ──
-    function initializeCrossCampusArchive() {
-        const skeleton = document.getElementById("cross-campus-skeleton");
-        const realContent = document.getElementById("cross-campus-real-content");
-
-        if (skeleton && realContent) {
-            skeleton.classList.add("hidden");
-            realContent.classList.remove("hidden");
+    function initializeCrossCampus() {
+        const skeleton = document.getElementById('cross-campus-skeleton');
+        const real = document.getElementById('cross-campus-real-content');
+        if (skeleton && real) {
+            skeleton.classList.add('hidden');
+            real.classList.remove('hidden');
         }
     }
 
-    document.addEventListener("turbo:load", initializeCrossCampusArchive);
+    document.addEventListener('turbo:load', initializeCrossCampus);
 </script>
 {% endblock %}

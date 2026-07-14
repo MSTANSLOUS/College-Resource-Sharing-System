@@ -24,7 +24,7 @@
                 Publishing System
             </span>
             <h1 class="text-3xl font-black text-[#1a1a1a] tracking-tight sm:text-4xl">Upload Resource</h1>
-            <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">Share your academic materials with the community in 3 simple steps.</p>
+            <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">Share your academic materials with the community.</p>
         </div>
     </div>
 
@@ -69,33 +69,19 @@
                                class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all placeholder:text-[#b5aaa0]">
                     </div>
                     <div>
-                        <label for="academic_year" class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Target Year</label>
+                        <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Target Year</label>
                         <div class="relative">
-                            <select id="academic_year" name="academic_year" required
-                                    class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all appearance-none cursor-pointer">
-                                <option value="" disabled selected class="text-[#b5aaa0]">Select Target Year</option>
-                                <option value="1">Year 1</option>
-                                <option value="2">Year 2</option>
-                                <option value="3">Year 3</option>
-                                <option value="4">Year 4</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[#b5aaa0]">
-                                <i class="fas fa-chevron-down text-xs"></i>
-                            </div>
+                            <input type="text" value="Year {{ current_user.year }}" disabled
+                                   class="block w-full px-4 py-3 bg-[#f5f2ec] border border-[#ede8e0] rounded-xl text-sm text-[#5a5248] cursor-not-allowed">
+                            <input type="hidden" name="academic_year" value="{{ current_user.year }}">
                         </div>
                     </div>
                     <div>
-                        <label for="semester" class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Target Semester</label>
+                        <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Target Semester</label>
                         <div class="relative">
-                            <select id="semester" name="semester" required
-                                    class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all appearance-none cursor-pointer">
-                                <option value="" disabled selected class="text-[#b5aaa0]">Select Semester</option>
-                                <option value="1">Semester 1</option>
-                                <option value="2">Semester 2</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[#b5aaa0]">
-                                <i class="fas fa-chevron-down text-xs"></i>
-                            </div>
+                            <input type="text" value="Semester {{ current_user.semester }}" disabled
+                                   class="block w-full px-4 py-3 bg-[#f5f2ec] border border-[#ede8e0] rounded-xl text-sm text-[#5a5248] cursor-not-allowed">
+                            <input type="hidden" name="semester" value="{{ current_user.semester }}">
                         </div>
                     </div>
                 </div>
@@ -131,17 +117,21 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-2">Upload Document (PDF)</label>
+                    <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-2">Upload Document</label>
                     <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-[#ede8e0] hover:border-[#c4b09a]/60 rounded-2xl cursor-pointer bg-[#faf8f5] hover:bg-white transition-all shadow-sm group">
+                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-[#ede8e0] hover:border-[#c4b09a]/60 rounded-2xl cursor-pointer bg-[#faf8f5] hover:bg-white transition-all shadow-sm group relative">
                             <div id="dropzone-text" class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
                                 <div class="h-14 w-14 bg-white group-hover:bg-[#f5f2ec] rounded-xl flex items-center justify-center border border-[#ede8e0] group-hover:border-[#c4b09a]/30 transition-all mb-3">
                                     <i class="fas fa-cloud-upload-alt text-2xl text-[#b5aaa0] group-hover:text-[#6b5e50] transition-colors"></i>
                                 </div>
                                 <p class="text-sm text-[#5a5248]"><span class="font-bold text-[#6b5e50] group-hover:text-[#1a1a1a]">Click to upload</span> or drag and drop</p>
-                                <p class="text-xs text-[#b5aaa0] mt-1">PDF files only</p>
+                                <p class="text-xs text-[#b5aaa0] mt-1">PDF, PPTX, DOCX, DOC files only</p>
                             </div>
-                            <input id="dropzone-file" type="file" name="file" accept="application/pdf" class="hidden" required />
+                            <input id="dropzone-file" type="file" name="file" accept=".pdf,.pptx,.docx,.doc" class="hidden" required />
+                            <!-- Clear button -->
+                            <button type="button" id="clear-file-btn" class="hidden absolute top-2 right-2 bg-white/90 text-rose-500 hover:text-rose-700 rounded-full p-1.5 shadow-md border border-[#ede8e0]" title="Remove file">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </label>
                     </div>
                 </div>
@@ -150,7 +140,7 @@
                     <button type="button" onclick="prevStep(1)" class="inline-flex items-center px-6 py-2.5 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">
                         <i class="fas fa-arrow-left mr-2"></i> Back
                     </button>
-                    <button type="button" onclick="nextStep(3)" class="inline-flex items-center px-6 py-2.5 bg-[#1a1a1a] hover:bg-black text-white text-sm font-bold rounded-xl transition-colors">
+                    <button type="button" onclick="nextStep(3)" id="review-btn" class="inline-flex items-center px-6 py-2.5 bg-[#1a1a1a] hover:bg-black text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         Review <i class="fas fa-arrow-right ml-2"></i>
                     </button>
                 </div>
@@ -199,6 +189,8 @@
 <script>
     let currentStep = 1;
     const totalSteps = 3;
+    const allowedExtensions = ['pdf', 'pptx', 'docx', 'doc'];
+    let fileIsValid = false;
 
     function updateProgress(step) {
         const percent = ((step - 1) / (totalSteps - 1)) * 100;
@@ -220,13 +212,12 @@
         if (currentStep === 1) {
             const module = document.getElementById('module_id').value;
             const title = document.getElementById('title').value;
-            const year = document.getElementById('academic_year').value;
-            const sem = document.getElementById('semester').value;
+            const year = document.querySelector('input[name="academic_year"]').value;
+            const sem = document.querySelector('input[name="semester"]').value;
             if (!module || !title || !year || !sem) {
                 showToast('Please fill in all fields in Step 1.', 'warning');
                 return;
             }
-            // Pre-fill review
             document.getElementById('review-module').textContent = document.getElementById('module_id').selectedOptions[0].text;
             document.getElementById('review-title').textContent = title;
             document.getElementById('review-level').textContent = 'Year ' + year + ' · Semester ' + sem;
@@ -234,7 +225,6 @@
 
         // Step 2 validation
         if (currentStep === 2) {
-            // Programs
             const checked = document.querySelectorAll('input[name="programs"]:checked');
             const errorMsg = document.getElementById('program-error');
             if (checked.length === 0) {
@@ -246,21 +236,20 @@
             const programNames = Array.from(checked).map(cb => cb.closest('label').querySelector('span').textContent.trim());
             document.getElementById('review-programs').textContent = programNames.join(', ') || '—';
 
-            // --- NEW: Validate file ---
+            // Validate file
             const fileInput = document.getElementById('dropzone-file');
             if (!fileInput.files || fileInput.files.length === 0) {
-                showToast('Please select a PDF file to upload.', 'warning');
-                // Highlight dropzone
+                showToast('Please select a file to upload.', 'warning');
                 fileInput.closest('.border-2').classList.add('border-rose-500');
                 setTimeout(() => fileInput.closest('.border-2').classList.remove('border-rose-500'), 3000);
                 return;
             }
             const file = fileInput.files[0];
-            if (file.type !== 'application/pdf') {
-                showToast('Only PDF files are allowed.', 'warning');
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(ext)) {
+                showToast('Only PDF, PPTX, DOCX, and DOC files are allowed.', 'warning');
                 return;
             }
-            // Update review file name
             document.getElementById('review-file').textContent = file.name;
         }
 
@@ -271,49 +260,106 @@
         showStep(step);
     }
 
-    // ── Dropzone file name display ──
+    // ─── File input handling ───
     const fileInput = document.getElementById('dropzone-file');
     const dropzoneText = document.getElementById('dropzone-text');
-    if (fileInput && dropzoneText) {
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files.length > 0) {
-                const filename = this.files[0].name;
-                document.getElementById('review-file').textContent = filename;
+    const clearBtn = document.getElementById('clear-file-btn');
+    const dropzoneLabel = document.querySelector('label[for="dropzone-file"]');
+    const reviewBtn = document.getElementById('review-btn');
+
+    function updateDropzoneUI(file) {
+        if (file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const isValid = allowedExtensions.includes(ext);
+            fileIsValid = isValid;
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+
+            if (isValid) {
                 dropzoneText.innerHTML = `
                     <div class="h-14 w-14 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100 mb-3">
                         <i class="fas fa-check-circle text-2xl text-emerald-500"></i>
                     </div>
-                    <p class="text-sm font-bold text-[#1a1a1a]">${filename}</p>
-                    <p class="text-xs text-emerald-600 font-semibold mt-1">Document loaded successfully.</p>
+                    <p class="text-sm font-bold text-[#1a1a1a]">${file.name}</p>
+                    <p class="text-xs text-emerald-600 font-semibold mt-1">${fileSize} MB · Ready to upload</p>
                 `;
+                dropzoneLabel.classList.remove('border-dashed', 'border-rose-300', 'bg-rose-50/30');
+                dropzoneLabel.classList.add('border-solid', 'border-emerald-300', 'bg-emerald-50/30');
+                clearBtn.classList.remove('hidden');
+                document.getElementById('review-file').textContent = file.name;
+                reviewBtn.disabled = false;
+            } else {
+                dropzoneText.innerHTML = `
+                    <div class="h-14 w-14 bg-rose-50 rounded-xl flex items-center justify-center border border-rose-100 mb-3">
+                        <i class="fas fa-exclamation-triangle text-2xl text-rose-500"></i>
+                    </div>
+                    <p class="text-sm font-bold text-[#1a1a1a]">${file.name}</p>
+                    <p class="text-xs text-rose-600 font-semibold mt-1">Unsupported file type (PDF, PPTX, DOCX, DOC only)</p>
+                `;
+                dropzoneLabel.classList.remove('border-dashed', 'border-emerald-300', 'bg-emerald-50/30');
+                dropzoneLabel.classList.add('border-solid', 'border-rose-300', 'bg-rose-50/30');
+                clearBtn.classList.remove('hidden');
+                document.getElementById('review-file').textContent = '⚠️ ' + file.name + ' (invalid)';
+                reviewBtn.disabled = true;
+                fileIsValid = false;
             }
-        });
+        } else {
+            dropzoneText.innerHTML = `
+                <div class="h-14 w-14 bg-white group-hover:bg-[#f5f2ec] rounded-xl flex items-center justify-center border border-[#ede8e0] group-hover:border-[#c4b09a]/30 transition-all mb-3">
+                    <i class="fas fa-cloud-upload-alt text-2xl text-[#b5aaa0] group-hover:text-[#6b5e50] transition-colors"></i>
+                </div>
+                <p class="text-sm text-[#5a5248]"><span class="font-bold text-[#6b5e50] group-hover:text-[#1a1a1a]">Click to upload</span> or drag and drop</p>
+                <p class="text-xs text-[#b5aaa0] mt-1">PDF, PPTX, DOCX, DOC files only</p>
+            `;
+            dropzoneLabel.classList.remove('border-solid', 'border-emerald-300', 'bg-emerald-50/30', 'border-rose-300', 'bg-rose-50/30');
+            dropzoneLabel.classList.add('border-dashed');
+            clearBtn.classList.add('hidden');
+            document.getElementById('review-file').textContent = '—';
+            reviewBtn.disabled = true;
+            fileIsValid = false;
+        }
     }
+
+    // ── Attach event listeners ──
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            updateDropzoneUI(this.files[0]);
+        } else {
+            updateDropzoneUI(null);
+        }
+    });
+
+    clearBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.value = '';
+        updateDropzoneUI(null);
+    });
 
     // ── Form submit shimmer ──
     const uploadForm = document.getElementById('resource-upload-form');
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', function(e) {
-            // Double-check file (in case user bypasses JS)
-            const fileInput = document.getElementById('dropzone-file');
-            if (!fileInput.files || fileInput.files.length === 0) {
-                e.preventDefault();
-                showToast('Please select a PDF file.', 'warning');
-                return;
-            }
-            const checked = document.querySelectorAll('input[name="programs"]:checked');
-            if (checked.length === 0) {
-                e.preventDefault();
-                document.getElementById('program-error').classList.remove('hidden');
-                return;
-            }
-            const mask = document.getElementById('upload-loading-shimmer');
-            if (mask) {
-                mask.classList.remove('opacity-0', 'pointer-events-none');
-                mask.classList.add('opacity-100');
-            }
-        });
-    }
+    uploadForm.addEventListener('submit', function(e) {
+        const fileInput = document.getElementById('dropzone-file');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            showToast('Please select a file.', 'warning');
+            return;
+        }
+        if (!fileIsValid) {
+            e.preventDefault();
+            showToast('Please choose a valid file type (PDF, PPTX, DOCX, DOC).', 'warning');
+            return;
+        }
+        const checked = document.querySelectorAll('input[name="programs"]:checked');
+        if (checked.length === 0) {
+            e.preventDefault();
+            document.getElementById('program-error').classList.remove('hidden');
+            return;
+        }
+        const mask = document.getElementById('upload-loading-shimmer');
+        if (mask) {
+            mask.classList.remove('opacity-0', 'pointer-events-none');
+            mask.classList.add('opacity-100');
+        }
+    });
 
     // ── Toast helper ──
     function showToast(message, type) {
@@ -335,5 +381,6 @@
 
     // Initial state
     updateProgress(1);
+    reviewBtn.disabled = true;
 </script>
 {% endblock %}

@@ -1,4 +1,9 @@
 import os
+import fitz  # PyMuPDF
+from pptx import Presentation
+from docx import Document
+import io
+from PIL import Image, ImageDraw, ImageFont  # PyMuPDF
 from flask import Blueprint, render_template, request, redirect, current_app, flash, url_for, abort, jsonify
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.utils import secure_filename
@@ -364,10 +369,81 @@ def vault():
 
 
 
+ALLOWED_EXTENSIONS = {'pdf', 'pptx', 'docx', 'doc'}
+
+def generate_thumbnail(file_path, file_ext):
+    """Generate thumbnail image data for the first page/slide of a document."""
+    try:
+        if file_ext == 'pdf':
+            doc = fitz.open(file_path)
+            page = doc[0]
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+            thumbnail_data = pix.tobytes("png")
+            doc.close()
+            return thumbnail_data
+
+        elif file_ext in ['pptx', 'ppt']:
+            prs = Presentation(file_path)
+            if len(prs.slides) > 0:
+                try:
+                    title = prs.slides[0].shapes.title.text if prs.slides[0].shapes.title else "Slide 1"
+                except:
+                    title = "Slide 1"
+                img = Image.new('RGB', (400, 300), color=(245, 242, 236))
+                d = ImageDraw.Draw(img)
+                try:
+                    font = ImageFont.truetype("arial.ttf", 20)
+                except:
+                    font = ImageFont.load_default()
+                d.text((20, 130), title, fill=(26, 26, 26), font=font)
+                img_buffer = io.BytesIO()
+                img.save(img_buffer, format='PNG')
+                return img_buffer.getvalue()
+            else:
+                return None
+
+        elif file_ext in ['docx', 'doc']:
+            doc = Document(file_path)
+            first_text = ""
+            for para in doc.paragraphs:
+                if para.text.strip():
+                    first_text = para.text.strip()
+                    break
+            if not first_text:
+                first_text = "Document Preview"
+            img = Image.new('RGB', (400, 300), color=(245, 242, 236))
+            d = ImageDraw.Draw(img)
+            try:
+                font = ImageFont.truetype("arial.ttf", 20)
+            except:
+                font = ImageFont.load_default()
+            # Wrap text
+            lines = []
+            words = first_text.split()
+            line = ""
+            for word in words:
+                if len(line + word) < 30:
+                    line += word + " "
+                else:
+                    lines.append(line.strip())
+                    line = word + " "
+            if line:
+                lines.append(line.strip())
+            y = 130 - (len(lines) * 15)
+            for l in lines:
+                d.text((20, y), l, fill=(26, 26, 26), font=font)
+                y += 30
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='PNG')
+            return img_buffer.getvalue()
+
+    except Exception as e:
+        print(f"Thumbnail generation failed: {e}")
+        return None
+    return None
 
 
 
-# ─── UPLOAD RESOURCE ───
 @core.route('/upload-resource', methods=['GET', 'POST'])
 @login_required
 def upload_resource():
@@ -378,22 +454,47 @@ def upload_resource():
     if request.method == 'POST':
         module_id = request.form.get('module_id')
         title = request.form.get('title')
-        academic_year = request.form.get('academic_year')
         selected_programs = request.form.getlist('programs')
         file = request.files.get('file')
 
-        if not module_id or not title or not selected_programs or not file or not file.filename.endswith('.pdf'):
-            flash('All fields are required and file must be a PDF.', 'error')
+        if not module_id or not title or not selected_programs or not file:
+            flash('All fields are required.', 'error')
             return redirect(url_for('core.upload_resource'))
 
+        # Validate file type
         filename = secure_filename(file.filename)
+        ext = filename.rsplit('.', 1)[-1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            flash('Only PDF, PPTX, DOCX, and DOC files are allowed.', 'error')
+            return redirect(url_for('core.upload_resource'))
+
         upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
         os.makedirs(upload_folder, exist_ok=True)
-        file.save(os.path.join(upload_folder, filename))
+        file_path = os.path.join(upload_folder, filename)
+        file.save(file_path)
+
+        # Generate thumbnail
+        thumbnail_data = generate_thumbnail(file_path, ext)
+        thumbnail_filename = None
+        if thumbnail_data:
+            thumb_ext = 'png'
+            thumbnail_filename = f"{os.path.splitext(filename)[0]}_thumb.{thumb_ext}"
+            thumb_full_path = os.path.join(upload_folder, thumbnail_filename)
+            with open(thumb_full_path, 'wb') as f:
+                f.write(thumbnail_data)
+            thumbnail_path = f"uploads/{thumbnail_filename}"
+        else:
+            thumbnail_path = None
+
+        # Auto-fill academic_year and semester from rep's own data
+        academic_year = current_user.year
+        target_semester = current_user.semester
 
         new_resource = Resource(
             title=title,
             file_path=f"uploads/{filename}",
+            thumbnail_path=thumbnail_path,
+            file_type=ext,
             module_id=module_id,
             campus=current_user.campus,
             academic_year=academic_year,
@@ -419,6 +520,8 @@ def upload_resource():
             'uploader_name': current_user.full_name,
             'campus': current_user.campus,
             'file_path': new_resource.file_path,
+            'thumbnail_path': new_resource.thumbnail_path,
+            'file_type': ext,
             'program_id': current_user.program_id,
             'year': current_user.year,
             'semester': current_user.semester
@@ -431,6 +534,8 @@ def upload_resource():
             'uploader_name': current_user.full_name,
             'campus': current_user.campus,
             'file_path': new_resource.file_path,
+            'thumbnail_path': new_resource.thumbnail_path,
+            'file_type': ext,
         }, room='admin')
 
         module = Module.query.get(module_id)
