@@ -1,0 +1,41 @@
+{
+  "id": "/",
+  "name": "Student Resource System",
+  "short_name": "SRS",
+  "description": "Share and access academic resources across campuses",
+  "categories": ["education", "students"],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay"],
+  "orientation": "portrait",
+  "theme_color": "#c4b09a",
+  "background_color": "#f5f2ec",
+  "icons": [
+    {
+      "src": "/static/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/static/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
