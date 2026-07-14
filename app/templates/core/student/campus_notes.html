@@ -44,8 +44,32 @@
         </nav>
     </div>
 
+    <!-- ─── SEARCH & FILTER ─── -->
+    <div class="flex flex-wrap items-center gap-4 mt-4 bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-[#ede8e0] shadow-sm">
+        <div class="flex-1 min-w-[200px]">
+            <label for="search-notes" class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1">Search</label>
+            <input type="text" id="search-notes" placeholder="Title, module, or uploader..."
+                   class="w-full px-4 py-2 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all placeholder:text-[#b5aaa0]">
+        </div>
+        <div class="w-40">
+            <label for="filter-format" class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1">Format</label>
+            <select id="filter-format" class="w-full px-4 py-2 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all cursor-pointer appearance-none">
+                <option value="all">All Formats</option>
+                <option value="pdf">PDF</option>
+                <option value="pptx">PPTX</option>
+                <option value="docx">DOCX</option>
+                <option value="doc">DOC</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button id="clear-filters" class="px-4 py-2 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">
+                <i class="fas fa-undo mr-1.5"></i> Clear
+            </button>
+        </div>
+    </div>
+
     <!-- Skeleton Loader -->
-    <div id="notes-skeleton-loader" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="notes-skeleton-loader" class="mt-8 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for idx in range(3) %}
         <div class="bg-white border border-[#ede8e0] rounded-2xl p-4 space-y-3 animate-pulse">
             <div class="h-48 bg-[#f0ebe3] rounded-xl"></div>
@@ -63,14 +87,18 @@
     <div id="tab-content-container" class="mt-8 hidden">
         {% for module_name, notes in grouped_notes.items() %}
         <div id="content-{{ loop.index }}" class="tab-pane animate-fadeIn {% if not loop.first %}hidden{% endif %}" data-module-name="{{ module_name }}">
-            <div id="notes-grid-{{ loop.index }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="notes-grid-{{ loop.index }}" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for note in notes %}
-                <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 note-card cursor-pointer" 
-                     data-note-id="{{ note.id }}" 
+                <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 note-card cursor-pointer note-item" 
+                     data-note-id="{{ note.id }}"
+                     data-file-type="{{ note.file_type|default('pdf') }}"
+                     data-title="{{ note.title|lower }}"
+                     data-module="{{ note.module.name|lower }}"
+                     data-uploader="{{ note.uploader.full_name|lower }}"
                      onclick="window.open('{{ url_for('static', filename=note.file_path) }}', '_blank')">
                     
-                    <!-- Cover Image (Thumbnail) -->
-                    <div class="relative h-56 bg-[#f5f2ec] overflow-hidden">
+                    <!-- Cover Image -->
+                    <div class="relative h-48 bg-[#f5f2ec] overflow-hidden">
                         {% if note.thumbnail_path %}
                             <img src="{{ url_for('static', filename=note.thumbnail_path) }}"
                                  alt="{{ note.title }}"
@@ -86,41 +114,34 @@
                             </div>
                         {% endif %}
                         
-                        <!-- File type badge -->
-                        <span class="absolute top-3 left-3 bg-white/90 text-[#5a5248] text-[10px] font-bold px-2 py-0.5 rounded-lg border border-[#ede8e0] uppercase">
+                        <span class="absolute top-2 left-2 bg-white/90 text-[#5a5248] text-[9px] font-bold px-1.5 py-0.5 rounded-lg border border-[#ede8e0] uppercase">
                             {{ note.file_type|default('pdf') }}
                         </span>
-                        
-                        <!-- Year badge -->
-                        <span class="absolute top-3 right-3 bg-[#1a1a1a]/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm">
-                            Year {{ note.academic_year }}
+                        <span class="absolute top-2 right-2 bg-[#1a1a1a]/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg backdrop-blur-sm">
+                            Y{{ note.academic_year }}
                         </span>
-                        
-                        <!-- Hover Overlay: Click to Preview -->
                         <div class="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                            <span class="bg-white/90 text-[#1a1a1a] px-4 py-2 rounded-xl text-sm font-bold shadow-lg flex items-center gap-2">
+                            <span class="bg-white/90 text-[#1a1a1a] px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
                                 <i class="fas fa-eye"></i> Preview
                             </span>
                         </div>
                     </div>
 
-                    <!-- Content -->
-                    <div class="p-4">
-                        <h3 class="text-base font-bold text-[#1a1a1a] line-clamp-2 leading-snug group-hover:text-[#6b5e50] transition-colors">
+                    <div class="p-3">
+                        <h3 class="text-sm font-bold text-[#1a1a1a] line-clamp-2 leading-snug group-hover:text-[#6b5e50] transition-colors">
                             {{ note.title }}
                         </h3>
-                        <p class="text-xs text-[#7a7268] mt-1">
+                        <p class="text-[10px] text-[#7a7268] mt-1">
                             <span class="font-medium text-[#5a5248]">{{ note.uploader.full_name }}</span>
                             <span class="mx-1">·</span>
                             {{ note.created_at.strftime('%d %b %Y') if note.created_at else 'N/A' }}
                         </p>
 
-                        <!-- Actions (Download & Delete) -->
-                        <div class="flex items-center justify-between mt-4 pt-3 border-t border-[#f0ebe3]">
+                        <div class="flex items-center justify-between mt-3 pt-2 border-t border-[#f0ebe3]">
                             <a href="{{ url_for('static', filename=note.file_path) }}" download data-turbo="false"
-                               class="inline-flex items-center text-sm font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors"
+                               class="inline-flex items-center text-xs font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors"
                                onclick="event.stopPropagation();">
-                                <i class="fas fa-download mr-1.5"></i> Download PDF
+                                <i class="fas fa-download mr-1"></i> PDF
                             </a>
                             {% if current_user.is_class_rep and current_user.id == note.user_id %}
                             <form action="{{ url_for('core.delete_note', note_id=note.id) }}"
@@ -138,7 +159,7 @@
                 {% endfor %}
             </div>
 
-            <!-- ─── ENHANCED EMPTY STATE ─── -->
+            <!-- Empty State -->
             {% if not notes %}
             <div id="empty-state-{{ loop.index }}" class="py-16 text-center rounded-2xl border border-dashed border-[#ede8e0] bg-white/40 backdrop-blur-sm">
                 <div class="bg-[#f5f2ec] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#ede8e0]">
@@ -187,9 +208,53 @@
     .note-card:hover {
         transform: translateY(-4px);
     }
+
+    .note-item.hidden-note {
+        display: none;
+    }
 </style>
 
 <script>
+    // ── Global filter function ──
+    function applyFilters() {
+        const searchTerm = document.getElementById('search-notes')?.value?.toLowerCase().trim() || '';
+        const formatFilter = document.getElementById('filter-format')?.value || 'all';
+
+        const allNotes = document.querySelectorAll('.note-item');
+
+        allNotes.forEach(note => {
+            const title = note.dataset.title || '';
+            const module = note.dataset.module || '';
+            const uploader = note.dataset.uploader || '';
+            const fileType = note.dataset.fileType || '';
+
+            const matchesSearch = !searchTerm || title.includes(searchTerm) || module.includes(searchTerm) || uploader.includes(searchTerm);
+            const matchesFormat = formatFilter === 'all' || fileType === formatFilter;
+
+            if (matchesSearch && matchesFormat) {
+                note.classList.remove('hidden-note');
+            } else {
+                note.classList.add('hidden-note');
+            }
+        });
+
+        // Hide empty modules
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            const visibleNotes = pane.querySelectorAll('.note-item:not(.hidden-note)');
+            const grid = pane.querySelector('.grid');
+            const emptyState = pane.querySelector('.text-center');
+            if (grid) {
+                if (visibleNotes.length === 0) {
+                    grid.style.display = 'none';
+                    if (emptyState) emptyState.style.display = 'block';
+                } else {
+                    grid.style.display = 'grid';
+                    if (emptyState) emptyState.style.display = 'none';
+                }
+            }
+        });
+    }
+
     // ── Tab switching ──
     function switchTab(index) {
         document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
@@ -206,9 +271,12 @@
             activeBtn.classList.remove('border-transparent', 'text-[#b5aaa0]', 'hover:text-[#5a5248]');
             activeBtn.classList.add('border-[#c4b09a]', 'text-[#1a1a1a]');
         }
+
+        // Re-apply filters after tab change
+        setTimeout(applyFilters, 100);
     }
 
-    // ── Initialisation and WebSocket ──
+    // ─── Initialisation ───
     function initializeResourceView() {
         const skeletonGrid = document.getElementById("notes-skeleton-loader");
         const structuralContainer = document.getElementById("tab-content-container");
@@ -218,7 +286,10 @@
             structuralContainer.classList.remove("hidden");
         }
 
-        // Shimmer on delete
+        // Re-apply filters after content loads
+        setTimeout(applyFilters, 200);
+
+        // Delete form shimmer
         document.querySelectorAll('.note-delete-form').forEach(form => {
             form.addEventListener('submit', function() {
                 const globalLoader = document.getElementById('page-nav-shimmer');
@@ -240,7 +311,6 @@
                 const grid = contentDiv.querySelector('.grid');
                 if (!grid) return;
 
-                // Remove empty state if exists
                 const emptyState = contentDiv.querySelector('.text-center');
                 if (emptyState) emptyState.remove();
 
@@ -253,12 +323,15 @@
                 };
                 const icon = iconMap[fileType] || 'fa-file-alt';
 
-                // Build card with thumbnail
                 let cardHtml = `
-                    <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 note-card cursor-pointer" 
-                         data-note-id="new" 
+                    <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 note-card cursor-pointer note-item" 
+                         data-note-id="new"
+                         data-file-type="${fileType}"
+                         data-title="${data.title.toLowerCase()}"
+                         data-module="${data.module_name.toLowerCase()}"
+                         data-uploader="${data.uploader_name.toLowerCase()}"
                          onclick="window.open('/static/${data.file_path}', '_blank')">
-                        <div class="relative h-56 bg-[#f5f2ec] overflow-hidden">`;
+                        <div class="relative h-48 bg-[#f5f2ec] overflow-hidden">`;
 
                 if (data.thumbnail_path) {
                     cardHtml += `
@@ -274,33 +347,78 @@
                 }
 
                 cardHtml += `
-                            <span class="absolute top-3 left-3 bg-white/90 text-[#5a5248] text-[10px] font-bold px-2 py-0.5 rounded-lg border border-[#ede8e0] uppercase">${fileType}</span>
-                            <span class="absolute top-3 right-3 bg-[#1a1a1a]/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm">Year ${data.academic_year}</span>
+                            <span class="absolute top-2 left-2 bg-white/90 text-[#5a5248] text-[9px] font-bold px-1.5 py-0.5 rounded-lg border border-[#ede8e0] uppercase">${fileType}</span>
+                            <span class="absolute top-2 right-2 bg-[#1a1a1a]/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg backdrop-blur-sm">Y${data.academic_year}</span>
                             <div class="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                <span class="bg-white/90 text-[#1a1a1a] px-4 py-2 rounded-xl text-sm font-bold shadow-lg flex items-center gap-2">
+                                <span class="bg-white/90 text-[#1a1a1a] px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
                                     <i class="fas fa-eye"></i> Preview
                                 </span>
                             </div>
                         </div>
-                        <div class="p-4">
-                            <h3 class="text-base font-bold text-[#1a1a1a] line-clamp-2 leading-snug group-hover:text-[#6b5e50] transition-colors">${data.title}</h3>
-                            <p class="text-xs text-[#7a7268] mt-1">
+                        <div class="p-3">
+                            <h3 class="text-sm font-bold text-[#1a1a1a] line-clamp-2 leading-snug group-hover:text-[#6b5e50] transition-colors">${data.title}</h3>
+                            <p class="text-[10px] text-[#7a7268] mt-1">
                                 <span class="font-medium text-[#5a5248]">${data.uploader_name}</span>
                                 <span class="mx-1">·</span> Just now
                             </p>
-                            <div class="flex items-center justify-between mt-4 pt-3 border-t border-[#f0ebe3]">
-                                <a href="/static/${data.file_path}" download data-turbo="false" class="inline-flex items-center text-sm font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" onclick="event.stopPropagation();">
-                                    <i class="fas fa-download mr-1.5"></i> Download PDF
+                            <div class="flex items-center justify-between mt-3 pt-2 border-t border-[#f0ebe3]">
+                                <a href="/static/${data.file_path}" download data-turbo="false" class="inline-flex items-center text-xs font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors" onclick="event.stopPropagation();">
+                                    <i class="fas fa-download mr-1"></i> PDF
                                 </a>
                             </div>
                         </div>
                     </div>`;
 
                 grid.insertAdjacentHTML('afterbegin', cardHtml);
+                // Re-apply filters after adding new card
+                setTimeout(applyFilters, 100);
             });
         }
     }
 
-    document.addEventListener("turbo:load", initializeResourceView);
+    // ─── Bind filter events ───
+    function bindFilterEvents() {
+        const searchInput = document.getElementById('search-notes');
+        const formatSelect = document.getElementById('filter-format');
+        const clearBtn = document.getElementById('clear-filters');
+
+        if (searchInput) {
+            // Remove old listeners to avoid duplication
+            searchInput.removeEventListener('input', applyFilters);
+            searchInput.addEventListener('input', applyFilters);
+        }
+        if (formatSelect) {
+            formatSelect.removeEventListener('change', applyFilters);
+            formatSelect.addEventListener('change', applyFilters);
+        }
+        if (clearBtn) {
+            clearBtn.removeEventListener('click', clearFilters);
+            clearBtn.addEventListener('click', clearFilters);
+        }
+    }
+
+    function clearFilters() {
+        const searchInput = document.getElementById('search-notes');
+        const formatSelect = document.getElementById('filter-format');
+        if (searchInput) searchInput.value = '';
+        if (formatSelect) formatSelect.value = 'all';
+        applyFilters();
+    }
+
+    // ── Setup on page load and Turbo navigation ──
+    function setupPage() {
+        initializeResourceView();
+        bindFilterEvents();
+        // Initial filter application after everything is ready
+        setTimeout(applyFilters, 300);
+    }
+
+    document.addEventListener('turbo:load', setupPage);
+    document.addEventListener('DOMContentLoaded', setupPage);
+
+    // Also run immediately if DOM is already loaded
+    if (document.readyState !== 'loading') {
+        setupPage();
+    }
 </script>
 {% endblock %}

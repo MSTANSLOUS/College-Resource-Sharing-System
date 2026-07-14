@@ -18,6 +18,30 @@
         </div>
     </div>
 
+    <!-- ─── SEARCH & FILTER ─── -->
+    <div class="flex flex-wrap items-center gap-4 bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-[#ede8e0] shadow-sm">
+        <div class="flex-1 min-w-[200px]">
+            <label for="search-notes-cross" class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1">Search</label>
+            <input type="text" id="search-notes-cross" placeholder="Title, module, or uploader..."
+                   class="w-full px-4 py-2 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all placeholder:text-[#b5aaa0]">
+        </div>
+        <div class="w-40">
+            <label for="filter-format-cross" class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1">Format</label>
+            <select id="filter-format-cross" class="w-full px-4 py-2 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all cursor-pointer appearance-none">
+                <option value="all">All Formats</option>
+                <option value="pdf">PDF</option>
+                <option value="pptx">PPTX</option>
+                <option value="docx">DOCX</option>
+                <option value="doc">DOC</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button id="clear-filters-cross" class="px-4 py-2 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">
+                <i class="fas fa-undo mr-1.5"></i> Clear
+            </button>
+        </div>
+    </div>
+
     {% if organized_notes %}
         <!-- Campus Tabs -->
         <div class="border-b border-[#ede8e0] sticky top-0 bg-[#f5f2ec]/80 backdrop-blur-md z-10 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
@@ -34,7 +58,7 @@
         </div>
 
         <!-- Skeleton -->
-        <div id="cross-campus-skeleton" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="cross-campus-skeleton" class="mt-8 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for idx in range(3) %}
             <div class="bg-white border border-[#ede8e0] rounded-2xl p-4 space-y-3 animate-pulse">
                 <div class="h-48 bg-[#f0ebe3] rounded-xl"></div>
@@ -52,19 +76,22 @@
         <div id="cross-campus-real-content" class="mt-8 hidden">
             {% for campus, modules in organized_notes.items() %}
             <div id="content-{{ campus|replace(' ', '-') }}" class="campus-content animate-fadeIn {% if not loop.first %}hidden{% endif %} space-y-8">
-
                 {% for module_name, notes in modules.items() %}
                 <div>
                     <div class="flex items-center space-x-4 mb-3">
                         <h2 class="text-xs font-black text-[#5a5248] uppercase tracking-widest">{{ module_name }}</h2>
                         <div class="flex-1 h-px bg-[#ede8e0] bg-gradient-to-r from-[#ede8e0] to-transparent"></div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {% for note in notes %}
-                        <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 note-card cursor-pointer" 
+                        <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 note-card cursor-pointer note-item"
+                             data-file-type="{{ note.file_type|default('pdf') }}"
+                             data-title="{{ note.title|lower }}"
+                             data-module="{{ note.module.name|lower }}"
+                             data-uploader="{{ note.uploader.full_name|lower }}"
                              onclick="window.open('{{ url_for('static', filename=note.file_path) }}', '_blank')">
                             
-                            <div class="relative h-56 bg-[#f5f2ec] overflow-hidden">
+                            <div class="relative h-48 bg-[#f5f2ec] overflow-hidden">
                                 {% if note.thumbnail_path %}
                                     <img src="{{ url_for('static', filename=note.thumbnail_path) }}"
                                          alt="{{ note.title }}"
@@ -80,31 +107,31 @@
                                     </div>
                                 {% endif %}
                                 
-                                <span class="absolute top-3 left-3 bg-white/90 text-[#5a5248] text-[10px] font-bold px-2 py-0.5 rounded-lg border border-[#ede8e0] uppercase">
+                                <span class="absolute top-2 left-2 bg-white/90 text-[#5a5248] text-[9px] font-bold px-1.5 py-0.5 rounded-lg border border-[#ede8e0] uppercase">
                                     {{ note.file_type|default('pdf') }}
                                 </span>
-                                <span class="absolute top-3 right-3 bg-[#1a1a1a]/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm">
-                                    Year {{ note.academic_year }}
+                                <span class="absolute top-2 right-2 bg-[#1a1a1a]/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg backdrop-blur-sm">
+                                    Y{{ note.academic_year }}
                                 </span>
                                 <div class="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                    <span class="bg-white/90 text-[#1a1a1a] px-4 py-2 rounded-xl text-sm font-bold shadow-lg flex items-center gap-2">
+                                    <span class="bg-white/90 text-[#1a1a1a] px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
                                         <i class="fas fa-eye"></i> Preview
                                     </span>
                                 </div>
                             </div>
 
-                            <div class="p-4">
-                                <h3 class="text-base font-bold text-[#1a1a1a] line-clamp-2 leading-snug">{{ note.title }}</h3>
-                                <p class="text-xs text-[#7a7268] mt-1">
+                            <div class="p-3">
+                                <h3 class="text-sm font-bold text-[#1a1a1a] line-clamp-2 leading-snug">{{ note.title }}</h3>
+                                <p class="text-[10px] text-[#7a7268] mt-1">
                                     <span class="font-medium text-[#5a5248]">{{ note.uploader.full_name }}</span>
                                     <span class="mx-1">·</span>
                                     {{ note.created_at.strftime('%d %b %Y') if note.created_at else 'N/A' }}
                                 </p>
-                                <div class="flex items-center justify-between mt-4 pt-3 border-t border-[#f0ebe3]">
+                                <div class="flex items-center justify-between mt-3 pt-2 border-t border-[#f0ebe3]">
                                     <a href="{{ url_for('static', filename=note.file_path) }}" download data-turbo="false"
-                                       class="inline-flex items-center text-sm font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors"
+                                       class="inline-flex items-center text-xs font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors"
                                        onclick="event.stopPropagation();">
-                                        <i class="fas fa-download mr-1.5"></i> Download PDF
+                                        <i class="fas fa-download mr-1"></i> PDF
                                     </a>
                                 </div>
                             </div>
@@ -113,7 +140,6 @@
                     </div>
                 </div>
                 {% endfor %}
-
             </div>
             {% endfor %}
         </div>
@@ -150,9 +176,58 @@
     .note-card:hover {
         transform: translateY(-4px);
     }
+
+    .note-item.hidden-note {
+        display: none;
+    }
 </style>
 
 <script>
+    // ── Global filter function ──
+    function applyFiltersCross() {
+        const searchTerm = document.getElementById('search-notes-cross')?.value?.toLowerCase().trim() || '';
+        const formatFilter = document.getElementById('filter-format-cross')?.value || 'all';
+
+        const allNotes = document.querySelectorAll('.note-item');
+
+        allNotes.forEach(note => {
+            const title = note.dataset.title || '';
+            const module = note.dataset.module || '';
+            const uploader = note.dataset.uploader || '';
+            const fileType = note.dataset.fileType || '';
+
+            const matchesSearch = !searchTerm || title.includes(searchTerm) || module.includes(searchTerm) || uploader.includes(searchTerm);
+            const matchesFormat = formatFilter === 'all' || fileType === formatFilter;
+
+            if (matchesSearch && matchesFormat) {
+                note.classList.remove('hidden-note');
+            } else {
+                note.classList.add('hidden-note');
+            }
+        });
+
+        // Hide empty sections
+        document.querySelectorAll('.campus-content .grid').forEach(grid => {
+            const visibleNotes = grid.querySelectorAll('.note-item:not(.hidden-note)');
+            const section = grid.closest('div');
+            const parentDiv = section ? section.parentElement : null;
+            if (visibleNotes.length === 0) {
+                grid.style.display = 'none';
+                if (parentDiv) {
+                    const heading = parentDiv.querySelector('.flex.items-center.space-x-4');
+                    if (heading) heading.style.display = 'none';
+                }
+            } else {
+                grid.style.display = 'grid';
+                if (parentDiv) {
+                    const heading = parentDiv.querySelector('.flex.items-center.space-x-4');
+                    if (heading) heading.style.display = 'flex';
+                }
+            }
+        });
+    }
+
+    // ── Tab switching ──
     function switchCampus(campusId) {
         document.querySelectorAll('.campus-content').forEach(el => el.classList.add('hidden'));
         const target = document.getElementById('content-' + campusId);
@@ -168,8 +243,12 @@
             activeBtn.classList.remove('border-transparent', 'text-[#b5aaa0]', 'hover:text-[#5a5248]');
             activeBtn.classList.add('border-[#c4b09a]', 'text-[#1a1a1a]');
         }
+
+        // Re-apply filters
+        setTimeout(applyFiltersCross, 100);
     }
 
+    // ─── Initialisation ───
     function initializeCrossCampus() {
         const skeleton = document.getElementById('cross-campus-skeleton');
         const real = document.getElementById('cross-campus-real-content');
@@ -177,8 +256,49 @@
             skeleton.classList.add('hidden');
             real.classList.remove('hidden');
         }
+        setTimeout(applyFiltersCross, 200);
     }
 
-    document.addEventListener('turbo:load', initializeCrossCampus);
+    // ─── Bind filter events ───
+    function bindFilterEventsCross() {
+        const searchInput = document.getElementById('search-notes-cross');
+        const formatSelect = document.getElementById('filter-format-cross');
+        const clearBtn = document.getElementById('clear-filters-cross');
+
+        if (searchInput) {
+            searchInput.removeEventListener('input', applyFiltersCross);
+            searchInput.addEventListener('input', applyFiltersCross);
+        }
+        if (formatSelect) {
+            formatSelect.removeEventListener('change', applyFiltersCross);
+            formatSelect.addEventListener('change', applyFiltersCross);
+        }
+        if (clearBtn) {
+            clearBtn.removeEventListener('click', clearFiltersCross);
+            clearBtn.addEventListener('click', clearFiltersCross);
+        }
+    }
+
+    function clearFiltersCross() {
+        const searchInput = document.getElementById('search-notes-cross');
+        const formatSelect = document.getElementById('filter-format-cross');
+        if (searchInput) searchInput.value = '';
+        if (formatSelect) formatSelect.value = 'all';
+        applyFiltersCross();
+    }
+
+    // ─── Setup on page load and Turbo navigation ───
+    function setupCrossPage() {
+        initializeCrossCampus();
+        bindFilterEventsCross();
+        setTimeout(applyFiltersCross, 300);
+    }
+
+    document.addEventListener('turbo:load', setupCrossPage);
+    document.addEventListener('DOMContentLoaded', setupCrossPage);
+
+    if (document.readyState !== 'loading') {
+        setupCrossPage();
+    }
 </script>
 {% endblock %}

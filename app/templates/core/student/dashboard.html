@@ -187,7 +187,7 @@
         </div>
     </div>
 
-    <!-- ─── RECENT UPLOADS ─── -->
+    <!-- ─── RECENT UPLOADS (with thumbnails & 2‑col mobile) ─── -->
     <div class="space-y-4">
         <div class="flex items-center space-x-2">
             <div class="h-1.5 w-3 bg-[#c4b09a] rounded-full"></div>
@@ -196,27 +196,58 @@
 
         <div id="uploads-real-content">
             {% if recent_uploads %}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
                     {% for resource in recent_uploads %}
-                    <div class="p-6 bg-white border border-[#ede8e0] rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group relative overflow-hidden">
-                        <div class="absolute top-0 inset-x-0 h-[2px] bg-[#c4b09a] opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                        <div>
-                            <div class="flex items-center justify-between">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#f5f2ec] text-[#5a5248] border border-[#ede8e0]">
-                                    <i class="fas fa-file-pdf mr-1 text-[#b5aaa0]"></i> Notes
-                                </span>
-                                <div class="h-7 w-7 rounded-lg bg-[#f5f2ec] flex items-center justify-center text-[#b5aaa0] group-hover:text-[#6b5e50] group-hover:bg-[#ece4da] transition-colors duration-200">
-                                    <i class="fas fa-file-alt"></i>
+                    <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col relative">
+                        <!-- Thumbnail -->
+                        <div class="relative h-40 bg-[#f5f2ec] overflow-hidden cursor-pointer" onclick="window.open('{{ url_for('static', filename=resource.file_path) }}', '_blank')">
+                            {% if resource.thumbnail_path %}
+                                <img src="{{ url_for('static', filename=resource.thumbnail_path) }}"
+                                     alt="{{ resource.title }}"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                     loading="lazy"
+                                     onerror="this.onerror=null; this.style.display='none'; this.parentElement.querySelector('.fallback-icon').style.display='flex';">
+                                <div class="fallback-icon hidden absolute inset-0 flex items-center justify-center text-[#b5aaa0] text-3xl">
+                                    <i class="fas fa-file-{{ resource.file_type|default('pdf') }}"></i>
                                 </div>
+                            {% else %}
+                                <div class="flex items-center justify-center h-full text-[#b5aaa0] text-3xl">
+                                    <i class="fas fa-file-{{ resource.file_type|default('pdf') }}"></i>
+                                </div>
+                            {% endif %}
+                            <!-- File type badge -->
+                            <span class="absolute top-2 left-2 bg-white/90 text-[#5a5248] text-[9px] font-bold px-1.5 py-0.5 rounded-lg border border-[#ede8e0] uppercase">
+                                {{ resource.file_type|default('pdf') }}
+                            </span>
+                            <!-- Year badge -->
+                            <span class="absolute top-2 right-2 bg-[#1a1a1a]/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg backdrop-blur-sm">
+                                Y{{ resource.academic_year }}
+                            </span>
+                            <!-- hover overlay -->
+                            <div class="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                <span class="bg-white/90 text-[#1a1a1a] px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
+                                    <i class="fas fa-eye"></i> Preview
+                                </span>
                             </div>
-                            <h3 class="text-base font-bold text-[#1a1a1a] mt-4 leading-snug group-hover:text-[#6b5e50] transition-colors duration-150">{{ resource.module_name }}</h3>
-                            <p class="text-sm text-[#7a7268] mt-2 line-clamp-2 font-light">{{ resource.title }}</p>
                         </div>
-                        <div class="mt-6 pt-4 border-t border-[#f0ebe3] flex items-center justify-between text-xs font-medium text-[#b5aaa0]">
-                            <span class="bg-[#f5f2ec] px-2 py-1 rounded-md border border-[#ede8e0]">Year {{ resource.academic_year }}</span>
-                            <a href="{{ url_for('static', filename=resource.file_path) }}" target="_blank" data-turbo="false" class="inline-flex items-center text-sm font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
-                                View <i class="fas fa-arrow-right ml-1.5 text-xs"></i>
-                            </a>
+
+                        <!-- Content -->
+                        <div class="p-3 flex-1 flex flex-col">
+                            <h3 class="text-sm font-bold text-[#1a1a1a] line-clamp-2 leading-snug group-hover:text-[#6b5e50] transition-colors">
+                                {{ resource.title }}
+                            </h3>
+                            <p class="text-[10px] text-[#7a7268] mt-1">
+                                {{ resource.module_name }}
+                            </p>
+                            <div class="mt-2 pt-2 border-t border-[#f0ebe3] flex items-center justify-between">
+                                <span class="text-[10px] text-[#b5aaa0]">
+                                    {{ resource.uploader.full_name if resource.uploader else 'Unknown' }}
+                                </span>
+                                <a href="{{ url_for('static', filename=resource.file_path) }}" download data-turbo="false"
+                                   class="inline-flex items-center text-xs font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
+                                    <i class="fas fa-download mr-1"></i> PDF
+                                </a>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -352,28 +383,42 @@
             `;
         }
 
-        let html = '<div class="grid grid-cols-1 md:grid-cols-3 gap-5">';
+        let html = '<div class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">';
         uploads.forEach(r => {
+            const fileType = r.file_type || 'pdf';
+            const iconMap = {
+                'pdf': 'fa-file-pdf',
+                'pptx': 'fa-file-powerpoint',
+                'docx': 'fa-file-word',
+                'doc': 'fa-file-word'
+            };
+            const icon = iconMap[fileType] || 'fa-file-alt';
+            const thumbnailHtml = r.thumbnail_path ?
+                `<img src="/static/${r.thumbnail_path}" alt="${r.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" onerror="this.onerror=null; this.style.display='none'; this.parentElement.querySelector('.fallback-icon').style.display='flex';">
+                <div class="fallback-icon hidden absolute inset-0 flex items-center justify-center text-[#b5aaa0] text-3xl"><i class="fas ${icon}"></i></div>` :
+                `<div class="flex items-center justify-center h-full text-[#b5aaa0] text-3xl"><i class="fas ${icon}"></i></div>`;
+
             html += `
-                <div class="p-6 bg-white border border-[#ede8e0] rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group relative overflow-hidden">
-                    <div class="absolute top-0 inset-x-0 h-[2px] bg-[#c4b09a] opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#f5f2ec] text-[#5a5248] border border-[#ede8e0]">
-                                <i class="fas fa-file-pdf mr-1 text-[#b5aaa0]"></i> Notes
+                <div class="group bg-white border border-[#ede8e0] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col relative">
+                    <div class="relative h-40 bg-[#f5f2ec] overflow-hidden cursor-pointer" onclick="window.open('/static/${r.file_path}', '_blank')">
+                        ${thumbnailHtml}
+                        <span class="absolute top-2 left-2 bg-white/90 text-[#5a5248] text-[9px] font-bold px-1.5 py-0.5 rounded-lg border border-[#ede8e0] uppercase">${fileType}</span>
+                        <span class="absolute top-2 right-2 bg-[#1a1a1a]/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg backdrop-blur-sm">Y${r.academic_year}</span>
+                        <div class="absolute inset-0 bg-[#1a1a1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <span class="bg-white/90 text-[#1a1a1a] px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
+                                <i class="fas fa-eye"></i> Preview
                             </span>
-                            <div class="h-7 w-7 rounded-lg bg-[#f5f2ec] flex items-center justify-center text-[#b5aaa0] group-hover:text-[#6b5e50] group-hover:bg-[#ece4da] transition-colors duration-200">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
                         </div>
-                        <h3 class="text-base font-bold text-[#1a1a1a] mt-4 leading-snug group-hover:text-[#6b5e50] transition-colors duration-150">${r.module_name}</h3>
-                        <p class="text-sm text-[#7a7268] mt-2 line-clamp-2 font-light">${r.title}</p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-[#f0ebe3] flex items-center justify-between text-xs font-medium text-[#b5aaa0]">
-                        <span class="bg-[#f5f2ec] px-2 py-1 rounded-md border border-[#ede8e0]">Year ${r.academic_year}</span>
-                        <a href="/static/${r.file_path}" target="_blank" data-turbo="false" class="inline-flex items-center text-sm font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
-                            View <i class="fas fa-arrow-right ml-1.5 text-xs"></i>
-                        </a>
+                    <div class="p-3 flex-1 flex flex-col">
+                        <h3 class="text-sm font-bold text-[#1a1a1a] line-clamp-2 leading-snug group-hover:text-[#6b5e50] transition-colors">${r.title}</h3>
+                        <p class="text-[10px] text-[#7a7268] mt-1">${r.module_name || ''}</p>
+                        <div class="mt-2 pt-2 border-t border-[#f0ebe3] flex items-center justify-between">
+                            <span class="text-[10px] text-[#b5aaa0]">${r.uploader_name || 'Unknown'}</span>
+                            <a href="/static/${r.file_path}" download data-turbo="false" class="inline-flex items-center text-xs font-semibold text-[#6b5e50] hover:text-[#1a1a1a] transition-colors">
+                                <i class="fas fa-download mr-1"></i> PDF
+                            </a>
+                        </div>
                     </div>
                 </div>
             `;

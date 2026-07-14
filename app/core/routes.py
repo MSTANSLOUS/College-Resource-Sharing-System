@@ -318,11 +318,15 @@ def profile():
 @core.route('/campus_notes')
 @login_required
 def campus_notes():
-    notes = Resource.query.filter_by(campus=current_user.campus) \
-        .join(Resource.programs) \
-        .filter(Program.id == current_user.program_id) \
-        .order_by(Resource.id.desc()) \
-        .all()
+    notes = Resource.query.filter_by(
+        campus=current_user.campus,
+        target_year=current_user.year,
+        target_semester=current_user.semester
+    ) \
+    .join(Resource.programs) \
+    .filter(Program.id == current_user.program_id) \
+    .order_by(Resource.id.desc()) \
+    .all()
     grouped_notes = {}
     for note in notes:
         m_name = note.module.name
@@ -340,11 +344,15 @@ def campus_notes():
 @core.route('/cross_campus')
 @login_required
 def cross_campus():
-    cross_notes = Resource.query.filter(Resource.campus != current_user.campus) \
-        .join(Resource.programs) \
-        .filter(Program.id == current_user.program_id) \
-        .order_by(Resource.id.desc()) \
-        .all()
+    cross_notes = Resource.query.filter(
+        Resource.campus != current_user.campus,
+        Resource.target_year == current_user.year,
+        Resource.target_semester == current_user.semester
+    ) \
+    .join(Resource.programs) \
+    .filter(Program.id == current_user.program_id) \
+    .order_by(Resource.id.desc()) \
+    .all()
     organized_notes = {}
     for note in cross_notes:
         campus = note.campus
