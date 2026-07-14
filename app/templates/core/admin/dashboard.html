@@ -220,13 +220,13 @@
                     <table class="min-w-full divide-y divide-[#f0ebe3]">
                         <thead class="bg-[#faf8f5] hidden sm:table-header-group">
                             <tr>
-                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Name / Email</th>
-                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Campus &amp; Program</th>
-                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Level</th>
-                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Roles</th>
-                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-4 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Online</th>
-                                <th class="px-6 py-4 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider">Actions</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Name / Email</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Campus / Program</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Level</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Role</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Approved</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Online</th>
+                                <th class="px-4 py-3 text-right text-[11px] font-bold text-[#5a5248] uppercase tracking-wider whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="users-table-body" data-endpoint="{{ url_for('core.admin_users_table') }}">
@@ -305,7 +305,7 @@
     </div>
 </div>
 
-<!-- ─── PASSWORD RESET MODAL ─── -->
+<!-- ─── PASSWORD RESET MODAL (FIXED) ─── -->
 <div id="passwordModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl border border-[#ede8e0] shadow-xl max-w-md w-full p-6 sm:p-8 relative">
         <button onclick="closePasswordModal()" class="absolute top-4 right-4 text-[#b5aaa0] hover:text-[#1a1a1a] transition-colors">
@@ -313,22 +313,38 @@
         </button>
         <h3 class="text-lg font-bold text-[#1a1a1a] mb-1">Reset Password</h3>
         <p class="text-sm text-[#7a7268] mb-6">Set a new password for <span id="modal-user-name" class="font-semibold text-[#1a1a1a]"></span></p>
+        
         <form id="passwordResetForm" method="POST" action="">
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">New Password</label>
-                    <input type="password" id="new_password" name="new_password" required
-                           class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all">
+                    <div class="password-wrapper relative">
+                        <input type="password" id="new_password" name="new_password" required
+                               class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all pr-12">
+                        <button type="button" class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 text-[#b5aaa0] hover:text-[#5a5248] transition-colors" onclick="togglePasswordVisibility(this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-1.5">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required
-                           class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all">
+                    <div class="password-wrapper relative">
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                               class="block w-full px-4 py-3 bg-white border border-[#ede8e0] rounded-xl text-sm text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#c4b09a]/20 focus:border-[#c4b09a] transition-all pr-12">
+                        <button type="button" class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 text-[#b5aaa0] hover:text-[#5a5248] transition-colors" onclick="togglePasswordVisibility(this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
+
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" onclick="closePasswordModal()" class="px-4 py-2 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">Cancel</button>
-                <button type="submit" class="px-6 py-2 bg-[#1a1a1a] hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]">Reset Password</button>
+                <button type="button" onclick="closePasswordModal()" class="px-4 py-2 bg-[#f5f2ec] hover:bg-[#ede8e0] text-[#5a5248] text-sm font-bold rounded-xl transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" id="reset-password-submit" class="px-6 py-2 bg-[#1a1a1a] hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]">
+                    Reset Password
+                </button>
             </div>
         </form>
     </div>
@@ -384,6 +400,26 @@
         tbody tr td:last-child { border-bottom: none; }
         .sm\:table-header-group { display: none !important; }
     }
+
+    /* ─── Password Toggle Styles ─── */
+    .password-wrapper {
+        position: relative;
+    }
+    .password-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        font-size: 16px;
+        transition: color 0.2s ease;
+    }
+    .password-toggle:hover {
+        color: #1a1a1a;
+    }
+    .password-toggle:focus {
+        outline: 2px solid #c4b09a;
+        border-radius: 4px;
+    }
 </style>
 
 <script>
@@ -416,13 +452,31 @@
         document.getElementById('passwordModal').classList.remove('hidden');
         document.getElementById('new_password').value = '';
         document.getElementById('confirm_password').value = '';
+        setTimeout(() => document.getElementById('new_password').focus(), 100);
     }
+
     function closePasswordModal() {
         document.getElementById('passwordModal').classList.add('hidden');
     }
+
     document.getElementById('passwordModal').addEventListener('click', function(e) {
         if (e.target === this) closePasswordModal();
     });
+
+    // ─── Password Toggle ───
+    function togglePasswordVisibility(btn) {
+        const input = btn.closest('.password-wrapper').querySelector('input');
+        const icon = btn.querySelector('i');
+        if (input.getAttribute('type') === 'password') {
+            input.setAttribute('type', 'text');
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.setAttribute('type', 'password');
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
 
     // ─── Pagination Controls ───
     document.addEventListener('click', function(e) {
@@ -439,13 +493,10 @@
         if (direction === 'next' && currentPage < totalPages) newPage = currentPage + 1;
         if (newPage === currentPage) return;
 
-        // Get the container (table body)
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        // Build URL with parameters
         let url = endpoint + '?page=' + newPage;
-        // If there are filters (for students and logs), append them
         if (container.dataset.filters) {
             const filters = JSON.parse(container.dataset.filters);
             for (const [key, value] of Object.entries(filters)) {
@@ -453,19 +504,15 @@
             }
         }
 
-        // Show loading state (optional)
         container.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-[#b5aaa0]"><i class="fas fa-spinner fa-spin mr-2"></i> Loading...</td></tr>`;
 
         fetch(url)
             .then(response => response.text())
             .then(html => {
                 container.innerHTML = html;
-                // Update pagination controls
                 const paginationContainer = container.closest('.bg-white').querySelector('.pagination-container');
                 if (paginationContainer) {
                     paginationContainer.dataset.page = newPage;
-                    // Re-render pagination controls – we'll update them by re-fetching the entire pagination template? Simpler: update numbers manually.
-                    const pageSpan = paginationContainer.querySelector('.pagination-container .page-info, .pagination-container .hidden\\:sm\\:flex-1 p');
                     const prevBtn = paginationContainer.querySelector('.pagination-prev');
                     const nextBtn = paginationContainer.querySelector('.pagination-next');
                     if (prevBtn) {
@@ -476,23 +523,13 @@
                         nextBtn.dataset.page = newPage;
                         nextBtn.disabled = newPage >= totalPages;
                     }
-                    // Update the page number display
-                    const pageNum = paginationContainer.querySelector('.page-number, .page-info span:first-child');
-                    const totalNum = paginationContainer.querySelector('.total-pages, .page-info span:last-child');
-                    if (pageNum && totalNum) {
-                        pageNum.textContent = newPage;
-                        // totalPages remains same
-                    } else {
-                        // fallback: update the whole pagination container with new page info? we can just reload the fragment.
-                        // For simplicity, we'll update the page info text.
-                        const infoText = paginationContainer.querySelector('p.text-sm');
-                        if (infoText) {
-                            infoText.innerHTML = `Showing page <span class="font-medium">${newPage}</span> of <span class="font-medium">${totalPages}</span>`;
-                        }
-                        const centerSpan = paginationContainer.querySelector('span.relative.inline-flex.items-center.px-4.py-2');
-                        if (centerSpan) {
-                            centerSpan.textContent = `${newPage} / ${totalPages}`;
-                        }
+                    const infoText = paginationContainer.querySelector('p.text-sm');
+                    if (infoText) {
+                        infoText.innerHTML = `Showing page <span class="font-medium">${newPage}</span> of <span class="font-medium">${totalPages}</span>`;
+                    }
+                    const centerSpan = paginationContainer.querySelector('span.relative.inline-flex.items-center.px-4.py-2');
+                    if (centerSpan) {
+                        centerSpan.textContent = `${newPage} / ${totalPages}`;
                     }
                 }
             })
@@ -504,7 +541,6 @@
 
     // ─── Admin dashboard initialisation ───
     function initializeAdminDashboardView() {
-        // Shimmer on admin actions
         document.querySelectorAll('.admin-action-form').forEach(form => {
             form.addEventListener('submit', function(e) {
                 const shimmerText = form.getAttribute('data-shimmer') || 'Processing...';
@@ -518,19 +554,26 @@
             });
         });
 
-        // Preserve tab state from URL params
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('year') || urlParams.has('semester')) {
             window.switchAdminTab('students');
         }
 
-        // If password form submits, show shimmer
-        document.getElementById('passwordResetForm').addEventListener('submit', function() {
+        // Password reset form submission – show shimmer and disable button
+        document.getElementById('passwordResetForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('reset-password-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Resetting...';
+            
             const adminMask = document.getElementById('admin-loading-shimmer');
             if (adminMask) {
                 adminMask.classList.remove('opacity-0', 'pointer-events-none');
                 adminMask.classList.add('opacity-100');
             }
+            
+            setTimeout(() => {
+                closePasswordModal();
+            }, 2000);
         });
 
         initializeLogFilters();

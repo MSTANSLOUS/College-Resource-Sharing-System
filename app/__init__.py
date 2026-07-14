@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask
 from config import Config
 from app.models import db, User, Program
@@ -62,6 +64,14 @@ def create_app():
     def add_ngrok_headers(response):
         response.headers['ngrok-skip-browser-warning'] = 'true'
         return response
+    
+
+    @app.before_request
+    def update_last_activity():
+        if current_user.is_authenticated:
+            current_user.last_activity = datetime.utcnow()
+            db.session.commit()
+            
 
     # ─── SocketIO Connection Handler ───
     @socketio.on('connect')
@@ -110,3 +120,5 @@ def create_app():
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+

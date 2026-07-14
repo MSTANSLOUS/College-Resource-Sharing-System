@@ -6,7 +6,6 @@
     <title>Register | Students Resource System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    
     <!-- Open Graph / Social Media Preview -->
     <meta property="og:title" content="Student Resource System" />
     <meta property="og:description" content="Share and access academic resources across campuses. Join the student network today!" />
@@ -16,7 +15,6 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/svg+xml" />
-    
     
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -106,6 +104,74 @@
                 height: auto;
                 overflow: visible;
             }
+        }
+
+        /* ─── Password Strength Meter ─── */
+        .password-strength-bar {
+            height: 4px;
+            border-radius: 9999px;
+            background: #e5e7eb;
+            margin-top: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .password-strength-bar .fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.4s ease, background 0.4s ease;
+            width: 0%;
+        }
+        .strength-label {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: block;
+            transition: color 0.3s ease;
+        }
+        .strength-weak { color: #ef4444; }
+        .strength-fair { color: #f59e0b; }
+        .strength-good { color: #eab308; }
+        .strength-strong { color: #22c55e; }
+
+        /* ─── Password Toggle (Highly Visible) ─── */
+        .password-wrapper {
+            position: relative;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ffffff;
+            border: 1px solid #d5cbbc;
+            border-radius: 8px;
+            color: #6b5e50;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 6px 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .password-toggle:hover {
+            background: #f5f2ec;
+            border-color: #c4b09a;
+            color: #1a1a1a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .password-toggle:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        .password-toggle:focus {
+            outline: 2px solid #c4b09a;
+            outline-offset: 2px;
+        }
+        .password-toggle i {
+            pointer-events: none;
         }
     </style>
 </head>
@@ -278,11 +344,38 @@
                             </div>
                         </div>
 
+                        <!-- Password with Toggle & Strength Meter -->
                         <div class="sm:col-span-2">
                             <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
-                            <input type="password" id="password" name="password" required
-                                   placeholder="••••••••"
-                                   class="mt-2 block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:bg-white transition-all duration-200">
+                            <div class="password-wrapper mt-2">
+                                <input type="password" id="password" name="password" required
+                                       placeholder="••••••••"
+                                       class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 focus:bg-white transition-all duration-200 pr-14">
+                                <button type="button" id="toggle-password" class="password-toggle" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength-bar">
+                                <div id="strength-fill" class="fill"></div>
+                            </div>
+                            <span id="strength-label" class="strength-label"></span>
+                            <ul id="strength-requirements" class="text-xs text-slate-500 mt-2 space-y-1 hidden">
+                                <li id="req-length" class="flex items-center gap-1.5 text-slate-400">
+                                    <span class="req-icon">○</span> At least 8 characters
+                                </li>
+                                <li id="req-upper" class="flex items-center gap-1.5 text-slate-400">
+                                    <span class="req-icon">○</span> One uppercase letter
+                                </li>
+                                <li id="req-lower" class="flex items-center gap-1.5 text-slate-400">
+                                    <span class="req-icon">○</span> One lowercase letter
+                                </li>
+                                <li id="req-number" class="flex items-center gap-1.5 text-slate-400">
+                                    <span class="req-icon">○</span> One number
+                                </li>
+                                <li id="req-special" class="flex items-center gap-1.5 text-slate-400">
+                                    <span class="req-icon">○</span> One special character (!@#$%^&*)
+                                </li>
+                            </ul>
                         </div>
                     </div>
 
@@ -313,6 +406,10 @@
             const emailInput = document.getElementById('email');
             const feedback = document.getElementById('email-feedback');
             const submitBtn = document.getElementById('register-submit-btn');
+            const passwordInput = document.getElementById('password');
+            const strengthFill = document.getElementById('strength-fill');
+            const strengthLabel = document.getElementById('strength-label');
+            const requirements = document.getElementById('strength-requirements');
 
             // ─── Toast System ───
             function showToast(message, type = 'error') {
@@ -430,6 +527,99 @@
                 validateEmail();
             });
 
+            // ─── Password Toggle ───
+            const toggleBtn = document.getElementById('toggle-password');
+            if (toggleBtn && passwordInput) {
+                toggleBtn.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    this.querySelector('i').classList.toggle('fa-eye');
+                    this.querySelector('i').classList.toggle('fa-eye-slash');
+                });
+            }
+
+            // ─── Password Strength Meter ───
+            function checkPasswordStrength(password) {
+                let score = 0;
+                const checks = {
+                    length: password.length >= 8,
+                    upper: /[A-Z]/.test(password),
+                    lower: /[a-z]/.test(password),
+                    number: /\d/.test(password),
+                    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+                };
+                for (const [key, val] of Object.entries(checks)) {
+                    if (val) score++;
+                }
+                return { score, checks };
+            }
+
+            function updatePasswordMeter(password) {
+                const { score, checks } = checkPasswordStrength(password);
+                const percent = (score / 5) * 100;
+                strengthFill.style.width = percent + '%';
+
+                let label = '';
+                let color = '';
+                if (score === 0) {
+                    label = '';
+                    color = 'transparent';
+                    strengthFill.style.background = 'transparent';
+                } else if (score <= 2) {
+                    label = 'Weak';
+                    color = '#ef4444';
+                } else if (score === 3) {
+                    label = 'Fair';
+                    color = '#f59e0b';
+                } else if (score === 4) {
+                    label = 'Good';
+                    color = '#eab308';
+                } else {
+                    label = 'Strong';
+                    color = '#22c55e';
+                }
+
+                strengthFill.style.background = color;
+                strengthLabel.textContent = label;
+                strengthLabel.className = `strength-label ${label.toLowerCase()}`;
+
+                if (password.length > 0) {
+                    requirements.classList.remove('hidden');
+                    const reqMap = {
+                        'req-length': checks.length,
+                        'req-upper': checks.upper,
+                        'req-lower': checks.lower,
+                        'req-number': checks.number,
+                        'req-special': checks.special
+                    };
+                    for (const [id, met] of Object.entries(reqMap)) {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            const icon = el.querySelector('.req-icon');
+                            if (met) {
+                                el.className = 'flex items-center gap-1.5 text-emerald-600';
+                                icon.textContent = '✓';
+                            } else {
+                                el.className = 'flex items-center gap-1.5 text-slate-400';
+                                icon.textContent = '○';
+                            }
+                        }
+                    }
+                } else {
+                    requirements.classList.add('hidden');
+                }
+            }
+
+            passwordInput.addEventListener('input', function() {
+                updatePasswordMeter(this.value);
+            });
+
+            passwordInput.addEventListener('blur', function() {
+                if (this.value.length > 0) {
+                    requirements.classList.remove('hidden');
+                }
+            });
+
             // ─── Form Submission Validation ───
             form.addEventListener('submit', function(e) {
                 const requiredFields = form.querySelectorAll('[required]');
@@ -468,6 +658,18 @@
                     return;
                 }
 
+                const password = passwordInput.value;
+                if (password.length > 0) {
+                    const { score } = checkPasswordStrength(password);
+                    if (score < 3) {
+                        if (!confirm('Your password is weak. Are you sure you want to continue with this password?')) {
+                            e.preventDefault();
+                            passwordInput.focus();
+                            return;
+                        }
+                    }
+                }
+
                 const authMask = document.getElementById('auth-loading-shimmer');
                 if (authMask) {
                     authMask.classList.remove('opacity-0', 'pointer-events-none');
@@ -491,5 +693,6 @@
             });
         });
     </script>
+
 </body>
 </html>

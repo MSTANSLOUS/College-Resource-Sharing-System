@@ -33,6 +33,7 @@ class User(db.Model, UserMixin):
 
     theme_preference = db.Column(db.String(20), default='light')  # 'light' or 'dark'
     language_preference = db.Column(db.String(10), default='en')  # 'en' for now
+    last_activity = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)  # soft delete flag
 
 class TransferRequest(db.Model):
