@@ -805,12 +805,6 @@
                     <span class="nav-icon"><i class="fas fa-sliders-h"></i></span>
                     <span class="nav-text">Settings</span>
                 </a>
-                <a href="{{ url_for('core.about') }}"
-                   class="nav-item {% if request.endpoint == 'core.about' %}active{% endif %}"
-                   data-tooltip="About" data-page="about">
-                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
-                    <span class="nav-text">About</span>
-                </a>
                 <a href="{{ url_for('auth.logout') }}" data-turbo="false"
                    class="nav-item" data-tooltip="Logout" style="color:#b91c1c;">
                     <span class="nav-icon"><i class="fas fa-sign-out-alt" style="color:#b91c1c;"></i></span>
