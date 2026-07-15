@@ -1,15 +1,19 @@
 import os
 
-# Get the base directory of this folder
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-
 class Config:
-    # Secret key for forms (we will keep it simple for now)
-    SECRET_KEY = 'dev-secret-key-12345'
+    # Secret key – use environment variable in production, fallback for local
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-12345'
 
-    # 💾 Database Setup: This creates a file called 'site.db' in your instance folder
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
+    # Database – use PostgreSQL if DATABASE_URL is set, otherwise SQLite
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # Render provides DATABASE_URL with 'postgres://', SQLAlchemy expects 'postgresql://'
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        SQLALCHEMY_DATABASE_URI = database_url
+    else:
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'instance', 'database.db')
 
-    # Stops Flask from raising warning messages
     SQLALCHEMY_TRACK_MODIFICATIONS = False
