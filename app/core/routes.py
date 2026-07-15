@@ -983,7 +983,7 @@ def admin_change_password(user_id):
         flash('Passwords do not match.', 'error')
         return redirect(url_for('core.admin_dashboard'))
 
-    user.password_hash = generate_password_hash(new_password)
+    user.password_hash = generate_password_hash(new_password, method='pbkdf2:sha256')
     db.session.commit()
     create_log("Password Reset", f"Admin reset password for {user.full_name} (ID: {user.id})")
     flash(f'Password for {user.full_name} has been reset successfully.', 'success')

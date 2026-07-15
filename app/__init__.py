@@ -105,7 +105,7 @@ def create_app():
             super_user = User(
                 full_name="System Super Admin",
                 email="admin@gmail.com",
-                password_hash=generate_password_hash("admin"),
+                password_hash=generate_password_hash("admin", method='pbkdf2:sha256'),
                 is_admin=True,
                 is_approved=True,
                 is_class_rep=False,
