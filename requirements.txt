@@ -11,11 +11,13 @@ Flask-Mail==0.10.0
 Flask-SocketIO==5.6.1
 Flask-SQLAlchemy==3.1.1
 greenlet==3.5.3
+gunicorn==26.0.0
 h11==0.16.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 lxml==6.1.1
 MarkupSafe==3.0.3
+packaging==26.2
 pillow==12.3.0
 pymupdf==1.28.0
 python-docx==1.2.0
