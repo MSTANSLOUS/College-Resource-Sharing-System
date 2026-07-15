@@ -47,7 +47,7 @@ def create_app():
     login_manager.login_view = 'auth.login'
 
     # SocketIO with eventlet
-    socketio.init_app(app, cors_allowed_origins="*", async_mode='eventlet')
+    socketio.init_app(app, cors_allowed_origins="*", async_mode='gevent')
 
     # Blueprints
     from app.auth.routes import auth
