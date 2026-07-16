@@ -3,7 +3,7 @@
 {% block content %}
 <div class="space-y-8 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
 
-    <!-- Loading Shimmer (fixed visibility) -->
+    <!-- Loading Shimmer -->
     <div id="upload-loading-shimmer" class="fixed inset-0 bg-[#f5f2ec]/60 backdrop-blur-[4px] z-50 opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center">
         <div class="flex flex-col items-center space-y-3 p-6 bg-white/80 rounded-2xl border border-[#ede8e0] shadow-lg max-w-xs text-center">
             <div class="relative w-10 h-10">
@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <!-- Hero Card (unchanged) -->
+    <!-- Hero Card -->
     <div class="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-10 shadow-sm border border-[#ede8e0] text-[#1a1a1a]">
         <div class="absolute -top-24 -right-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-[#f5f2ec] rounded-full blur-3xl pointer-events-none"></div>
@@ -24,7 +24,7 @@
                 Publishing System
             </span>
             <h1 class="text-3xl font-black text-[#1a1a1a] tracking-tight sm:text-4xl">Upload Resources</h1>
-            <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">Share multiple materials at once – titles are taken from file names.</p>
+            <p class="text-[#7a7268] text-sm mt-2 font-medium max-w-xl">Share multiple academic materials at once – titles are taken from file names.</p>
         </div>
     </div>
 
@@ -43,7 +43,7 @@
 
         <form id="resource-upload-form" action="{{ url_for('core.upload_resource') }}" method="POST" enctype="multipart/form-data">
 
-            <!-- Step 1: Module only -->
+            <!-- Step 1: Module only (title removed) -->
             <div id="step-1" class="step-content space-y-6">
                 <h3 class="text-lg font-bold text-[#1a1a1a]">Step 1: Select Module</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -86,7 +86,7 @@
                 </div>
             </div>
 
-            <!-- Step 2: Programs & Multiple Files (chip-based) -->
+            <!-- Step 2: Programs & multiple files -->
             <div id="step-2" class="step-content hidden space-y-6">
                 <h3 class="text-lg font-bold text-[#1a1a1a]">Step 2: Programs &amp; Files</h3>
                 <div>
@@ -110,28 +110,25 @@
                     </p>
                 </div>
 
-                <!-- File dropzone with chips -->
                 <div>
                     <label class="block text-xs font-bold text-[#5a5248] uppercase tracking-widest mb-2">Upload Documents</label>
                     <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full min-h-[160px] border-2 border-dashed border-[#ede8e0] hover:border-[#c4b09a]/60 rounded-2xl cursor-pointer bg-[#faf8f5] hover:bg-white transition-all shadow-sm group relative">
-                            <!-- Dynamic content -->
-                            <div id="dropzone-text" class="flex flex-col items-center justify-center py-6 px-4 text-center">
+                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-[#ede8e0] hover:border-[#c4b09a]/60 rounded-2xl cursor-pointer bg-[#faf8f5] hover:bg-white transition-all shadow-sm group relative">
+                            <div id="dropzone-text" class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
                                 <div class="h-14 w-14 bg-white group-hover:bg-[#f5f2ec] rounded-xl flex items-center justify-center border border-[#ede8e0] group-hover:border-[#c4b09a]/30 transition-all mb-3">
                                     <i class="fas fa-cloud-upload-alt text-2xl text-[#b5aaa0] group-hover:text-[#6b5e50] transition-colors"></i>
                                 </div>
                                 <p class="text-sm text-[#5a5248]"><span class="font-bold text-[#6b5e50] group-hover:text-[#1a1a1a]">Click to upload</span> or drag and drop</p>
                                 <p class="text-xs text-[#b5aaa0] mt-1">PDF, PPTX, DOCX, DOC files only</p>
                             </div>
-                            <!-- File chips -->
-                            <div id="file-chips" class="flex flex-wrap gap-2 justify-center px-2 pb-3"></div>
-                            <input id="dropzone-file" type="file" name="files" accept=".pdf,.pptx,.docx,.doc" multiple required class="hidden" />
-                            <!-- Clear button -->
-                            <button type="button" id="clear-file-btn" class="hidden absolute top-2 right-2 bg-white/90 text-rose-500 hover:text-rose-700 rounded-full p-1.5 shadow-md border border-[#ede8e0] transition-colors" title="Remove all files">
+                            <input id="dropzone-file" type="file" name="files" accept=".pdf,.pptx,.docx,.doc" multiple required />
+                            <button type="button" id="clear-file-btn" class="hidden absolute top-2 right-2 bg-white/90 text-rose-500 hover:text-rose-700 rounded-full p-1.5 shadow-md border border-[#ede8e0]" title="Remove all files">
                                 <i class="fas fa-times"></i>
                             </button>
                         </label>
                     </div>
+                    <!-- List of selected files -->
+                    <div id="file-list" class="mt-4 space-y-2"></div>
                 </div>
 
                 <div class="flex justify-between pt-4">
@@ -144,7 +141,7 @@
                 </div>
             </div>
 
-            <!-- Step 3: Review & Publish -->
+            <!-- Step 3: Confirm & publish all -->
             <div id="step-3" class="step-content hidden space-y-6">
                 <h3 class="text-lg font-bold text-[#1a1a1a]">Step 3: Review &amp; Publish</h3>
                 <div class="bg-[#faf8f5] rounded-2xl p-6 border border-[#ede8e0] space-y-4">
@@ -160,10 +157,11 @@
                         <span class="text-sm text-[#5a5248]">Programs</span>
                         <span id="review-programs" class="text-sm font-bold text-[#1a1a1a]">—</span>
                     </div>
-                    <div class="flex justify-between items-start border-b border-[#ede8e0] pb-2">
+                    <div class="flex justify-between items-center border-b border-[#ede8e0] pb-2">
                         <span class="text-sm text-[#5a5248]">Files</span>
-                        <div id="review-file-list" class="text-sm font-bold text-emerald-600 text-right max-w-[70%] break-words"></div>
+                        <span id="review-files" class="text-sm font-bold text-emerald-600">—</span>
                     </div>
+                    <div id="review-file-list" class="mt-2 text-xs text-[#5a5248]"></div>
                 </div>
 
                 <div class="flex justify-between pt-4">
@@ -180,11 +178,13 @@
     </div>
 </div>
 
-<!-- Toast container -->
-<div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-3 max-w-sm w-full"></div>
+<!-- Toast container (if not already in base) -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+    <!-- toasts will be inserted here -->
+</div>
 
 <script>
-    // ─── JavaScript ────────────────────────────────────────────────
+    // ─── JavaScript ──────────────────────────────────────────────────────
 
     let currentStep = 1;
     const totalSteps = 3;
@@ -238,7 +238,7 @@
                 return;
             }
 
-            // Validate extensions
+            // Validate all extensions
             let allValid = true;
             for (let file of selectedFiles) {
                 const ext = file.name.split('.').pop().toLowerCase();
@@ -250,8 +250,9 @@
             }
             if (!allValid) return;
 
-            // Fill review file list
-            document.getElementById('review-file-list').innerHTML = selectedFiles.map(f => f.name).join('<br>');
+            // Fill review
+            document.getElementById('review-files').textContent = selectedFiles.length + ' file(s)';
+            document.getElementById('review-file-list').textContent = selectedFiles.map(f => f.name).join(', ');
         }
 
         showStep(step);
@@ -261,89 +262,86 @@
         showStep(step);
     }
 
-    // ─── File dropzone logic (chips) ─────────────────────────────
+    // ─── File input handling (multiple files) ──────────────────────────
 
     const fileInput = document.getElementById('dropzone-file');
     const dropzoneText = document.getElementById('dropzone-text');
-    const chipsContainer = document.getElementById('file-chips');
     const clearBtn = document.getElementById('clear-file-btn');
     const dropzoneLabel = document.querySelector('label[for="dropzone-file"]');
     const reviewBtn = document.getElementById('review-btn');
 
-    function renderChips(files) {
-        chipsContainer.innerHTML = '';
-        if (files.length === 0) {
-            dropzoneText.style.display = 'flex';
-            clearBtn.classList.add('hidden');
+    function updateFileList(files) {
+        selectedFiles = Array.from(files);
+        const listContainer = document.getElementById('file-list');
+        listContainer.innerHTML = '';
+
+        if (selectedFiles.length === 0) {
+            // Reset dropzone
+            dropzoneText.innerHTML = `
+                <div class="h-14 w-14 bg-white group-hover:bg-[#f5f2ec] rounded-xl flex items-center justify-center border border-[#ede8e0] group-hover:border-[#c4b09a]/30 transition-all mb-3">
+                    <i class="fas fa-cloud-upload-alt text-2xl text-[#b5aaa0] group-hover:text-[#6b5e50] transition-colors"></i>
+                </div>
+                <p class="text-sm text-[#5a5248]"><span class="font-bold text-[#6b5e50] group-hover:text-[#1a1a1a]">Click to upload</span> or drag and drop</p>
+                <p class="text-xs text-[#b5aaa0] mt-1">PDF, PPTX, DOCX, DOC files only</p>
+            `;
             dropzoneLabel.classList.remove('border-solid', 'border-emerald-300', 'bg-emerald-50/30');
             dropzoneLabel.classList.add('border-dashed');
+            clearBtn.classList.add('hidden');
             reviewBtn.disabled = true;
             return;
         }
 
-        dropzoneText.style.display = 'none';
-        clearBtn.classList.remove('hidden');
-        dropzoneLabel.classList.remove('border-dashed');
-        dropzoneLabel.classList.add('border-solid', 'border-emerald-300', 'bg-emerald-50/30');
-
+        // Build file list
         let allValid = true;
-        files.forEach((file, index) => {
+        selectedFiles.forEach((file) => {
             const ext = file.name.split('.').pop().toLowerCase();
             const valid = allowedExtensions.includes(ext);
             if (!valid) allValid = false;
 
-            const chip = document.createElement('span');
-            chip.className = `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${valid ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}`;
-            chip.innerHTML = `
-                <i class="fas ${valid ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
-                ${file.name}
-                <span class="text-[10px] opacity-70">(${(file.size/1024).toFixed(0)} KB)</span>
-                <button type="button" class="ml-1 text-[#b5aaa0] hover:text-rose-500 transition-colors" onclick="removeFile(${index})">
-                    <i class="fas fa-times-circle"></i>
-                </button>
+            const fileItem = document.createElement('div');
+            fileItem.className = `flex items-center justify-between p-2 bg-white border ${valid ? 'border-emerald-200' : 'border-rose-200'} rounded-lg shadow-sm`;
+            fileItem.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fas ${valid ? 'fa-file-pdf text-emerald-500' : 'fa-exclamation-triangle text-rose-500'}"></i>
+                    <span class="text-sm font-medium text-[#1a1a1a]">${file.name}</span>
+                    <span class="text-xs text-[#b5aaa0]">(${(file.size / 1024).toFixed(0)} KB)</span>
+                </div>
+                ${valid ? '<span class="text-xs text-emerald-600 font-semibold">✓</span>' : '<span class="text-xs text-rose-600 font-semibold">Invalid type</span>'}
             `;
-            chipsContainer.appendChild(chip);
+            listContainer.appendChild(fileItem);
         });
+
+        // Update dropzone UI
+        dropzoneText.innerHTML = `
+            <div class="h-14 w-14 bg-emerald-50 rounded-xl flex items-center justify-center border border-emerald-100 mb-3">
+                <i class="fas fa-check-circle text-2xl text-emerald-500"></i>
+            </div>
+            <p class="text-sm font-bold text-[#1a1a1a]">${selectedFiles.length} file(s) selected</p>
+            <p class="text-xs text-emerald-600 font-semibold mt-1">Click to add more</p>
+        `;
+        dropzoneLabel.classList.remove('border-dashed');
+        dropzoneLabel.classList.add('border-solid', 'border-emerald-300', 'bg-emerald-50/30');
+        clearBtn.classList.remove('hidden');
 
         reviewBtn.disabled = !allValid;
         if (!allValid) {
-            showToast('Some files have unsupported extensions. Remove them.', 'warning');
-        }
-    }
-
-    // Remove a single file
-    function removeFile(index) {
-        const newFiles = Array.from(selectedFiles);
-        newFiles.splice(index, 1);
-        selectedFiles = newFiles;
-        // Update the file input
-        const dataTransfer = new DataTransfer();
-        selectedFiles.forEach(f => dataTransfer.items.add(f));
-        fileInput.files = dataTransfer.files;
-        renderChips(selectedFiles);
-        // If no files left, show dropzone text
-        if (selectedFiles.length === 0) {
-            dropzoneText.style.display = 'flex';
+            showToast('Some files have unsupported extensions. Please remove them.', 'warning');
         }
     }
 
     fileInput.addEventListener('change', function() {
-        selectedFiles = Array.from(this.files);
-        renderChips(selectedFiles);
+        updateFileList(this.files);
     });
 
     clearBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         fileInput.value = '';
-        selectedFiles = [];
-        renderChips(selectedFiles);
-        dropzoneText.style.display = 'flex';
+        updateFileList([]);
     });
 
-    // ── Form submit: show shimmer ──
+    // ── Form submit shimmer ──
     const uploadForm = document.getElementById('resource-upload-form');
     uploadForm.addEventListener('submit', function(e) {
-        // Validation (redundant but safe)
         if (selectedFiles.length === 0) {
             e.preventDefault();
             showToast('Please select at least one file.', 'warning');
@@ -363,32 +361,24 @@
             document.getElementById('program-error').classList.remove('hidden');
             return;
         }
-
-        // Show shimmer
         const mask = document.getElementById('upload-loading-shimmer');
         if (mask) {
             mask.classList.remove('opacity-0', 'pointer-events-none');
             mask.classList.add('opacity-100');
         }
-        // Allow form to submit normally
     });
 
     // ── Toast helper ──
     function showToast(message, type) {
         const container = document.getElementById('toast-container');
-        if (!container) {
-            console.warn('Toast container missing');
-            return;
-        }
+        if (!container) return;
         const toast = document.createElement('div');
-        const bg = type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800';
-        toast.className = `flex items-center gap-3 p-3 rounded-xl border shadow-sm ${bg} pointer-events-auto`;
+        const bg = type === 'warning' ? 'toast-warning' : 'toast-info';
+        toast.className = `toast ${bg}`;
         toast.innerHTML = `
-            <i class="fas ${type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-lg"></i>
-            <span class="text-sm font-medium flex-1">${message}</span>
-            <button onclick="this.closest('div').remove()" class="text-[#b5aaa0] hover:text-[#5a5248] transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
+            <i class="fas ${type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-lg" style="color: ${type === 'warning' ? '#f59e0b' : '#6b5e50'}"></i>
+            <span class="text-sm font-medium text-[#1a1a1a] flex-1">${message}</span>
+            <button onclick="this.closest('.toast').remove()" class="text-[#b5aaa0] hover:text-[#5a5248] transition-colors"><i class="fas fa-times"></i></button>
         `;
         container.appendChild(toast);
         setTimeout(() => {
@@ -400,12 +390,4 @@
     updateProgress(1);
     reviewBtn.disabled = true;
 </script>
-
-<style>
-    /* Ensure toasts are clickable */
-    #toast-container > div {
-        pointer-events: auto;
-        cursor: default;
-    }
-</style>
 {% endblock %}
