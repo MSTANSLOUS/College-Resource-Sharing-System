@@ -452,6 +452,9 @@ def generate_thumbnail(file_path, file_ext):
 
 
 
+# ════════════════════════════════════════════════════════════════════
+# 🚀  UPDATED UPLOAD RESOURCE ROUTE – MULTIPLE FILES & AUTO TITLES
+# ════════════════════════════════════════════════════════════════════
 @core.route('/upload-resource', methods=['GET', 'POST'])
 @login_required
 def upload_resource():
@@ -461,96 +464,119 @@ def upload_resource():
 
     if request.method == 'POST':
         module_id = request.form.get('module_id')
-        title = request.form.get('title')
         selected_programs = request.form.getlist('programs')
-        file = request.files.get('file')
+        files = request.files.getlist('files')   # multiple files
 
-        if not module_id or not title or not selected_programs or not file:
-            flash('All fields are required.', 'error')
+        if not module_id or not selected_programs or not files:
+            flash('Module, at least one program, and at least one file are required.', 'error')
             return redirect(url_for('core.upload_resource'))
 
-        # Validate file type
-        filename = secure_filename(file.filename)
-        ext = filename.rsplit('.', 1)[-1].lower()
-        if ext not in ALLOWED_EXTENSIONS:
-            flash('Only PDF, PPTX, DOCX, and DOC files are allowed.', 'error')
-            return redirect(url_for('core.upload_resource'))
-
+        # Validate all files first
         upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
         os.makedirs(upload_folder, exist_ok=True)
-        file_path = os.path.join(upload_folder, filename)
-        file.save(file_path)
 
-        # Generate thumbnail
-        thumbnail_data = generate_thumbnail(file_path, ext)
-        thumbnail_filename = None
-        if thumbnail_data:
-            thumb_ext = 'png'
-            thumbnail_filename = f"{os.path.splitext(filename)[0]}_thumb.{thumb_ext}"
-            thumb_full_path = os.path.join(upload_folder, thumbnail_filename)
-            with open(thumb_full_path, 'wb') as f:
-                f.write(thumbnail_data)
-            thumbnail_path = f"uploads/{thumbnail_filename}"
-        else:
-            thumbnail_path = None
+        for file in files:
+            if file.filename == '':
+                flash('One or more files have no name.', 'error')
+                return redirect(url_for('core.upload_resource'))
+            filename = secure_filename(file.filename)
+            ext = filename.rsplit('.', 1)[-1].lower()
+            if ext not in ALLOWED_EXTENSIONS:
+                flash(f'File "{filename}" has an unsupported extension.', 'error')
+                return redirect(url_for('core.upload_resource'))
 
-        # Auto-fill academic_year and semester from rep's own data
+        # Prepare common fields
         academic_year = current_user.year
         target_semester = current_user.semester
+        created_resources = []
 
-        new_resource = Resource(
-            title=title,
-            file_path=f"uploads/{filename}",
-            thumbnail_path=thumbnail_path,
-            file_type=ext,
-            module_id=module_id,
-            campus=current_user.campus,
-            academic_year=academic_year,
-            uploader_id=current_user.id,
-            target_year=current_user.year,
-            target_semester=current_user.semester
-        )
+        for file in files:
+            if file.filename == '':
+                continue
 
-        for prog_id in selected_programs:
-            program = Program.query.get(int(prog_id))
-            if program:
-                new_resource.programs.append(program)
+            original_filename = secure_filename(file.filename)
+            ext = original_filename.rsplit('.', 1)[-1].lower()
 
-        db.session.add(new_resource)
+            # Generate a unique filename to avoid collisions
+            timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+            unique_name = f"{os.path.splitext(original_filename)[0]}_{timestamp}.{ext}"
+            file_path = os.path.join(upload_folder, unique_name)
+            file.save(file_path)
+
+            # Title = original filename without extension
+            title = os.path.splitext(original_filename)[0]
+
+            # Generate thumbnail (existing function)
+            thumbnail_data = generate_thumbnail(file_path, ext)
+            thumbnail_filename = None
+            if thumbnail_data:
+                thumb_ext = 'png'
+                thumbnail_filename = f"{os.path.splitext(unique_name)[0]}_thumb.{thumb_ext}"
+                thumb_full_path = os.path.join(upload_folder, thumbnail_filename)
+                with open(thumb_full_path, 'wb') as f:
+                    f.write(thumbnail_data)
+                thumbnail_path = f"uploads/{thumbnail_filename}"
+            else:
+                thumbnail_path = None
+
+            new_resource = Resource(
+                title=title,
+                file_path=f"uploads/{unique_name}",
+                thumbnail_path=thumbnail_path,
+                file_type=ext,
+                module_id=module_id,
+                campus=current_user.campus,
+                academic_year=academic_year,
+                uploader_id=current_user.id,
+                target_year=current_user.year,
+                target_semester=current_user.semester
+            )
+
+            # Add programs
+            for prog_id in selected_programs:
+                program = Program.query.get(int(prog_id))
+                if program:
+                    new_resource.programs.append(program)
+
+            db.session.add(new_resource)
+            created_resources.append(new_resource)
+
         db.session.commit()
 
-        # ─── SocketIO: Notify students in the same class ───
+        # ─── SocketIO: notify once per resource ───
         room = f'student-{current_user.program_id}-{current_user.year}-{current_user.semester}'
-        socketio.emit('new_resource', {
-            'title': new_resource.title,
-            'module_name': new_resource.module.name,
-            'academic_year': new_resource.academic_year,
-            'uploader_name': current_user.full_name,
-            'campus': current_user.campus,
-            'file_path': new_resource.file_path,
-            'thumbnail_path': new_resource.thumbnail_path,
-            'file_type': ext,
-            'program_id': current_user.program_id,
-            'year': current_user.year,
-            'semester': current_user.semester
-        }, room=room)
+        for res in created_resources:
+            socketio.emit('new_resource', {
+                'title': res.title,
+                'module_name': res.module.name,
+                'academic_year': res.academic_year,
+                'uploader_name': current_user.full_name,
+                'campus': current_user.campus,
+                'file_path': res.file_path,
+                'thumbnail_path': res.thumbnail_path,
+                'file_type': res.file_type,
+                'program_id': current_user.program_id,
+                'year': current_user.year,
+                'semester': current_user.semester
+            }, room=room)
 
-        # Also notify admins
-        socketio.emit('new_resource', {
-            'title': new_resource.title,
-            'module_name': new_resource.module.name,
-            'uploader_name': current_user.full_name,
-            'campus': current_user.campus,
-            'file_path': new_resource.file_path,
-            'thumbnail_path': new_resource.thumbnail_path,
-            'file_type': ext,
-        }, room='admin')
+            # Also notify admins
+            socketio.emit('new_resource', {
+                'title': res.title,
+                'module_name': res.module.name,
+                'uploader_name': current_user.full_name,
+                'campus': current_user.campus,
+                'file_path': res.file_path,
+                'thumbnail_path': res.thumbnail_path,
+                'file_type': res.file_type,
+            }, room='admin')
 
         module = Module.query.get(module_id)
-        create_log("Resource Upload", f"Uploaded '{title}' for module '{module.name}' (ID: {module.id})")
-        flash('Resource uploaded successfully!')
+        create_log("Resource Upload", f"Uploaded {len(created_resources)} resource(s) for module '{module.name}'")
+        flash(f'{len(created_resources)} resource(s) uploaded successfully!')
         return redirect(url_for('core.dashboard'))
 
+    # GET request
     modules = current_user.program.modules.all()
     programs = Program.query.all()
     return render_template('core/class_rep/upload_resource.html', modules=modules, programs=programs)
